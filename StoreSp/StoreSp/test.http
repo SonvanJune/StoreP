@@ -9,7 +9,21 @@ POST http://localhost:5181/users HTTP/1.1
 Content-Type: application/json
 
 {
-    "name": "test40"
+    "name": "testdhdh40",
+    "email": "son@gmail.com",
+    "phone": "3646346",
+    "password": "12345",
+    "avatar": "123.png",
+    "roleId": "mQDCvm3buAHHXYsBPUH3"
+}
+
+###
+POST http://localhost:5181/roles HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "buyer",
+    "code": "nguoi-mua"
 }
 
 ###

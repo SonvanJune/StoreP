@@ -8,16 +8,20 @@ public class UserConverter : IBaseConverter<User, UserDto>
         return new UserDto
         {
             Id = entity.Id,
-            Name = entity.Name
+            Name = entity.Name,
+            CreatedAt = entity.CreateAt.ToDateTime().ToShortDateString(),
+            Email = entity.Email,
+            Phone = entity.Phone,
+            Password = entity.Password,
+            Avatar = entity.Avatar,
+            Status = entity.Status,
+            Active = entity.Active
         };
     }
 
     User IBaseConverter<User, UserDto>.ToEntity(UserDto dto)
     {
-        return new User
-        {
-            Name = dto.Name
-        };
+        throw new NotSupportedException();
     }
 }
 

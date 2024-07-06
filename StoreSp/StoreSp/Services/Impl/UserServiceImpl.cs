@@ -1,9 +1,11 @@
 ﻿namespace StoreSp.Services.Impl;
 
+using System.Net;
+using StoreSp.Commons;
 using StoreSp.Dtos.request;
 using StoreSp.Dtos.response;
 
-public class UserServiceImpl:IUserService
+public class UserServiceImpl : IUserService
 {
     public IResult AddUser(CreateUserDto createUserDto, UserFireStore userFireStore)
     {
@@ -11,20 +13,34 @@ public class UserServiceImpl:IUserService
         {
             return Results.NoContent();
         }
-        userFireStore!.Add(new UserDto
+
+        userFireStore!.Add(createUserDto);
+
+        return Results.Created("", new HttpStatusConfig
         {
-            Name = createUserDto.Name
+            status = HttpStatusCode.Created,
+            message = "Created Success",
+            data = null
         });
-        return Results.Created("", null);
     }
 
     public IResult GetAllUsers(UserFireStore userFireStore)
     {
-        return Results.Ok(userFireStore!.GetAllUser().Result);
+        return Results.Ok(new HttpStatusConfig
+        {
+            status = HttpStatusCode.OK,
+            message = "Success",
+            data = userFireStore!.GetAllUser().Result
+        });
     }
 
     public IResult GetUserById(string id, UserFireStore userFireStore)
     {
-        return Results.Ok(userFireStore!.GetUser(id).Result);
+        return Results.Ok(new HttpStatusConfig
+        {
+            status = HttpStatusCode.OK,
+            message = "Success",
+            data = userFireStore!.GetUser(id).Result
+        });
     }
 }
