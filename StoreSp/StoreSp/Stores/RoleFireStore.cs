@@ -4,11 +4,11 @@ using StoreSp.Entities;
 
 namespace StoreSp.Stores.Stores;
 
-public class RoleFireStore : FirestoreService
+public class RoleFireStore(FirestoreDb firestoreDb) : FirestoreService(firestoreDb)
 {
-    public RoleFireStore(FirestoreDb firestoreDb) : base(firestoreDb){}
     private const string _collectionRole = "Roles";
     private IBaseConverter<Role, CreateRoleDto> createRoleConverter = new CreateRoleConverter();
+    private IBaseConverter<Role,RoleDto> roleConverter = new RoleConverter();
 
     public Task Add(CreateRoleDto roleDto)
     {
@@ -16,4 +16,12 @@ public class RoleFireStore : FirestoreService
         var role = createRoleConverter.ToEntity(roleDto);
         return roleDb.AddAsync(role);
     }
+
+    public Task<List<RoleDto>> GetAllRoles()
+    {
+        var snapshot = base.GetSnapshots(_collectionRole);
+        var role = snapshot.Documents.Select(s => s.ConvertTo<Role>()).ToList();
+        return Task.FromResult(role.Select(roleConverter.ToDto).ToList());
+    }
+
 }

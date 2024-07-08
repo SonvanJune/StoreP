@@ -17,7 +17,7 @@ public class User
     public required string Email { get; set; }
 
     [FirestoreProperty]
-    public required string Phone { get; set; }
+    public string Phone { get; set; } = "";
 
     [FirestoreProperty]
     public required string Password { get; set; }

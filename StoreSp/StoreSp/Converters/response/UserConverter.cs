@@ -1,4 +1,6 @@
 ﻿namespace StoreSp.Converters.response;
+
+using StoreSp.Commons;
 using StoreSp.Dtos.response;
 using StoreSp.Entities;
 public class UserConverter : IBaseConverter<User, UserDto>
@@ -12,7 +14,7 @@ public class UserConverter : IBaseConverter<User, UserDto>
             CreatedAt = entity.CreateAt.ToDateTime().ToShortDateString(),
             Email = entity.Email,
             Phone = entity.Phone,
-            Password = entity.Password,
+            PasswordHash = entity.Password,
             Avatar = entity.Avatar,
             Status = entity.Status,
             Active = entity.Active

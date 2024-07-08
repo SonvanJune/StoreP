@@ -1,7 +1,7 @@
 ﻿using StoreSp.Services;
 using StoreSp.Stores.Stores;
 
-namespace StoreSp;
+namespace StoreSp.Endpoints;
 
 public static class RoleEndpoint
 {
@@ -19,13 +19,13 @@ public static class RoleEndpoint
 
         group.MapGet("/", () =>
         {
-            // return userService.GetAllUsers(userFireStore!);
+            return roleService.GetAllRoles(roleFireStore!);
         });
 
-        group.MapGet("/{id}", (string id) =>
-        {
-            // return userService.GetUserById(id, userFireStore!);
-        });
+        // group.MapGet("/{id}", (string id) =>
+        // {
+        //     // return userService.GetUserById(id, userFireStore!);
+        // });
 
         return group;
     }

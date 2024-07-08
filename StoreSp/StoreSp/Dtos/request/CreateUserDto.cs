@@ -11,7 +11,7 @@ public class CreateUserDto
     public required string Email { get; set;}
 
     [Required]
-    public required string Phone { get; set;}
+    public string Phone { get; set;} = "";
 
     [Required]
     public required string Password { get; set;}

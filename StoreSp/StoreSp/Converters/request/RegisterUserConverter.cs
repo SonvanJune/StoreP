@@ -5,14 +5,14 @@ using StoreSp.Entities;
 
 namespace StoreSp;
 
-public class CreateUserConverter : IBaseConverter<User, CreateUserDto>
+public class RegisterUserConverter:IBaseConverter<User,RegisterUserDto>
 {
-    CreateUserDto IBaseConverter<User, CreateUserDto>.ToDto(User entity)
+    RegisterUserDto IBaseConverter<User, RegisterUserDto>.ToDto(User entity)
     {
         throw new NotImplementedException();
     }
 
-    User IBaseConverter<User, CreateUserDto>.ToEntity(CreateUserDto dto)
+    User IBaseConverter<User, RegisterUserDto>.ToEntity(RegisterUserDto dto)
     {
         return new User
         {

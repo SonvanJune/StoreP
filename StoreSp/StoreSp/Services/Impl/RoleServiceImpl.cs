@@ -23,4 +23,14 @@ public class RoleServiceImpl: IRoleService
             data = null
         });
     }
+
+    public IResult GetAllRoles(RoleFireStore roleFireStore)
+    {
+        return Results.Ok(new HttpStatusConfig
+        {
+            status = HttpStatusCode.OK,
+            message = "Success",
+            data = roleFireStore!.GetAllRoles().Result
+        });
+    }
 }
