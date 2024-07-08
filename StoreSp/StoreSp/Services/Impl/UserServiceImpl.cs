@@ -106,8 +106,10 @@ public class UserServiceImpl : IUserService
         }
     }
 
-    public IResult GetUserByToken(string token, UserFireStore userFireStore)
+    public IResult GetUserByToken(string authorization, UserFireStore userFireStore)
     {
+        string[] arrListStr = authorization.Split(' ');
+        string token = arrListStr[1];
         if (authService!.ValidateToken(token))
         {
             var email = authService!.GetEmailByToken(token);

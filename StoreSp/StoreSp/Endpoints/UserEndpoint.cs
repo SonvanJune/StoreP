@@ -41,10 +41,10 @@ public static class UserEndpoint
             return userService.Login(dto,userFireStore!);
         }).WithParameterValidation();
 
-        group.MapGet("/users/token", ([FromHeader]string token) =>
+        group.MapGet("/users/token", ([FromHeader]string authorization) =>
         {
-            return userService.GetUserByToken(token,userFireStore!);
-        });
+            return userService.GetUserByToken(authorization,userFireStore!);
+        }).RequireAuthorization("quan-tri-vien");
         return group;
     }
 }

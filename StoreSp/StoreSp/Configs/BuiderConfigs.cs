@@ -63,7 +63,8 @@ public static class BuiderConfig
             });
         builder.Services.AddAuthorization(options =>
         {
-            options.AddPolicy("Admin", policy => policy.RequireRole("admin"));
+            options.AddPolicy("quan-tri-vien", policy => policy.RequireRole("quan-tri-vien"));
+            options.AddPolicy("nguoi-mua", policy => policy.RequireRole("nguoi-mua"));
         });
         builder.Services.AddCors(options =>
         {
