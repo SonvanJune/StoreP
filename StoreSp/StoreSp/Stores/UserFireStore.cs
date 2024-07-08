@@ -1,38 +1,90 @@
-﻿using Google.Cloud.Firestore;
+﻿using System.Net;
+using Google.Cloud.Firestore;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
+using StoreSp.Commons;
 using StoreSp.Converters;
 using StoreSp.Converters.response;
+using StoreSp.Dtos.request;
 using StoreSp.Dtos.response;
 using StoreSp.Entities;
 using StoreSp.Stores;
 
-namespace StoreSp;
+namespace StoreSp.Stores;
 
-public class UserFireStore:FirestoreService
+public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestoreDb)
 {
-    private const string _collectionName = "Users";
-    private IBaseConverter<User,UserDto> userConverter = new UserConverter();
-
-    public UserFireStore(FirestoreDb firestoreDb) : base(firestoreDb){}
+    ///
+    private const string _collectionUser = "Users";
+    private const string _collectionRole = "Roles";
+    private readonly IBaseConverter<User, UserDto> userConverter = new UserConverter();
+    private readonly IBaseConverter<User, CreateUserDto> createUserConverter = new CreateUserConverter();
+    private readonly IBaseConverter<User, RegisterUserDto> registerUserConverter = new RegisterUserConverter();
 
     public Task<List<UserDto>> GetAllUser()
     {
-        var snapshot = base.GetSnapshots(_collectionName);
+        var snapshot = base.GetSnapshots(_collectionUser);
         var user = snapshot.Documents.Select(s => s.ConvertTo<User>()).ToList();
         return Task.FromResult(user.Select(userConverter.ToDto).ToList());
     }
 
     public Task<UserDto> GetUser(string id)
     {
-        var snapshot = base.GetSnapshots(_collectionName);
+        var snapshot = base.GetSnapshots(_collectionUser);
         var user = snapshot.Documents.Select(s => s.ConvertTo<User>()).ToList().Find(u => u.Id == id);
         return Task.FromResult(userConverter.ToDto(user!));
     }
 
-
-    public Task Add(UserDto userDto)
+    public Task Add(CreateUserDto userDto)
     {
-        var collection = _firestoreDb.Collection(_collectionName);
-        var user = userConverter.ToEntity(userDto);
-        return collection.AddAsync(user);
+        var userDb = _firestoreDb.Collection(_collectionUser);
+        var roleDb = base.GetSnapshots(_collectionRole);
+        var user = createUserConverter.ToEntity(userDto);
+        var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == userDto.RoleId);
+        if (role != null)
+        {
+            user.roleId = role.Id;
+            user.role = role;
+        }
+        return userDb.AddAsync(user);
+    }
+
+    public Task Register(RegisterUserDto userDto)
+    {
+        var userDb = _firestoreDb.Collection(_collectionUser);
+        var roleDb = base.GetSnapshots(_collectionRole);
+
+        var user = registerUserConverter.ToEntity(userDto);
+        var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == userDto.RoleId);
+        if (role == null)
+        {
+            throw new InvalidOperationException("Role not found");
+        }
+        user.roleId = role.Id;
+        user.role = role;
+        return userDb.AddAsync(user);
+    }
+
+    public User Login(LoginUserDto userDto){
+        var userDb = base.GetSnapshots(_collectionUser);
+        var roleDb = base.GetSnapshots(_collectionRole);
+
+        var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == userDto.Email);
+        if (user == null || !BCrypt.Net.BCrypt.Verify(userDto.Password, user.Password))
+        {
+            return null!;
+        }
+        var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == user!.roleId);
+        user.role = role;
+        return user;
+    }
+
+    public UserDto GetUserByEmail(string email){
+        var userDb = base.GetSnapshots(_collectionUser);
+        var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);
+        if (user == null)
+        {
+            return null!;
+        }
+        return userConverter.ToDto(user);
     }
 }
