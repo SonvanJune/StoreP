@@ -72,7 +72,7 @@ public static class BuiderConfig
             {
                 policy.AllowAnyHeader()
                 .AllowAnyMethod()
-                .AllowAnyOrigin().WithOrigins("http://localhost:5288/");
+                .AllowAnyOrigin();
             });
         });
 
