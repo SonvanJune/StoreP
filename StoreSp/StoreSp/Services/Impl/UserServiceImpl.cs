@@ -82,7 +82,7 @@ public class UserServiceImpl : IUserService
         {
             return Results.NotFound(new HttpStatusConfig
             {
-                status = HttpStatusCode.BadRequest,
+                status = HttpStatusCode.UnprocessableEntity,
                 message = "Database not found",
                 data = null
             });
@@ -105,8 +105,8 @@ public class UserServiceImpl : IUserService
         {
             return Results.BadRequest(new HttpStatusConfig
             {
-                status = HttpStatusCode.BadRequest,
-                message = "Email or password incorrect",
+                status = HttpStatusCode.UnprocessableEntity,
+                message = "Email , Phone or password incorrect",
                 data = null
             });
         }
