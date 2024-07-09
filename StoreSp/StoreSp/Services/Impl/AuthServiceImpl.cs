@@ -2,9 +2,10 @@
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
+using StoreSp.Configs;
 using StoreSp.Entities;
 
-namespace StoreSp;
+namespace StoreSp.Services.Impl;
 
 public class AuthServiceImpl : IAuthService
 {

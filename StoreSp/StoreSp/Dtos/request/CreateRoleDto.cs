@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace StoreSp;
+namespace StoreSp.Dtos.request;
 
 public class CreateRoleDto
 {

@@ -1,13 +1,11 @@
-﻿using System.Net;
-using Google.Cloud.Firestore;
+﻿using Google.Cloud.Firestore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
-using StoreSp.Commons;
 using StoreSp.Converters;
+using StoreSp.Converters.request;
 using StoreSp.Converters.response;
 using StoreSp.Dtos.request;
 using StoreSp.Dtos.response;
 using StoreSp.Entities;
-using StoreSp.Stores;
 
 namespace StoreSp.Stores;
 
@@ -16,7 +14,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
     ///
     private const string _collectionUser = "Users";
     private const string _collectionRole = "Roles";
-    private readonly IBaseConverter<User, UserDto> userConverter = new UserConverter();
+    public readonly IBaseConverter<User, UserDto> userConverter = new UserConverter();
     private readonly IBaseConverter<User, CreateUserDto> createUserConverter = new CreateUserConverter();
     private readonly IBaseConverter<User, RegisterUserDto> registerUserConverter = new RegisterUserConverter();
 
@@ -48,7 +46,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         return userDb.AddAsync(user);
     }
 
-    public Task Register(RegisterUserDto userDto)
+    public User Register(RegisterUserDto userDto)
     {
         var userDb = _firestoreDb.Collection(_collectionUser);
         var roleDb = base.GetSnapshots(_collectionRole);
@@ -61,7 +59,8 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         }
         user.roleId = role.Id;
         user.role = role;
-        return userDb.AddAsync(user);
+        userDb.AddAsync(user);
+        return user;
     }
 
     public User Login(LoginUserDto userDto){

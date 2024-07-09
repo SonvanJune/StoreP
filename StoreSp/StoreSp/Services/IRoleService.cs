@@ -1,4 +1,5 @@
-﻿using StoreSp.Stores.Stores;
+﻿using StoreSp.Dtos.request;
+using StoreSp.Stores.Stores;
 
 namespace StoreSp.Services;
 

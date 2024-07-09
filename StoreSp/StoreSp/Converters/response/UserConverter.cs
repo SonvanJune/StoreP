@@ -1,6 +1,6 @@
 ﻿namespace StoreSp.Converters.response;
 
-using StoreSp.Commons;
+using StoreSp.Commonds;
 using StoreSp.Dtos.response;
 using StoreSp.Entities;
 public class UserConverter : IBaseConverter<User, UserDto>
@@ -9,7 +9,6 @@ public class UserConverter : IBaseConverter<User, UserDto>
     {
         return new UserDto
         {
-            Id = entity.Id,
             Name = entity.Name,
             CreatedAt = entity.CreateAt.ToDateTime().ToShortDateString(),
             Email = entity.Email,

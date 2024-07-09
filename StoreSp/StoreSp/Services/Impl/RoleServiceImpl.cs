@@ -1,9 +1,10 @@
 ﻿using System.Net;
-using StoreSp.Commons;
+using StoreSp.Commonds;
+using StoreSp.Dtos.request;
 using StoreSp.Services;
 using StoreSp.Stores.Stores;
 
-namespace StoreSp;
+namespace StoreSp.Services.Impl;
 
 public class RoleServiceImpl: IRoleService
 {

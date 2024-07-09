@@ -1,7 +1,7 @@
-﻿using StoreSp.Converters;
+﻿using StoreSp.Dtos.response;
 using StoreSp.Entities;
 
-namespace StoreSp;
+namespace StoreSp.Converters.response;
 
 public class RoleConverter : IBaseConverter<Role, RoleDto>
 {

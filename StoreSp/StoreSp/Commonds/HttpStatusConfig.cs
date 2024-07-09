@@ -1,7 +1,6 @@
 ﻿using System.Net;
-using Google.Rpc;
 
-namespace StoreSp.Commons;
+namespace StoreSp.Commonds;
 
 public class HttpStatusConfig
 {

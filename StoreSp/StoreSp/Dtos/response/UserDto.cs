@@ -1,10 +1,7 @@
-﻿using Google.Cloud.Firestore;
-
-namespace StoreSp.Dtos.response;
+﻿namespace StoreSp.Dtos.response;
 
 public class UserDto
 {
-    public string? Id { get; set; }
     public required string CreatedAt { get; set; }
     public required string Name { get; set; }
     public required string Email { get; set;}

@@ -1,6 +1,6 @@
 ﻿using StoreSp.Entities;
 
-namespace StoreSp;
+namespace StoreSp.Services;
 
 public interface IAuthService
 {

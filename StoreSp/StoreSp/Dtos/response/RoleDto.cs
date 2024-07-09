@@ -1,4 +1,4 @@
-﻿namespace StoreSp;
+﻿namespace StoreSp.Dtos.response;
 
 public class RoleDto
 {

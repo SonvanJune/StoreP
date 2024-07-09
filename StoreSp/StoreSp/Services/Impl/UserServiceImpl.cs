@@ -2,7 +2,7 @@
 
 using System.Net;
 using StoreSp.Stores;
-using StoreSp.Commons;
+using StoreSp.Commonds;
 using StoreSp.Dtos.request;
 using StoreSp.Dtos.response;
 
@@ -64,12 +64,15 @@ public class UserServiceImpl : IUserService
             });
         }
 
-        userFireStore!.Register(registerUserDto);
+        var user = userFireStore!.Register(registerUserDto);
         return Results.Created("", new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
             message = "Register Success",
-            data = null
+            data = new UserTokenDto{
+                    Token = authService!.GenerateToken(user),
+                    User = userFireStore.userConverter.ToDto(user)
+                }
         });
     }
 
@@ -92,7 +95,10 @@ public class UserServiceImpl : IUserService
             {
                 status = HttpStatusCode.OK,
                 message = "Login success",
-                data = authService!.GenerateToken(user)
+                data = new UserTokenDto{
+                    Token = authService!.GenerateToken(user),
+                    User = userFireStore.userConverter.ToDto(user)
+                }
             });
         }
         else
