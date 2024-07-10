@@ -68,6 +68,15 @@ public class UserServiceImpl : IUserService
         }
 
         var user = userFireStore!.Register(registerUserDto);
+        if(user is null){
+            return Results.BadRequest(new HttpStatusConfig
+            {
+                status = HttpStatusCode.BadRequest,
+                message = "Email or Phone already exists",
+                data = null
+            });
+        }
+
         emailService!.SendEmail(new EmailDto
         {
             Email = user.Email,

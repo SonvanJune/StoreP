@@ -50,6 +50,18 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
 
     public User Register(RegisterUserDto userDto)
     {
+        var userExistDb = base.GetSnapshots(_collectionUser);
+        var emailExist = userExistDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == userDto.Email);
+        var phoneExist = userExistDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == userDto.Phone);
+        if (emailExist!= null)
+        {
+            return null!;
+        }
+        if (phoneExist!= null)
+        {
+            return null!;
+        }
+
         var userDb = _firestoreDb.Collection(_collectionUser);
         var roleDb = base.GetSnapshots(_collectionRole);
 
@@ -57,7 +69,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Code == userDto.RoleCode);
         if (role == null)
         {
-            throw new InvalidOperationException("Role not found");
+            return null!;
         }
         user.roleId = role.Id;
         user.role = role;
