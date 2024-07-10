@@ -12,7 +12,7 @@ public record RegisterUserDto
 
     [Required] string Password,
 
-    [Required] string Avatar,
+    string Avatar,
 
     [Required] string RoleId
 );

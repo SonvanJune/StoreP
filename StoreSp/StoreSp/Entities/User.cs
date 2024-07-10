@@ -38,7 +38,7 @@ public class User
     public Timestamp ResetTokenExpires { get; set; }
 
     [FirestoreProperty]
-    public required string Avatar { get; set; }
+    public string Avatar { get; set; } = "";
 
     public Role? role { get; set; }
 
