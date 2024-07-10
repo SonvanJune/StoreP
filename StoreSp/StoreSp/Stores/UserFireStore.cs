@@ -6,6 +6,8 @@ using StoreSp.Converters.response;
 using StoreSp.Dtos.request;
 using StoreSp.Dtos.response;
 using StoreSp.Entities;
+using StoreSp.Services;
+using StoreSp.Services.Impl;
 
 namespace StoreSp.Stores;
 
@@ -59,28 +61,35 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         }
         user.roleId = role.Id;
         user.role = role;
+        user.VerificationToken = AuthServiceImpl.CreateRandomToken(user);
         userDb.AddAsync(user);
         return user;
     }
 
-    public User Login(LoginUserDto loginUserDto){
+    public User Login(LoginUserDto loginUserDto)
+    {
         var userDb = base.GetSnapshots(_collectionUser);
         var roleDb = base.GetSnapshots(_collectionRole);
         User user;
 
         if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == loginUserDto.Username) == null)
         {
-            if(userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == loginUserDto.Username) == null){
+            if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == loginUserDto.Username) == null)
+            {
                 return null!;
             }
-            else{
+            else
+            {
                 user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == loginUserDto.Username)!;
             }
-        }else{
+        }
+        else
+        {
             user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == loginUserDto.Username)!;
         }
 
-        if(!BCrypt.Net.BCrypt.Verify(loginUserDto.Password, user.PasswordHash)){
+        if (!BCrypt.Net.BCrypt.Verify(loginUserDto.Password, user.PasswordHash))
+        {
             return null!;
         }
 
@@ -89,7 +98,8 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         return user;
     }
 
-    public UserDto GetUserByEmail(string email){
+    public UserDto GetUserByEmail(string email)
+    {
         var userDb = base.GetSnapshots(_collectionUser);
         var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);
         if (user == null)
@@ -98,4 +108,63 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         }
         return userConverter.ToDto(user);
     }
+
+    public async Task<User> VerifyUser(string email)
+    {
+        var userDb = base.GetSnapshots(_collectionUser);
+        var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);
+        if (user == null)
+        {
+            return null!;
+        }
+
+        var unspecified = DateTime.UtcNow;
+        var specified = DateTime.SpecifyKind(unspecified, DateTimeKind.Utc);
+        DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
+        Dictionary<string, object> data = new Dictionary<string, object>{
+            {"VerifiedAt" , specified}
+        };
+
+        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
+        if(snapshot.Exists){
+            await docref.UpdateAsync(data);
+        }
+        return user;
+    }
+
+    public bool checkIsVerified(string email){
+        var userDb = base.GetSnapshots(_collectionUser);
+        var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);
+        if(user == null) return false;
+        return user.VerifiedAt.ToDateTime().Year != 1111;
+    }
+
+    public bool checkValidToken(string email, string token){
+        var userDb = base.GetSnapshots(_collectionUser);
+        var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);
+        return user!.VerificationToken == token;
+    }
+
+    public async Task<User> ForgetPasword(string email, byte[] randomCode){
+        var userDb = base.GetSnapshots(_collectionUser);
+        var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);
+        if (user == null)
+        {
+            return null!;
+        }
+
+        var unspecified = DateTime.UtcNow.AddDays(1);
+        var specified = DateTime.SpecifyKind(unspecified, DateTimeKind.Utc);
+        DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
+        Dictionary<string, object> data = new Dictionary<string, object>{
+            {"PasswordReestToken" , AuthServiceImpl.CreateRandomNumerToken(randomCode)},
+            {"ResetTokenExpires" , specified}
+        };
+
+        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
+        if(snapshot.Exists){
+            await docref.UpdateAsync(data);
+        }
+        return user;
+    } 
 }

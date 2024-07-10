@@ -6,9 +6,9 @@ public record RegisterUserDto
 (
     [Required] string Name,
 
-    [Required] string Email,
+    string Email,
 
-    [Required] string Phone,
+    string Phone,
 
     [Required] string Password,
 

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using StoreSp.Dtos.request;
+using StoreSp.Dtos.response;
 using StoreSp.Services;
 using StoreSp.Services.Impl;
 using StoreSp.Stores;
@@ -10,12 +11,11 @@ public static class UserEndpoint
 {
     public static UserFireStore? userFireStore { get; set; }
     public static IUserService? userService { get; set;}
-    public static IAuthService? authService { get; set;}
+
     public static RouteGroupBuilder MapUserEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("api/");
         userService = new UserServiceImpl();
-        authService =  new AuthServiceImpl();
 
         group.MapPost("/users", (CreateUserDto createUserDto) =>
         {
@@ -44,7 +44,20 @@ public static class UserEndpoint
         group.MapGet("/users/token", ([FromHeader]string authorization) =>
         {
             return userService.GetUserByToken(authorization,userFireStore!);
-        }).RequireAuthorization("quan-tri-vien");
+        });
+
+        // group.MapPost("/users/sendEmail", (EmailDto dto)=>{
+        //     emailService.SendEmail(dto);
+        // });
+
+        group.MapGet("/users/verify/{token}" ,(string token)=>{
+            return userService.VerifyUser(token,userFireStore!);
+        });
+
+        group.MapPost("/users/forgot-password/" ,(string email)=>{
+            return userService.ForgetPassword(email,userFireStore!);
+        });
+
         return group;
     }
 }

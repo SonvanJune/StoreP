@@ -5,14 +5,17 @@ using StoreSp.Stores;
 using StoreSp.Commonds;
 using StoreSp.Dtos.request;
 using StoreSp.Dtos.response;
+using System.Security.Cryptography;
 
 public class UserServiceImpl : IUserService
 {
     public IAuthService? authService { get; set; }
+    public IEmailService? emailService { get; set; }
 
     public UserServiceImpl()
     {
         authService = new AuthServiceImpl();
+        emailService = new EmailServiceImpl();
     }
 
     public IResult AddUser(CreateUserDto createUserDto, UserFireStore userFireStore)
@@ -65,14 +68,21 @@ public class UserServiceImpl : IUserService
         }
 
         var user = userFireStore!.Register(registerUserDto);
+        emailService!.SendEmail(new EmailDto
+        {
+            Email = user.Email,
+            Subject = "Xac thuc email",
+            Message = EmailFormConfig.EMAIL_VERIFY($"http://localhost:5181/api/users/verify/{user.VerificationToken}", user.Email, "http://localhost:5181")
+        });
         return Results.Created("", new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
             message = "Register Success",
-            data = new UserTokenDto{
-                    Token = authService!.GenerateToken(user),
-                    User = userFireStore.userConverter.ToDto(user)
-                }
+            data = new UserTokenDto
+            {
+                Token = authService!.GenerateToken(user),
+                User = userFireStore.userConverter.ToDto(user)
+            }
         });
     }
 
@@ -92,7 +102,8 @@ public class UserServiceImpl : IUserService
         {
             var user = userFireStore.Login(loginUserDto);
             //nam thang ngay mac dinh 1111/11/11 
-            if(user.VerifiedAt.ToDateTime().Year == 1111){
+            if (user.VerifiedAt.ToDateTime().Year == 1111)
+            {
                 return Results.BadRequest(new HttpStatusConfig
                 {
                     status = HttpStatusCode.UnprocessableEntity,
@@ -104,7 +115,8 @@ public class UserServiceImpl : IUserService
             {
                 status = HttpStatusCode.OK,
                 message = "Login success",
-                data = new UserTokenDto{
+                data = new UserTokenDto
+                {
                     Token = authService!.GenerateToken(user),
                     User = userFireStore.userConverter.ToDto(user)
                 }
@@ -148,11 +160,96 @@ public class UserServiceImpl : IUserService
                 });
             }
         }
-        else{
+        else
+        {
             return Results.BadRequest(new HttpStatusConfig
             {
                 status = HttpStatusCode.BadRequest,
                 message = "Token has expired",
+                data = null
+            });
+        }
+    }
+
+    public IResult VerifyUser(string token, UserFireStore userFireStore)
+    {
+        if (authService!.ValidateToken(token))
+        {
+            var email = authService!.GetEmailByToken(token);
+            if (!userFireStore.checkValidToken(email, token))
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token invalid",
+                    data = null
+                });
+            }
+
+            if (userFireStore.checkIsVerified(email))
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
+
+            if (userFireStore.VerifyUser(email) != null)
+            {
+                return Results.Ok(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.OK,
+                    message = "USer verified successfully",
+                    data = null
+                });
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Can not find user",
+                    data = null
+                });
+            }
+        }
+        else
+        {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+                status = HttpStatusCode.BadRequest,
+                message = "Token has expired",
+                data = null
+            });
+        }
+    }
+
+    public IResult ForgetPassword(string email, UserFireStore userFireStore)
+    {
+        byte[] genCode = RandomNumberGenerator.GetBytes(4);
+        if (userFireStore.ForgetPasword(email, genCode).Result != null)
+        {
+            emailService!.SendEmail(new EmailDto
+            {
+                Email = email,
+                Subject = "Quên mật khẩu!!",
+                Message = EmailFormConfig.EMAIL_VERIFY($"http://localhost:5181/api/users/reset-password/{genCode.ToString()}", email, "http://localhost:5181")
+            });
+            return Results.Ok(new HttpStatusConfig
+            {
+                status = HttpStatusCode.OK,
+                message = "Request has accepted",
+                data = null
+            });
+        }
+        else
+        {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+                status = HttpStatusCode.BadRequest,
+                message = "Can not find user",
                 data = null
             });
         }

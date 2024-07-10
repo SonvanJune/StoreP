@@ -2,7 +2,6 @@
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using StoreSp.Configs;
 using StoreSp.Entities;
 
 namespace StoreSp.Services.Impl;
@@ -76,5 +75,48 @@ public class AuthServiceImpl : IAuthService
         claims.AddClaim(new Claim(ClaimTypes.Name, user.Email));
         claims.AddClaim(new Claim(ClaimTypes.Role, role.Code));
         return claims;
+    }
+
+    public static string CreateRandomToken(User user)
+    {
+        var handler = new JwtSecurityTokenHandler();
+        var key = Encoding.ASCII.GetBytes(AuthConfig.PrivateKey);
+        var credentials = new SigningCredentials(
+            new SymmetricSecurityKey(key),
+            SecurityAlgorithms.HmacSha256Signature);
+
+        var claims = new ClaimsIdentity();
+        claims.AddClaim(new Claim(ClaimTypes.Name, user.Email));
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = claims,
+            Expires = DateTime.UtcNow.AddMinutes(120),
+            SigningCredentials = credentials,
+        };
+
+        var token = handler.CreateToken(tokenDescriptor);
+        return handler.WriteToken(token);
+    }
+
+    public static string CreateRandomNumerToken(byte[] randomCode){
+        var handler = new JwtSecurityTokenHandler();
+        var key = Encoding.ASCII.GetBytes(AuthConfig.PrivateKey);
+        var credentials = new SigningCredentials(
+            new SymmetricSecurityKey(key),
+            SecurityAlgorithms.HmacSha256Signature);
+
+        var claims = new ClaimsIdentity();
+        claims.AddClaim(new Claim(ClaimTypes.Name, randomCode.ToString()!));
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = claims,
+            Expires = DateTime.UtcNow.AddMinutes(120),
+            SigningCredentials = credentials,
+        };
+
+        var token = handler.CreateToken(tokenDescriptor);
+        return handler.WriteToken(token);
     }
 }

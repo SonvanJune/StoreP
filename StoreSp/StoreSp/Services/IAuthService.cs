@@ -4,7 +4,8 @@ namespace StoreSp.Services;
 
 public interface IAuthService
 {
-    public string GenerateToken(User user);
-    public string GetEmailByToken(string token);
     public bool ValidateToken(string token);
+    public string GenerateToken(User user);
+
+    public string GetEmailByToken(string token);
 }

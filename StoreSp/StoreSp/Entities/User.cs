@@ -26,6 +26,9 @@ public class User
     public int Status { get; set; }
 
     [FirestoreProperty]
+    public string? VerificationToken { get; set; }
+
+    [FirestoreProperty]
     public Timestamp VerifiedAt { get; set; }
     
     [FirestoreProperty]
