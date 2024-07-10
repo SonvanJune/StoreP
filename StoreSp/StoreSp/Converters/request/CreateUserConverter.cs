@@ -18,9 +18,8 @@ public class CreateUserConverter : IBaseConverter<User, CreateUserDto>
             Name = dto.Name,
             Email = dto.Email,
             Phone = dto.Phone,
-            Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             Status = 0,
-            Active = 0,
             Avatar = dto.Avatar,
             CreateAt = new Timestamp()
         };

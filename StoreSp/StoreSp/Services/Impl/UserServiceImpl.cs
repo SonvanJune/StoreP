@@ -91,6 +91,15 @@ public class UserServiceImpl : IUserService
         if (userFireStore.Login(loginUserDto) != null)
         {
             var user = userFireStore.Login(loginUserDto);
+            //nam thang ngay mac dinh 1111/11/11 
+            if(user.VerifiedAt.ToDateTime().Year == 1111){
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.UnprocessableEntity,
+                    message = "User not verified yet",
+                    data = null
+                });
+            }
             return Results.Ok(new HttpStatusConfig
             {
                 status = HttpStatusCode.OK,

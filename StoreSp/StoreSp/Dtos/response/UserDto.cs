@@ -9,5 +9,5 @@ public class UserDto
     public required string PasswordHash { get; set;}
     public required string Avatar { get; set;}
     public int Status { get; set; }
-    public int Active { get; set; }
+    public required string VerifiedAt { get; set; }
 }

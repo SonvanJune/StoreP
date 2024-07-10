@@ -63,27 +63,27 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         return user;
     }
 
-    public User Login(LoginUserDto userDto){
+    public User Login(LoginUserDto loginUserDto){
         var userDb = base.GetSnapshots(_collectionUser);
         var roleDb = base.GetSnapshots(_collectionRole);
         User user;
 
-        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == userDto.Username) == null)
+        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == loginUserDto.Username) == null)
         {
-            if(userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == userDto.Username) == null){
+            if(userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == loginUserDto.Username) == null){
                 return null!;
             }
             else{
-                user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == userDto.Username)!;
+                user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == loginUserDto.Username)!;
             }
         }else{
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == userDto.Username)!;
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == loginUserDto.Username)!;
         }
 
-        if(!BCrypt.Net.BCrypt.Verify(userDto.Password, user.Password)){
+        if(!BCrypt.Net.BCrypt.Verify(loginUserDto.Password, user.PasswordHash)){
             return null!;
         }
-        
+
         var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == user!.roleId);
         user.role = role;
         return user;

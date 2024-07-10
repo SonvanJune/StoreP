@@ -20,13 +20,19 @@ public class User
     public string Phone { get; set; } = "";
 
     [FirestoreProperty]
-    public required string Password { get; set; }
+    public required string PasswordHash { get; set; }
 
     [FirestoreProperty]
     public int Status { get; set; }
 
     [FirestoreProperty]
-    public int Active { get; set; }
+    public Timestamp VerifiedAt { get; set; }
+    
+    [FirestoreProperty]
+    public string PasswordReestToken { get; set; } = "";
+
+    [FirestoreProperty]
+    public Timestamp ResetTokenExpires { get; set; }
 
     [FirestoreProperty]
     public required string Avatar { get; set; }

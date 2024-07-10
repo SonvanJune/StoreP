@@ -13,10 +13,10 @@ public class UserConverter : IBaseConverter<User, UserDto>
             CreatedAt = entity.CreateAt.ToDateTime().ToShortDateString(),
             Email = entity.Email,
             Phone = entity.Phone,
-            PasswordHash = entity.Password,
+            PasswordHash = entity.PasswordHash,
             Avatar = entity.Avatar,
             Status = entity.Status,
-            Active = entity.Active
+            VerifiedAt = entity.VerifiedAt.ToDateTime().ToShortDateString()
         };
     }
 
