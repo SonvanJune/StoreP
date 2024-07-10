@@ -27,7 +27,7 @@ public class AuthServiceImpl : IAuthService
         return handler.WriteToken(token);
     }
 
-    public string GetEmailByToken(string token)
+    public string GetFirstByToken(string token)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(AuthConfig.PrivateKey);
@@ -99,7 +99,7 @@ public class AuthServiceImpl : IAuthService
         return handler.WriteToken(token);
     }
 
-    public static string CreateRandomNumerToken( string randomCode){
+    public static string CreateRandomNumerToken(string randomCode){
         var handler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(AuthConfig.PrivateKey);
         var credentials = new SigningCredentials(

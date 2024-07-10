@@ -12,5 +12,6 @@ public interface IUserService
    public IResult Login(LoginUserDto loginUserDto, UserFireStore userFireStore);
    public IResult GetUserByToken(string token,UserFireStore userFireStore);
    public IResult VerifyUser(string token,UserFireStore userFireStore);
-   public IResult ForgetPassword(string email, UserFireStore userFire);
+   public IResult ForgetPassword(string email, UserFireStore userFireStore);
+   public IResult ResetPassword(ResetPasswordDto dto, UserFireStore userFireStore);
 }

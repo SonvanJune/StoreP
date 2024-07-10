@@ -10,6 +10,9 @@ public class User
     [FirestoreDocumentCreateTimestamp]
     public Timestamp CreateAt { get; set; }
 
+    [FirestoreDocumentUpdateTimestamp]
+    public Timestamp UpdateAt { get; set; }
+
     [FirestoreProperty]
     public required string Name { get; set; }
 

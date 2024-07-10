@@ -126,26 +126,30 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         };
 
         DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-        if(snapshot.Exists){
+        if (snapshot.Exists)
+        {
             await docref.UpdateAsync(data);
         }
         return user;
     }
 
-    public bool checkIsVerified(string email){
+    public bool checkIsVerified(string email)
+    {
         var userDb = base.GetSnapshots(_collectionUser);
         var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);
-        if(user == null) return false;
+        if (user == null) return false;
         return user.VerifiedAt.ToDateTime().Year != 1111;
     }
 
-    public bool checkValidToken(string email, string token){
+    public bool checkValidToken(string email, string token)
+    {
         var userDb = base.GetSnapshots(_collectionUser);
         var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);
         return user!.VerificationToken == token;
     }
 
-    public async Task<User> ForgetPasword(string email, string randomCode){
+    public async Task<User> ForgetPasword(string email, string randomCode)
+    {
         var userDb = base.GetSnapshots(_collectionUser);
         var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);
         if (user == null)
@@ -157,14 +161,54 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         var specified = DateTime.SpecifyKind(unspecified, DateTimeKind.Utc);
         DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
         Dictionary<string, object> data = new Dictionary<string, object>{
-            {"PasswordReestToken" , AuthServiceImpl.CreateRandomNumerToken(randomCode)},
+            {"PasswordReestToken" , BCrypt.Net.BCrypt.HashPassword(randomCode)},
             {"ResetTokenExpires" , specified}
         };
 
         DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-        if(snapshot.Exists){
+        if (snapshot.Exists)
+        {
             await docref.UpdateAsync(data);
         }
         return user;
-    } 
+    }
+
+    public async Task<User> ResetPassword(ResetPasswordDto resetPasswordDto)
+    {
+        var userDb = base.GetSnapshots(_collectionUser);
+        var userList = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList();
+        User user = null!;
+        foreach (var u in userList)
+        {
+            if (u.PasswordReestToken != "")
+            {
+                if (BCrypt.Net.BCrypt.Verify(resetPasswordDto.Code, u.PasswordReestToken))
+                {
+                    user = u;
+                    break;
+                }
+            }
+        }
+
+        if (user == null)
+        {
+            return null!;
+        }
+
+        var unspecified = new DateTime(1111, 11, 11, 11, 11, 11, DateTimeKind.Unspecified);
+        var specified = DateTime.SpecifyKind(unspecified, DateTimeKind.Utc);
+        DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
+        Dictionary<string, object> data = new Dictionary<string, object>{
+            {"PasswordHash" , BCrypt.Net.BCrypt.HashPassword(resetPasswordDto.Password)},
+            {"PasswordReestToken" , ""},
+            {"ResetTokenExpires" , Timestamp.FromDateTime(specified)}
+        };
+
+        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
+        if (snapshot.Exists)
+        {
+            await docref.UpdateAsync(data);
+        }
+        return user;
+    }
 }

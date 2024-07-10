@@ -6,6 +6,5 @@ public interface IAuthService
 {
     public bool ValidateToken(string token);
     public string GenerateToken(User user);
-
-    public string GetEmailByToken(string token);
+    public string GetFirstByToken(string token);
 }

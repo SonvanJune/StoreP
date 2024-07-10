@@ -11,7 +11,7 @@ public static class RoleEndpoint
     public static IRoleService? roleService { get; set; }
     public static RouteGroupBuilder MapRoleEndpoints(this WebApplication app)
     {
-        var group = app.MapGroup("roles");
+        var group = app.MapGroup("api/roles");
         roleService = new RoleServiceImpl();
 
         group.MapPost("/", (CreateRoleDto createRoleDto) =>

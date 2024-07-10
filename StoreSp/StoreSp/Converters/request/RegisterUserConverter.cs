@@ -25,6 +25,7 @@ public class RegisterUserConverter : IBaseConverter<User, RegisterUserDto>
             Status = 0,
             Avatar = dto.Avatar,
             CreateAt = new Timestamp(),
+            UpdateAt = new Timestamp(),
             VerifiedAt = Timestamp.FromDateTime(specified),
             ResetTokenExpires = Timestamp.FromDateTime(specified)
         };

@@ -139,7 +139,7 @@ public class UserServiceImpl : IUserService
         string token = arrListStr[1];
         if (authService!.ValidateToken(token))
         {
-            var email = authService!.GetEmailByToken(token);
+            var email = authService!.GetFirstByToken(token);
             if (userFireStore.GetUserByEmail(email) != null)
             {
                 var user = userFireStore.GetUserByEmail(email);
@@ -175,7 +175,7 @@ public class UserServiceImpl : IUserService
     {
         if (authService!.ValidateToken(token))
         {
-            var email = authService!.GetEmailByToken(token);
+            var email = authService!.GetFirstByToken(token);
             if (!userFireStore.checkValidToken(email, token))
             {
                 return Results.BadRequest(new HttpStatusConfig
@@ -250,6 +250,27 @@ public class UserServiceImpl : IUserService
             {
                 status = HttpStatusCode.BadRequest,
                 message = "Can not find user",
+                data = null
+            });
+        }
+    }
+
+    public IResult ResetPassword(ResetPasswordDto dto, UserFireStore userFireStore)
+    {
+        if (userFireStore.ResetPassword(dto).Result != null){
+            return Results.Ok(new HttpStatusConfig
+            {
+                status = HttpStatusCode.OK,
+                message = "Password has been changed successfully",
+                data = null
+            });
+        }
+        else
+        {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+                status = HttpStatusCode.BadRequest,
+                message = "This code is not valid",
                 data = null
             });
         }

@@ -46,10 +46,6 @@ public static class UserEndpoint
             return userService.GetUserByToken(authorization,userFireStore!);
         });
 
-        // group.MapPost("/users/sendEmail", (EmailDto dto)=>{
-        //     emailService.SendEmail(dto);
-        // });
-
         group.MapGet("/users/verify/{token}" ,(string token)=>{
             return userService.VerifyUser(token,userFireStore!);
         });
@@ -57,6 +53,10 @@ public static class UserEndpoint
         group.MapPost("/users/forgot-password/" ,(string email)=>{
             return userService.ForgetPassword(email,userFireStore!);
         });
+
+        group.MapPost("/users/reset-password/" ,(ResetPasswordDto dto)=>{
+            return userService.ResetPassword(dto,userFireStore!);
+        }).WithParameterValidation();
 
         return group;
     }
