@@ -145,7 +145,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         return user!.VerificationToken == token;
     }
 
-    public async Task<User> ForgetPasword(string email, byte[] randomCode){
+    public async Task<User> ForgetPasword(string email, string randomCode){
         var userDb = base.GetSnapshots(_collectionUser);
         var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);
         if (user == null)

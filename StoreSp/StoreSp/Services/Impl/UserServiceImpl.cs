@@ -228,14 +228,14 @@ public class UserServiceImpl : IUserService
 
     public IResult ForgetPassword(string email, UserFireStore userFireStore)
     {
-        byte[] genCode = RandomNumberGenerator.GetBytes(4);
+        string genCode = Convert.ToHexString(RandomNumberGenerator.GetBytes(4));
         if (userFireStore.ForgetPasword(email, genCode).Result != null)
         {
             emailService!.SendEmail(new EmailDto
             {
                 Email = email,
                 Subject = "Quên mật khẩu!!",
-                Message = EmailFormConfig.EMAIL_VERIFY($"http://localhost:5181/api/users/reset-password/{genCode.ToString()}", email, "http://localhost:5181")
+                Message = EmailFormConfig.EMAIL_FORGET_PASSWORD(genCode, email, "http://localhost:5181")
             });
             return Results.Ok(new HttpStatusConfig
             {

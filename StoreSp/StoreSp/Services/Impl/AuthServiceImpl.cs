@@ -99,7 +99,7 @@ public class AuthServiceImpl : IAuthService
         return handler.WriteToken(token);
     }
 
-    public static string CreateRandomNumerToken(byte[] randomCode){
+    public static string CreateRandomNumerToken( string randomCode){
         var handler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(AuthConfig.PrivateKey);
         var credentials = new SigningCredentials(
@@ -107,7 +107,7 @@ public class AuthServiceImpl : IAuthService
             SecurityAlgorithms.HmacSha256Signature);
 
         var claims = new ClaimsIdentity();
-        claims.AddClaim(new Claim(ClaimTypes.Name, randomCode.ToString()!));
+        claims.AddClaim(new Claim(ClaimTypes.Name, randomCode));
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
