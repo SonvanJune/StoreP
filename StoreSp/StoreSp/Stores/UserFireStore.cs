@@ -54,7 +54,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         var roleDb = base.GetSnapshots(_collectionRole);
 
         var user = registerUserConverter.ToEntity(userDto);
-        var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == userDto.RoleId);
+        var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Code == userDto.RoleCode);
         if (role == null)
         {
             throw new InvalidOperationException("Role not found");

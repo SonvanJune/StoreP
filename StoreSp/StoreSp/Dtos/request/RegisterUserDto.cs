@@ -14,5 +14,5 @@ public record RegisterUserDto
 
     string Avatar,
 
-    [Required] string RoleId
+    [Required] string RoleCode
 );
