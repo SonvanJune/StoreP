@@ -42,8 +42,8 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == userDto.RoleId);
         if (role != null)
         {
-            user.roleId = role.Id;
-            user.role = role;
+            user.RoleId = role.Id;
+            user.Role = role;
         }
         return userDb.AddAsync(user);
     }
@@ -77,8 +77,8 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         {
             return null!;
         }
-        user.roleId = role.Id;
-        user.role = role;
+        user.RoleId = role.Id;
+        user.Role = role;
         user.VerificationToken = AuthServiceImpl.CreateRandomToken(user);
         userDb.AddAsync(user);
         return user;
@@ -111,8 +111,8 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             return null!;
         }
 
-        var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == user!.roleId);
-        user.role = role;
+        var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == user!.RoleId);
+        user.Role = role;
         return user;
     }
 
@@ -125,8 +125,8 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         {
             return null!;
         }
-        var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == user.roleId);
-        user.role = role;
+        var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == user.RoleId);
+        user.Role = role;
         return user;
     }
 
@@ -154,7 +154,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         return user;
     }
 
-    public bool checkIsVerified(string email)
+    public bool CheckIsVerified(string email)
     {
         var userDb = base.GetSnapshots(_collectionUser);
         var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);
@@ -162,7 +162,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         return user.VerifiedAt.ToDateTime().Year != 1111;
     }
 
-    public bool checkValidToken(string email, string token)
+    public bool CheckValidToken(string email, string token)
     {
         var userDb = base.GetSnapshots(_collectionUser);
         var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);

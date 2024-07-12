@@ -24,7 +24,7 @@ public class RegisterUserConverter : IBaseConverter<User, RegisterUserDto>
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             Status = 0,
             Avatar = dto.Avatar,
-            CreateAt = new Timestamp(),
+            CreateAt = Timestamp.FromDateTime(DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc)),
             UpdateAt = new Timestamp(),
             VerifiedAt = Timestamp.FromDateTime(specified),
             ResetTokenExpires = Timestamp.FromDateTime(specified)

@@ -70,7 +70,7 @@ public class AuthServiceImpl : IAuthService
 
     private static ClaimsIdentity GenerateClaims(User user)
     {
-        Role role = user.role!;
+        Role role = user.Role!;
         var claims = new ClaimsIdentity();
         claims.AddClaim(new Claim(ClaimTypes.Name, user.Email));
         claims.AddClaim(new Claim(ClaimTypes.Role, role.Code));

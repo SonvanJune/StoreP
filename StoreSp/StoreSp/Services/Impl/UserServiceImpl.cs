@@ -12,13 +12,15 @@ public class UserServiceImpl : IUserService
     public IAuthService? authService { get; set; }
     public IEmailService? emailService { get; set; }
 
+    public static UserFireStore? userFireStore { get; set; }
+
     public UserServiceImpl()
     {
         authService = new AuthServiceImpl();
         emailService = new EmailServiceImpl();
     }
 
-    IResult IUserService.AddUser(CreateUserDto createUserDto, UserFireStore userFireStore)
+    IResult IUserService.AddUser(CreateUserDto createUserDto)
     {
         if (userFireStore is null)
         {
@@ -35,7 +37,7 @@ public class UserServiceImpl : IUserService
         });
     }
 
-    IResult IUserService.GetAllUsers(UserFireStore userFireStore)
+    IResult IUserService.GetAllUsers()
     {
         return Results.Ok(new HttpStatusConfig
         {
@@ -45,7 +47,7 @@ public class UserServiceImpl : IUserService
         });
     }
 
-    IResult IUserService.GetUserById(string id, UserFireStore userFireStore)
+    IResult IUserService.GetUserById(string id)
     {
         return Results.Ok(new HttpStatusConfig
         {
@@ -55,7 +57,7 @@ public class UserServiceImpl : IUserService
         });
     }
 
-    IResult IUserService.Register(RegisterUserDto registerUserDto, UserFireStore userFireStore)
+    IResult IUserService.Register(RegisterUserDto registerUserDto)
     {
         if (userFireStore is null)
         {
@@ -92,7 +94,7 @@ public class UserServiceImpl : IUserService
         });
     }
 
-    IResult IUserService.Login(LoginUserDto loginUserDto, UserFireStore userFireStore)
+    IResult IUserService.Login(LoginUserDto loginUserDto)
     {
         if (userFireStore is null)
         {
@@ -139,14 +141,14 @@ public class UserServiceImpl : IUserService
         }
     }
 
-    IResult IUserService.GetUserByToken(string authorization, UserFireStore userFireStore)
+    IResult IUserService.GetUserByToken(string authorization)
     {
         string[] arrListStr = authorization.Split(' ');
         string token = arrListStr[1];
         if (authService!.ValidateToken(token))
         {
             var email = authService!.GetFirstByToken(token);
-            if (userFireStore.GetUserByEmail(email) != null)
+            if (userFireStore!.GetUserByEmail(email) != null)
             {
                 var user = userFireStore.GetUserByEmail(email);
                 return Results.Ok(new HttpStatusConfig
@@ -177,12 +179,12 @@ public class UserServiceImpl : IUserService
         }
     }
 
-    IResult IUserService.VerifyUser(string token, UserFireStore userFireStore)
+    IResult IUserService.VerifyUser(string token)
     {
         if (authService!.ValidateToken(token))
         {
             var email = authService!.GetFirstByToken(token);
-            if (!userFireStore.checkValidToken(email, token))
+            if (!userFireStore!.CheckValidToken(email, token))
             {
                 return Results.BadRequest(new HttpStatusConfig
                 {
@@ -192,7 +194,7 @@ public class UserServiceImpl : IUserService
                 });
             }
 
-            if (userFireStore.checkIsVerified(email))
+            if (userFireStore.CheckIsVerified(email))
             {
                 return Results.BadRequest(new HttpStatusConfig
                 {
@@ -232,10 +234,10 @@ public class UserServiceImpl : IUserService
         }
     }
 
-    IResult IUserService.ForgetPassword(string email, UserFireStore userFireStore)
+    IResult IUserService.ForgetPassword(string email)
     {
         string genCode = Convert.ToHexString(RandomNumberGenerator.GetBytes(4));
-        if (userFireStore.ForgetPasword(email, genCode).Result != null)
+        if (userFireStore!.ForgetPasword(email, genCode).Result != null)
         {
             emailService!.SendEmail(new EmailDto
             {
@@ -261,9 +263,9 @@ public class UserServiceImpl : IUserService
         }
     }
 
-    IResult IUserService.ResetPassword(ResetPasswordDto dto, UserFireStore userFireStore)
+    IResult IUserService.ResetPassword(ResetPasswordDto dto)
     {
-        if (userFireStore.ResetPassword(dto).Result != null)
+        if (userFireStore!.ResetPassword(dto).Result != null)
         {
             return Results.Ok(new HttpStatusConfig
             {
@@ -283,12 +285,12 @@ public class UserServiceImpl : IUserService
         }
     }
 
-    IResult IUserService.CheckVerify(string token, UserFireStore userFireStore)
+    IResult IUserService.CheckVerify(string token)
     {
         if (authService!.ValidateToken(token))
         {
             var email = authService!.GetFirstByToken(token);
-            if (userFireStore.GetUserByEmail(email) != null)
+            if (userFireStore!.GetUserByEmail(email) != null)
             {
                 var user = userFireStore.GetUserByEmail(email);
                 if (user.VerifiedAt.ToDateTime().Year != 1111)

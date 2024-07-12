@@ -43,8 +43,8 @@ public class User
     [FirestoreProperty]
     public string Avatar { get; set; } = "";
 
-    public Role? role { get; set; }
+    public Role? Role { get; set; }
 
     [FirestoreProperty]
-    public string? roleId { get; set; }
+    public string? RoleId { get; set; }
 }

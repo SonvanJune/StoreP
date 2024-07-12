@@ -29,6 +29,7 @@ app.UseCors();
 
 app.MapUserEndpoints();
 app.MapRoleEndpoints();
+app.MapCategoryEndpoints();
 
 // var credentials = Credentials.FromApiKeyAndSecret(
 //     "46dde3ba",

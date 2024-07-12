@@ -1,23 +1,22 @@
 ﻿using System.Net;
 using StoreSp.Commonds;
 using StoreSp.Dtos.request;
-using StoreSp.Services;
-using StoreSp.Stores.Stores;
+using StoreSp.Stores;
 
 namespace StoreSp.Services.Impl;
 
-public class RoleServiceImpl : IRoleService
+public class CategoryServiceImpl : ICategoryService
 {
-    public static RoleFireStore? roleFireStore { get; set; }
-
-    public IResult AddRole(CreateRoleDto createRoleDto)
+    public static CategoryFireStore? categoryFireStore { get; set; }
+    
+    IResult ICategoryService.AddCategory(CreateCategoryDto createCategoryDto)
     {
-        if (roleFireStore is null)
+        if (categoryFireStore is null)
         {
             return Results.NoContent();
         }
 
-        roleFireStore!.Add(createRoleDto);
+        categoryFireStore!.Add(createCategoryDto);
 
         return Results.Created("", new HttpStatusConfig
         {
@@ -27,13 +26,13 @@ public class RoleServiceImpl : IRoleService
         });
     }
 
-    public IResult GetAllRoles()
+    IResult ICategoryService.GetAllCategories()
     {
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
             message = "Success",
-            data = roleFireStore!.GetAllRoles().Result
+            data = categoryFireStore!.GetAllCategories().Result
         });
     }
 }

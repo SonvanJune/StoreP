@@ -5,14 +5,14 @@ namespace StoreSp.Services;
 
 public interface IUserService
 {
-   public IResult AddUser(CreateUserDto createUserDto, UserFireStore userFireStore);
-   public IResult GetAllUsers(UserFireStore userFireStore);
-   public IResult GetUserById(string id, UserFireStore userFireStore);
-   public IResult Register(RegisterUserDto registerUserDto, UserFireStore userFireStore);
-   public IResult CheckVerify(string token,UserFireStore userFireStore);
-   public IResult Login(LoginUserDto loginUserDto, UserFireStore userFireStore);
-   public IResult GetUserByToken(string token,UserFireStore userFireStore);
-   public IResult VerifyUser(string token,UserFireStore userFireStore);
-   public IResult ForgetPassword(string email, UserFireStore userFireStore);
-   public IResult ResetPassword(ResetPasswordDto dto, UserFireStore userFireStore);
+   public IResult AddUser(CreateUserDto createUserDto);
+   public IResult GetAllUsers();
+   public IResult GetUserById(string id);
+   public IResult Register(RegisterUserDto registerUserDto);
+   public IResult CheckVerify(string toke);
+   public IResult Login(LoginUserDto loginUserDto);
+   public IResult GetUserByToken(string toke);
+   public IResult VerifyUser(string toke);
+   public IResult ForgetPassword(string email);
+   public IResult ResetPassword(ResetPasswordDto dto);
 }

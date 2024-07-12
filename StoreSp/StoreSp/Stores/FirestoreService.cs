@@ -1,5 +1,6 @@
 ﻿using Google.Cloud.Firestore;
 using StoreSp.Endpoints;
+using StoreSp.Services.Impl;
 using StoreSp.Stores.Stores;
 
 namespace StoreSp.Stores;
@@ -15,7 +16,8 @@ public abstract class FirestoreService(FirestoreDb firestoreDb)
     }
 
     public static void Run(FirestoreDb db){
-        UserEndpoint.userFireStore = new UserFireStore(db);
-        RoleEndpoint.roleFireStore = new RoleFireStore(db);
+        UserServiceImpl.userFireStore = new UserFireStore(db);
+        RoleServiceImpl.roleFireStore = new RoleFireStore(db);
+        CategoryServiceImpl.categoryFireStore = new CategoryFireStore(db);
     }
 }

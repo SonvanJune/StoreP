@@ -3,19 +3,16 @@
 namespace StoreSp.Entities;
 
 [FirestoreData]
-public class Role
+public class Category
 {
     [FirestoreDocumentId]
     public string? Id { get; set; }
 
-    [FirestoreProperty]
+    [FirestoreDocumentCreateTimestamp]
     public Timestamp CreatedAt { get; set; }
 
     [FirestoreProperty]
     public required string Name { get; set; }
 
-    [FirestoreProperty]
-    public required string Code{ get; set; }
-
-    public List<User>? Users { get; set;}
+    public List<Product>? Products { get; set;}
 }
