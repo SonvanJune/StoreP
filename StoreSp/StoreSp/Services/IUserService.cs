@@ -9,6 +9,7 @@ public interface IUserService
    public IResult GetAllUsers(UserFireStore userFireStore);
    public IResult GetUserById(string id, UserFireStore userFireStore);
    public IResult Register(RegisterUserDto registerUserDto, UserFireStore userFireStore);
+   public IResult CheckVerify(string token,UserFireStore userFireStore);
    public IResult Login(LoginUserDto loginUserDto, UserFireStore userFireStore);
    public IResult GetUserByToken(string token,UserFireStore userFireStore);
    public IResult VerifyUser(string token,UserFireStore userFireStore);

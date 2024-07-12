@@ -51,15 +51,21 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
     public User Register(RegisterUserDto userDto)
     {
         var userExistDb = base.GetSnapshots(_collectionUser);
-        var emailExist = userExistDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == userDto.Email);
-        var phoneExist = userExistDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == userDto.Phone);
-        if (emailExist!= null)
+        if (userDto.Email == null)
         {
-            return null!;
+            var phoneExist = userExistDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == userDto.Phone);
+            if (phoneExist != null)
+            {
+                return null!;
+            }
         }
-        if (phoneExist!= null)
+        else
         {
-            return null!;
+            var emailExist = userExistDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == userDto.Email);
+            if (emailExist != null)
+            {
+                return null!;
+            }
         }
 
         var userDb = _firestoreDb.Collection(_collectionUser);
@@ -110,15 +116,18 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         return user;
     }
 
-    public UserDto GetUserByEmail(string email)
+    public User GetUserByEmail(string email)
     {
         var userDb = base.GetSnapshots(_collectionUser);
+        var roleDb = base.GetSnapshots(_collectionRole);
         var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);
         if (user == null)
         {
             return null!;
         }
-        return userConverter.ToDto(user);
+        var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == user.roleId);
+        user.role = role;
+        return user;
     }
 
     public async Task<User> VerifyUser(string email)

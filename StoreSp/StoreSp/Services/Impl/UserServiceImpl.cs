@@ -18,7 +18,7 @@ public class UserServiceImpl : IUserService
         emailService = new EmailServiceImpl();
     }
 
-    public IResult AddUser(CreateUserDto createUserDto, UserFireStore userFireStore)
+    IResult IUserService.AddUser(CreateUserDto createUserDto, UserFireStore userFireStore)
     {
         if (userFireStore is null)
         {
@@ -35,7 +35,7 @@ public class UserServiceImpl : IUserService
         });
     }
 
-    public IResult GetAllUsers(UserFireStore userFireStore)
+    IResult IUserService.GetAllUsers(UserFireStore userFireStore)
     {
         return Results.Ok(new HttpStatusConfig
         {
@@ -45,7 +45,7 @@ public class UserServiceImpl : IUserService
         });
     }
 
-    public IResult GetUserById(string id, UserFireStore userFireStore)
+    IResult IUserService.GetUserById(string id, UserFireStore userFireStore)
     {
         return Results.Ok(new HttpStatusConfig
         {
@@ -55,7 +55,7 @@ public class UserServiceImpl : IUserService
         });
     }
 
-    public IResult Register(RegisterUserDto registerUserDto, UserFireStore userFireStore)
+    IResult IUserService.Register(RegisterUserDto registerUserDto, UserFireStore userFireStore)
     {
         if (userFireStore is null)
         {
@@ -68,7 +68,8 @@ public class UserServiceImpl : IUserService
         }
 
         var user = userFireStore!.Register(registerUserDto);
-        if(user is null){
+        if (user == null)
+        {
             return Results.BadRequest(new HttpStatusConfig
             {
                 status = HttpStatusCode.BadRequest,
@@ -87,15 +88,11 @@ public class UserServiceImpl : IUserService
         {
             status = HttpStatusCode.Created,
             message = "Register Success",
-            data = new UserTokenDto
-            {
-                Token = authService!.GenerateToken(user),
-                User = userFireStore.userConverter.ToDto(user)
-            }
+            data = authService!.GenerateToken(user)
         });
     }
 
-    public IResult Login(LoginUserDto loginUserDto, UserFireStore userFireStore)
+    IResult IUserService.Login(LoginUserDto loginUserDto, UserFireStore userFireStore)
     {
         if (userFireStore is null)
         {
@@ -142,7 +139,7 @@ public class UserServiceImpl : IUserService
         }
     }
 
-    public IResult GetUserByToken(string authorization, UserFireStore userFireStore)
+    IResult IUserService.GetUserByToken(string authorization, UserFireStore userFireStore)
     {
         string[] arrListStr = authorization.Split(' ');
         string token = arrListStr[1];
@@ -156,7 +153,7 @@ public class UserServiceImpl : IUserService
                 {
                     status = HttpStatusCode.OK,
                     message = "Success",
-                    data = user
+                    data = userFireStore.userConverter.ToDto(user)
                 });
             }
             else
@@ -180,7 +177,7 @@ public class UserServiceImpl : IUserService
         }
     }
 
-    public IResult VerifyUser(string token, UserFireStore userFireStore)
+    IResult IUserService.VerifyUser(string token, UserFireStore userFireStore)
     {
         if (authService!.ValidateToken(token))
         {
@@ -235,7 +232,7 @@ public class UserServiceImpl : IUserService
         }
     }
 
-    public IResult ForgetPassword(string email, UserFireStore userFireStore)
+    IResult IUserService.ForgetPassword(string email, UserFireStore userFireStore)
     {
         string genCode = Convert.ToHexString(RandomNumberGenerator.GetBytes(4));
         if (userFireStore.ForgetPasword(email, genCode).Result != null)
@@ -264,9 +261,10 @@ public class UserServiceImpl : IUserService
         }
     }
 
-    public IResult ResetPassword(ResetPasswordDto dto, UserFireStore userFireStore)
+    IResult IUserService.ResetPassword(ResetPasswordDto dto, UserFireStore userFireStore)
     {
-        if (userFireStore.ResetPassword(dto).Result != null){
+        if (userFireStore.ResetPassword(dto).Result != null)
+        {
             return Results.Ok(new HttpStatusConfig
             {
                 status = HttpStatusCode.OK,
@@ -280,6 +278,56 @@ public class UserServiceImpl : IUserService
             {
                 status = HttpStatusCode.BadRequest,
                 message = "This code is not valid",
+                data = null
+            });
+        }
+    }
+
+    IResult IUserService.CheckVerify(string token, UserFireStore userFireStore)
+    {
+        if (authService!.ValidateToken(token))
+        {
+            var email = authService!.GetFirstByToken(token);
+            if (userFireStore.GetUserByEmail(email) != null)
+            {
+                var user = userFireStore.GetUserByEmail(email);
+                if (user.VerifiedAt.ToDateTime().Year != 1111)
+                {
+                    return Results.Ok(new HttpStatusConfig
+                    {
+                        status = HttpStatusCode.OK,
+                        message = "User has been verified",
+                        data = new UserTokenDto
+                        {
+                            Token = authService!.GenerateToken(user),
+                            User = userFireStore.userConverter.ToDto(user)
+                        }
+                    });
+                }else{
+                    return Results.BadRequest(new HttpStatusConfig
+                    {
+                        status = HttpStatusCode.BadRequest,
+                        message = "User has not been verified yet",
+                        data = null
+                    });
+                }
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Can not find user",
+                    data = null
+                });
+            }
+        }
+        else
+        {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+                status = HttpStatusCode.BadRequest,
+                message = "Token has expired",
                 data = null
             });
         }

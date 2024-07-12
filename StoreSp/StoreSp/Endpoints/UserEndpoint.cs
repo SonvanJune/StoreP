@@ -50,6 +50,11 @@ public static class UserEndpoint
             return userService.VerifyUser(token,userFireStore!);
         });
 
+        group.MapGet("/users/check-verify/{token}", (string token) =>
+        {
+            return userService.CheckVerify(token,userFireStore!);
+        });
+
         group.MapPost("/users/forgot-password/" ,(string email)=>{
             return userService.ForgetPassword(email,userFireStore!);
         });
