@@ -47,7 +47,7 @@ public static class UserEndpoint
             return userService.VerifyUser(token);
         });
 
-        group.MapGet("/users/check-verify/{token}", (string token) =>
+        group.MapPost("/users/check-verify", (string token) =>
         {
             return userService.CheckVerify(token);
         });
