@@ -7,7 +7,7 @@ namespace StoreSp.Endpoints;
 
 public static class UserEndpoint
 {
-    public static IUserService? userService { get; set;}
+    public static IUserService? userService { get; set; }
 
     public static RouteGroupBuilder MapUserEndpoints(this WebApplication app)
     {
@@ -24,7 +24,8 @@ public static class UserEndpoint
             return userService.GetAllUsers();
         });
 
-        group.MapGet("/users/{id}", (string id) =>{
+        group.MapGet("/users/{id}", (string id) =>
+        {
             return userService.GetUserById(id);
         });
 
@@ -38,12 +39,13 @@ public static class UserEndpoint
             return userService.Login(dto);
         }).WithParameterValidation();
 
-        group.MapGet("/users/token", ([FromHeader]string authorization) =>
+        group.MapGet("/users/token", ([FromHeader] string authorization) =>
         {
             return userService.GetUserByToken(authorization);
         });
 
-        group.MapGet("/users/verify/{token}" ,(string token)=>{
+        group.MapGet("/users/verify/{token}", (string token) =>
+        {
             return userService.VerifyUser(token);
         });
 
@@ -52,14 +54,25 @@ public static class UserEndpoint
             return userService.CheckVerify(token);
         });
 
-        group.MapPost("/users/forgot-password/" ,(string email)=>{
+        group.MapPost("/users/forgot-password/", (string email) =>
+        {
             return userService.ForgetPassword(email);
         });
 
-        group.MapPost("/users/reset-password/" ,(ResetPasswordDto dto)=>{
+        group.MapPost("/users/reset-password/", (ResetPasswordDto dto) =>
+        {
             return userService.ResetPassword(dto);
         }).WithParameterValidation();
 
+        group.MapPost("/users/google-login", (GoogleLoginDto dto) =>
+        {
+            return userService.GoogleLogin(dto);
+        });
+
+        group.MapPost("/users/google-register", (GoogleRegisterDto dto) =>
+        {
+            return userService.GoogleRegister(dto);
+        });
         return group;
     }
 }

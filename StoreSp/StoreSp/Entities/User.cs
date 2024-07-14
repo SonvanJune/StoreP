@@ -23,7 +23,7 @@ public class User
     public string Phone { get; set; } = "";
 
     [FirestoreProperty]
-    public required string PasswordHash { get; set; }
+    public string PasswordHash { get; set; } = "";
 
     [FirestoreProperty]
     public int Status { get; set; }
@@ -42,6 +42,9 @@ public class User
 
     [FirestoreProperty]
     public string Avatar { get; set; } = "";
+
+    [FirestoreProperty]
+    public bool IsGoogleAccount { get; set; } = false;
 
     public Role? Role { get; set; }
 

@@ -1,4 +1,5 @@
 using Google.Cloud.Firestore;
+using Microsoft.IdentityModel.Logging;
 using StoreSp.Configs;
 using StoreSp.Endpoints;
 using StoreSp.Services;
@@ -17,6 +18,7 @@ FirestoreService.Run(db);
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
+    IdentityModelEventSource.ShowPII = true;    
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {

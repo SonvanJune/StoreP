@@ -19,6 +19,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
     public readonly IBaseConverter<User, UserDto> userConverter = new UserConverter();
     private readonly IBaseConverter<User, CreateUserDto> createUserConverter = new CreateUserConverter();
     private readonly IBaseConverter<User, RegisterUserDto> registerUserConverter = new RegisterUserConverter();
+    private readonly IBaseConverter<User, GoogleRegisterDto> googleRegisterConverter = new GoogleRegisterConverter();
 
     public Task<List<UserDto>> GetAllUser()
     {
@@ -173,7 +174,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
     {
         var userDb = base.GetSnapshots(_collectionUser);
         var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);
-        if (user == null)
+        if (user == null || user.IsGoogleAccount == true)
         {
             return null!;
         }
@@ -230,6 +231,47 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         {
             await docref.UpdateAsync(data);
         }
+        return user;
+    }
+
+    public User GoogleRegister(GoogleRegisterDto dto)
+    {
+        var userExistDb = base.GetSnapshots(_collectionUser);
+        var emailExist = userExistDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == dto.Email);
+        if (emailExist != null)
+        {
+            return null!;
+        }
+
+        var userDb = _firestoreDb.Collection(_collectionUser);
+        var roleDb = base.GetSnapshots(_collectionRole);
+        var user = googleRegisterConverter.ToEntity(dto);
+        var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Code == dto.RoleCode);
+        if (role == null)
+        {
+            return null!;
+        }
+        user.RoleId = role.Id;
+        user.Role = role;
+        user.IsGoogleAccount = true;
+
+        var unspecified = DateTime.UtcNow;
+        var specified = DateTime.SpecifyKind(unspecified, DateTimeKind.Utc);
+        user.VerifiedAt = Timestamp.FromDateTime(specified);
+        userDb.AddAsync(user);
+        return user;
+    }
+
+    public User GoogleLogin(GoogleLoginDto dto)
+    {
+        var userDb = base.GetSnapshots(_collectionUser);
+        var roleDb = base.GetSnapshots(_collectionRole);
+        var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == dto.Email);
+        if(user == null || user.IsGoogleAccount == false){
+            return null!;
+        }
+        var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == user!.RoleId);
+        user.Role = role;
         return user;
     }
 }

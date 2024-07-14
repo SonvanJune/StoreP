@@ -257,7 +257,7 @@ public class UserServiceImpl : IUserService
             return Results.BadRequest(new HttpStatusConfig
             {
                 status = HttpStatusCode.BadRequest,
-                message = "Can not find user",
+                message = "Can not find user or may be you registered with google account",
                 data = null
             });
         }
@@ -305,7 +305,9 @@ public class UserServiceImpl : IUserService
                             User = userFireStore.userConverter.ToDto(user)
                         }
                     });
-                }else{
+                }
+                else
+                {
                     return Results.BadRequest(new HttpStatusConfig
                     {
                         status = HttpStatusCode.BadRequest,
@@ -330,6 +332,97 @@ public class UserServiceImpl : IUserService
             {
                 status = HttpStatusCode.BadRequest,
                 message = "Token has expired",
+                data = null
+            });
+        }
+    }
+
+    IResult IUserService.GoogleRegister(GoogleRegisterDto googleRegisterDto)
+    {
+        if (googleRegisterDto.EmailVerified == false)
+        {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+                status = HttpStatusCode.BadRequest,
+                message = "Tai khoan google nay chua duoc kich hoat",
+                data = null
+            });
+        }
+
+        var user = userFireStore!.GoogleRegister(googleRegisterDto);
+        if (user == null)
+        {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+                status = HttpStatusCode.BadRequest,
+                message = "Tai khoan nay da ton tai, moi ban dang nhap",
+                data = null
+            });
+        }
+        return Results.Created("", new HttpStatusConfig
+        {
+            status = HttpStatusCode.Created,
+            message = "Register Success",
+            data = new UserTokenDto
+            {
+                Token = authService!.GenerateToken(user),
+                User = userFireStore.userConverter.ToDto(user)
+            }
+        });
+    }
+
+    IResult IUserService.GoogleLogin(GoogleLoginDto googleLoginDto){
+
+        if (googleLoginDto.EmailVerified == false)
+        {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+                status = HttpStatusCode.BadRequest,
+                message = "Tai khoan google nay chua duoc kich hoat",
+                data = null
+            });
+        }
+
+        if (userFireStore is null)
+        {
+            return Results.NotFound(new HttpStatusConfig
+            {
+                status = HttpStatusCode.UnprocessableEntity,
+                message = "Database not found",
+                data = null
+            });
+        }
+
+        if (userFireStore.GoogleLogin(googleLoginDto) != null)
+        {
+            var user = userFireStore.GoogleLogin(googleLoginDto);
+            //nam thang ngay mac dinh 1111/11/11 
+            if (user.VerifiedAt.ToDateTime().Year == 1111)
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.UnprocessableEntity,
+                    message = "User not verified yet",
+                    data = null
+                });
+            }
+            return Results.Ok(new HttpStatusConfig
+            {
+                status = HttpStatusCode.OK,
+                message = "Login success",
+                data = new UserTokenDto
+                {
+                    Token = authService!.GenerateToken(user),
+                    User = userFireStore.userConverter.ToDto(user)
+                }
+            });
+        }
+        else
+        {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+                status = HttpStatusCode.UnprocessableEntity,
+                message = "The account not found or may be you registered this email by normal register of app",
                 data = null
             });
         }
