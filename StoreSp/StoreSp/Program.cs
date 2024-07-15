@@ -11,7 +11,7 @@ using Vonage.Request;
 var builder = WebApplication.CreateBuilder(args);
 builder.RunConfig();
 
-Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", @"D:\storep-d7a1c-firebase-adminsdk-2a02r-2037f0e85e.json");
+Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", @"D:\storep-d7a1c-firebase-adminsdk-2a02r-18fbc15c37.json");
 FirestoreDb db = FirestoreDb.Create(builder.Configuration.GetConnectionString("ProjectId"));
 FirestoreService.Run(db);
 
