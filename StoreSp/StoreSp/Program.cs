@@ -2,11 +2,7 @@ using Google.Cloud.Firestore;
 using Microsoft.IdentityModel.Logging;
 using StoreSp.Configs;
 using StoreSp.Endpoints;
-using StoreSp.Services;
-using StoreSp.Services.Impl;
 using StoreSp.Stores;
-using Vonage;
-using Vonage.Request;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.RunConfig();

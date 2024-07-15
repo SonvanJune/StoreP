@@ -7,6 +7,7 @@ public interface IUserService
 {
    public IResult AddUser(CreateUserDto createUserDto);
    public IResult GetAllUsers();
+   public IResult GetUserByRole(string roleCode);
    public IResult GetUserById(string id);
    public IResult Register(RegisterUserDto registerUserDto);
    public IResult CheckVerify(string toke);

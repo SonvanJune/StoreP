@@ -427,4 +427,23 @@ public class UserServiceImpl : IUserService
             });
         }
     }
+
+    IResult IUserService.GetUserByRole(string roleCode)
+    {
+        if(userFireStore!.GetUserByRole(roleCode) == null){
+            return Results.NotFound(new HttpStatusConfig
+            {
+                status = HttpStatusCode.NotFound,
+                message = "Not found",
+                data = null
+            });
+        }
+
+        return Results.Ok(new HttpStatusConfig
+        {
+            status = HttpStatusCode.OK,
+            message = "Success",
+            data = userFireStore!.GetUserByRole(roleCode).Result
+        });
+    }
 }

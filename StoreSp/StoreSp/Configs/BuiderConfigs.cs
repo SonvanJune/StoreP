@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using StoreSp.Commonds;
 using StoreSp.Services;
 using StoreSp.Services.Impl;
 
@@ -11,6 +12,7 @@ public static class BuiderConfig
 {
     public static WebApplicationBuilder RunConfig(this WebApplicationBuilder builder)
     {
+        ConfigVariables();
         builder.Services.AddTransient<AuthServiceImpl>();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(c =>
@@ -79,6 +81,11 @@ public static class BuiderConfig
         });
         builder.Services.AddTransient<IEmailService , EmailServiceImpl>();
         return builder;
+    }
+
+    public static void ConfigVariables(){
+        //example
+        VariableConfig.Application["a"] = "noodle";
     }
 }
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using StoreSp.Commonds;
 using StoreSp.Dtos.request;
 using StoreSp.Services;
 using StoreSp.Services.Impl;
@@ -39,6 +40,11 @@ public static class UserEndpoint
             return userService.Login(dto);
         }).WithParameterValidation();
 
+        group.MapPost("/admin/login", (LoginUserDto dto) =>
+        {
+            return userService.Login(dto);
+        }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
+
         group.MapGet("/users/token", ([FromHeader] string authorization) =>
         {
             return userService.GetUserByToken(authorization);
@@ -54,7 +60,7 @@ public static class UserEndpoint
             return userService.CheckVerify(token);
         });
 
-        group.MapPost("/users/forgot-password/", ([FromBody]string email) =>
+        group.MapPost("/users/forgot-password/", ([FromBody] string email) =>
         {
             return userService.ForgetPassword(email);
         });
@@ -72,6 +78,16 @@ public static class UserEndpoint
         group.MapPost("/users/google-register", (GoogleRegisterDto dto) =>
         {
             return userService.GoogleRegister(dto);
+        });
+
+        group.MapGet("/users/role", ([FromQuery] string code) =>
+        {
+            return userService.GetUserByRole(code);
+        });
+
+        group.MapGet("/test", () =>
+        {
+            return VariableConfig.Application["a"];
         });
         return group;
     }
