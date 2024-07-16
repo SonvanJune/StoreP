@@ -9,7 +9,6 @@ public class RoleConverter : IBaseConverter<Role, RoleDto>
     {
         return new RoleDto
         {
-            Id = entity.Id,
             Name = entity.Name,
             Code = entity.Code
         };
