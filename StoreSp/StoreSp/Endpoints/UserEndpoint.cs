@@ -60,9 +60,9 @@ public static class UserEndpoint
             return userService.CheckVerify(token);
         });
 
-        group.MapPost("/users/forgot-password/", ([FromBody] string email) =>
+        group.MapPost("/users/forgot-password/", (ForgetPasswordDto dto) =>
         {
-            return userService.ForgetPassword(email);
+            return userService.ForgetPassword(dto.Email);
         });
 
         group.MapPost("/users/reset-password/", (ResetPasswordDto dto) =>
