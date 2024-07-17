@@ -18,4 +18,5 @@ public interface IUserService
    public IResult ResetPassword(ResetPasswordDto dto);
    public IResult GoogleRegister(GoogleRegisterDto googleRegisterDto);
    public IResult GoogleLogin(GoogleLoginDto googleLoginDto);
+   public IResult UpdateStatusUser(UpdateStatusUserDto dto);
 }

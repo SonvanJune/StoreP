@@ -21,7 +21,7 @@ public static class CategoryEndpoint
         group.MapPost("/", (CreateCategoryDto createCategoryDto) =>
         {
             return CategoryService!.AddCategory(createCategoryDto);
-        });
+        }).WithParameterValidation();
 
         return group;
     }

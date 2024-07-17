@@ -39,7 +39,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
     {
         var roleDb = base.GetSnapshots(_collectionRole);
         var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Code == roleCode);
-        
+
         if (role == null)
         {
             return null!;
@@ -282,11 +282,34 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         var userDb = base.GetSnapshots(_collectionUser);
         var roleDb = base.GetSnapshots(_collectionRole);
         var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == dto.Email);
-        if(user == null || user.IsGoogleAccount == false){
+        if (user == null || user.IsGoogleAccount == false)
+        {
             return null!;
         }
         var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == user!.RoleId);
         user.Role = role;
         return user;
+    }
+
+    public async Task<User> UpdateStatus(UpdateStatusUserDto dto)
+    {
+        var userDb = base.GetSnapshots(_collectionUser);
+        var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == dto.Email);
+        if (user == null)
+        {
+            return null!;
+        }
+        DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
+        Dictionary<string, object> data = new Dictionary<string, object>{
+            {"Status" , dto.Status}
+        };
+
+        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
+        if (snapshot.Exists)
+        {
+            await docref.UpdateAsync(data);
+        }
+        return user;
+
     }
 }

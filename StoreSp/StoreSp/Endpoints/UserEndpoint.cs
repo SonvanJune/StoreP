@@ -63,7 +63,7 @@ public static class UserEndpoint
         group.MapPost("/users/forgot-password/", (ForgetPasswordDto dto) =>
         {
             return userService.ForgetPassword(dto.Email);
-        });
+        }).WithParameterValidation();
 
         group.MapPost("/users/reset-password/", (ResetPasswordDto dto) =>
         {
@@ -73,12 +73,12 @@ public static class UserEndpoint
         group.MapPost("/users/google-login", (GoogleLoginDto dto) =>
         {
             return userService.GoogleLogin(dto);
-        });
+        }).WithParameterValidation();
 
         group.MapPost("/users/google-register", (GoogleRegisterDto dto) =>
         {
             return userService.GoogleRegister(dto);
-        });
+        }).WithParameterValidation();
 
         group.MapGet("/users/role", ([FromQuery] string code) =>
         {
@@ -89,6 +89,11 @@ public static class UserEndpoint
         {
             return VariableConfig.Application["a"];
         });
+
+        group.MapPost("/users/update-status", (UpdateStatusUserDto dto) =>
+        {
+            return userService.UpdateStatusUser(dto);
+        }).WithParameterValidation();
         return group;
     }
 }

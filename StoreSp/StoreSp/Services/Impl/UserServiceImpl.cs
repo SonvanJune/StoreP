@@ -89,7 +89,7 @@ public class UserServiceImpl : IUserService
                 Message = EmailFormConfig.EMAIL_VERIFY($"http://localhost:5181/api/users/verify/{user.VerificationToken}", user.Email, "http://localhost:5181")
             });
         }
-        
+
         return Results.Created("", new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
@@ -451,5 +451,27 @@ public class UserServiceImpl : IUserService
             message = "Success",
             data = userFireStore!.GetUserByRole(roleCode).Result
         });
+    }
+
+    IResult IUserService.UpdateStatusUser(UpdateStatusUserDto dto)
+    {
+        if (userFireStore!.UpdateStatus(dto).Result == null)
+        {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+                status = HttpStatusCode.BadRequest,
+                message = "Can not find user",
+                data = null
+            });
+        }
+        else
+        {
+            return Results.Ok(new HttpStatusConfig
+            {
+                status = HttpStatusCode.Created,
+                message = "USer updated successfully",
+                data = null
+            });
+        }
     }
 }

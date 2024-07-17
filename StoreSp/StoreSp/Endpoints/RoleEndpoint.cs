@@ -17,7 +17,7 @@ public static class RoleEndpoint
         group.MapPost("/", (CreateRoleDto createRoleDto) =>
         {
             return roleService.AddRole(createRoleDto);
-        });
+        }).WithParameterValidation();
 
         group.MapGet("/", () =>
         {
