@@ -11,8 +11,8 @@ namespace StoreSp.Stores.Stores;
 public class RoleFireStore(FirestoreDb firestoreDb) : FirestoreService(firestoreDb)
 {
     public static string _collectionRole = "Roles";
-    private IBaseConverter<Role, CreateRoleDto> createRoleConverter = new CreateRoleConverter();
-    private IBaseConverter<Role,RoleDto> roleConverter = new RoleConverter();
+    private readonly IBaseConverter<Role, CreateRoleDto> createRoleConverter = new CreateRoleConverter();
+    private readonly IBaseConverter<Role,RoleDto> roleConverter = new RoleConverter();
 
     public Task Add(CreateRoleDto roleDto)
     {

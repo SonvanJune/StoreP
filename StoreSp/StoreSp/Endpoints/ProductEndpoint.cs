@@ -1,4 +1,5 @@
-﻿using StoreSp.Dtos.request;
+﻿using Microsoft.AspNetCore.Mvc;
+using StoreSp.Dtos.request;
 using StoreSp.Services;
 using StoreSp.Services.Impl;
 
@@ -13,16 +14,15 @@ public static class ProductEndpoint
         var group = app.MapGroup("api/products");
         ProductService = new ProductServiceImpl();
         
-        // group.MapGet("/", () =>
-        // {
-        //    return CategoryService!.GetAllCategories();
-        // });
+        group.MapGet("/categories", ([FromQuery] string code) =>
+        {
+           return ProductService.GetProductsByCategory(code);
+        });
 
         group.MapPost("/", (CreateProductDto createProductDto) =>
         {
             return ProductService.AddProduct(createProductDto);
-        });
-        // .WithParameterValidation().RequireAuthorization("nguoi-ban");
+        }).WithParameterValidation().RequireAuthorization("nguoi-ban");
 
         return group;
     }

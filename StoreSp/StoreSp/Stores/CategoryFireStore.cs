@@ -12,8 +12,8 @@ namespace StoreSp.Stores;
 public class CategoryFireStore(FirestoreDb firestoreDb) : FirestoreService(firestoreDb)
 {
     public static string _collectionCategory = "Categories";
-    private IBaseConverter<Category, CategoryDto> categoryConverter = new CategoryConverter();
-    private IBaseConverter<Category, CreateCategoryDto> createCategoryConverter = new CreateCategoryConverter();
+    public static readonly IBaseConverter<Category, CategoryDto> categoryConverter = new CategoryConverter();
+    private readonly IBaseConverter<Category, CreateCategoryDto> createCategoryConverter = new CreateCategoryConverter();
 
     public int Add(CreateCategoryDto categoryDto)
     {

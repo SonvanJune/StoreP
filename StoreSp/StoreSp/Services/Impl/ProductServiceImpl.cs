@@ -18,4 +18,23 @@ public class ProductServiceImpl : IProductService
             data = null
         });
     }
+
+    IResult IProductService.GetProductsByCategory(string code)
+    {
+        if(ProductFireStore!.GetProductsByCategory(code) == null){
+            return Results.NotFound(new HttpStatusConfig
+            {
+                status = HttpStatusCode.NotFound,
+                message = "Khong tim thay danh muc",
+                data = null
+            });
+        }
+        
+        return Results.Created("", new HttpStatusConfig
+        {
+            status = HttpStatusCode.Created,
+            message = "Success",
+            data = ProductFireStore!.GetProductsByCategory(code)
+        });
+    }
 }
