@@ -69,6 +69,7 @@ public static class BuiderConfig
         {
             options.AddPolicy("quan-tri-vien", policy => policy.RequireRole("quan-tri-vien"));
             options.AddPolicy("nguoi-mua", policy => policy.RequireRole("nguoi-mua"));
+            options.AddPolicy("nguoi-ban", policy => policy.RequireRole("nguoi-ban"));
         });
         builder.Services.AddCors(options =>
         {

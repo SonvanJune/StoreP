@@ -18,6 +18,7 @@ public abstract class FirestoreService(FirestoreDb firestoreDb)
     public static void Run(FirestoreDb db){
         UserServiceImpl.userFireStore = new UserFireStore(db);
         RoleServiceImpl.roleFireStore = new RoleFireStore(db);
-        CategoryServiceImpl.categoryFireStore = new CategoryFireStore(db);
+        CategoryServiceImpl.CategoryFireStore = new CategoryFireStore(db);
+        ProductServiceImpl.ProductFireStore = new ProductFireStore(db);
     }
 }

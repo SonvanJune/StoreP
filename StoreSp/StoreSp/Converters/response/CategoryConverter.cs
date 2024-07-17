@@ -11,7 +11,10 @@ public class CategoryConverter : IBaseConverter<Category, CategoryDto>
         return new CategoryDto
         {
             Id = entity.Id,
-            Name = entity.Name
+            Code = entity.Code,
+            Name = entity.Name,
+            ParentCategoryId = entity.ParentCategoryId,
+            Level = entity.Level
         };
     }
 

@@ -14,8 +14,8 @@ namespace StoreSp.Stores;
 public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestoreDb)
 {
     ///
-    private const string _collectionUser = "Users";
-    private const string _collectionRole = "Roles";
+    public static string _collectionUser = "Users";
+    private static string _collectionRole = "Roles";
     public readonly IBaseConverter<User, UserDto> userConverter = new UserConverter();
     private readonly IBaseConverter<User, CreateUserDto> createUserConverter = new CreateUserConverter();
     private readonly IBaseConverter<User, RegisterUserDto> registerUserConverter = new RegisterUserConverter();

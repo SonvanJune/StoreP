@@ -6,21 +6,21 @@ namespace StoreSp.Endpoints;
 
 public static class CategoryEndpoint
 {
-    public static ICategoryService? categoryService { get; set; }
+    public static ICategoryService? CategoryService { get; set; }
 
     public static RouteGroupBuilder MapCategoryEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("api/categories");
-        categoryService = new CategoryServiceImpl();
+        CategoryService = new CategoryServiceImpl();
         
         group.MapGet("/", () =>
         {
-           return categoryService!.GetAllCategories();
+           return CategoryService!.GetAllCategories();
         });
 
         group.MapPost("/", (CreateCategoryDto createCategoryDto) =>
         {
-            return categoryService!.AddCategory(createCategoryDto);
+            return CategoryService!.AddCategory(createCategoryDto);
         });
 
         return group;

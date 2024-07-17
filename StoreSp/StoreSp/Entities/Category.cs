@@ -14,5 +14,19 @@ public class Category
     [FirestoreProperty]
     public required string Name { get; set; }
 
-    public List<Product>? Products { get; set;}
+    [FirestoreProperty]
+    public required string Code { get; set; }
+
+    [FirestoreProperty]
+    public int Level { get; set; }
+    
+    [FirestoreProperty]
+    public string Avatar { get; set; } = null!;
+
+    public List<Product>? Products { get; set; }
+
+    [FirestoreProperty]
+    public string ParentCategoryId { get; set; } = null!;
+
+    public Category? ParentCategory { get; set; }
 }

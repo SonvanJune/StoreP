@@ -1,7 +1,6 @@
 ﻿using Google.Cloud.Firestore;
-using StoreSp.Entities;
 
-namespace StoreSp;
+namespace StoreSp.Entities;
 
 [FirestoreData]
 public class Product
@@ -10,19 +9,19 @@ public class Product
     public string? Id { get; set; }
 
     [FirestoreDocumentCreateTimestamp]
-    public Timestamp CreateAt { get; set; }
+    public Timestamp CreatedAt { get; set; }
 
     [FirestoreProperty]
     public required string Name { get; set; }
 
     [FirestoreProperty]
+    public string? Code { get; set; }
+
+    [FirestoreProperty]
     public required string Description { get; set; }
 
     [FirestoreProperty]
-    public required int Quantity { get; set; }
-
-    [FirestoreProperty]
-    public required int Active { get; set; }
+    public required string ShippingUnit { get; set; }
 
     [FirestoreProperty]
     public required int Price { get; set; }
@@ -31,15 +30,17 @@ public class Product
     public int PriceSaleOff { get; set; }
 
     [FirestoreProperty]
-    public int SaleOff { get; set; }
+    public required int SaleOff { get; set; }
+
+    [FirestoreProperty]
+    public required int Active { get; set; }
 
     public User? Author { get; set; }
 
     [FirestoreProperty]
     public string? AuthorId { get; set; }
 
-    public Category? Category { get; set; }
+    public List<Category>? Categories { get; set; }
 
-    [FirestoreProperty]
-    public string? CategoryId { get; set; }
+    public List<ProductClassify>? ProductClassifies { get; set; }
 }

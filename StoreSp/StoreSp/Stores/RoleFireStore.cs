@@ -10,7 +10,7 @@ namespace StoreSp.Stores.Stores;
 
 public class RoleFireStore(FirestoreDb firestoreDb) : FirestoreService(firestoreDb)
 {
-    private const string _collectionRole = "Roles";
+    public static string _collectionRole = "Roles";
     private IBaseConverter<Role, CreateRoleDto> createRoleConverter = new CreateRoleConverter();
     private IBaseConverter<Role,RoleDto> roleConverter = new RoleConverter();
 

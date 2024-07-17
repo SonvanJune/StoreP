@@ -80,12 +80,16 @@ public class UserServiceImpl : IUserService
             });
         }
 
-        emailService!.SendEmail(new EmailDto
+        if (user.Email != null)
         {
-            Email = user.Email,
-            Subject = "Xac thuc email",
-            Message = EmailFormConfig.EMAIL_VERIFY($"http://localhost:5181/api/users/verify/{user.VerificationToken}", user.Email, "http://localhost:5181")
-        });
+            emailService!.SendEmail(new EmailDto
+            {
+                Email = user.Email,
+                Subject = "Xac thuc email",
+                Message = EmailFormConfig.EMAIL_VERIFY($"http://localhost:5181/api/users/verify/{user.VerificationToken}", user.Email, "http://localhost:5181")
+            });
+        }
+        
         return Results.Created("", new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
@@ -371,7 +375,8 @@ public class UserServiceImpl : IUserService
         });
     }
 
-    IResult IUserService.GoogleLogin(GoogleLoginDto googleLoginDto){
+    IResult IUserService.GoogleLogin(GoogleLoginDto googleLoginDto)
+    {
 
         if (googleLoginDto.EmailVerified == false)
         {
@@ -430,7 +435,8 @@ public class UserServiceImpl : IUserService
 
     IResult IUserService.GetUserByRole(string roleCode)
     {
-        if(userFireStore!.GetUserByRole(roleCode) == null){
+        if (userFireStore!.GetUserByRole(roleCode) == null)
+        {
             return Results.NotFound(new HttpStatusConfig
             {
                 status = HttpStatusCode.NotFound,

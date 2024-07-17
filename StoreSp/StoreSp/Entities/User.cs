@@ -17,13 +17,13 @@ public class User
     public required string Name { get; set; }
 
     [FirestoreProperty]
-    public required string Email { get; set; }
+    public string Email { get; set; } = null!;
 
     [FirestoreProperty]
-    public string Phone { get; set; } = "";
+    public string Phone { get; set; } = null!;
 
     [FirestoreProperty]
-    public string PasswordHash { get; set; } = "";
+    public string PasswordHash { get; set; } = null!;
 
     [FirestoreProperty]
     public int Status { get; set; }
@@ -35,13 +35,13 @@ public class User
     public Timestamp VerifiedAt { get; set; }
     
     [FirestoreProperty]
-    public string PasswordReestToken { get; set; } = "";
+    public string PasswordReestToken { get; set; } = null!;
 
     [FirestoreProperty]
     public Timestamp ResetTokenExpires { get; set; }
 
     [FirestoreProperty]
-    public string Avatar { get; set; } = "";
+    public string Avatar { get; set; } = null!;
 
     [FirestoreProperty]
     public bool IsGoogleAccount { get; set; } = false;
