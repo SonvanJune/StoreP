@@ -1,7 +1,6 @@
 ﻿using StoreSp.Dtos.request;
 using StoreSp.Services;
 using StoreSp.Services.Impl;
-using StoreSp.Stores.Stores;
 
 namespace StoreSp.Endpoints;
 
@@ -17,17 +16,12 @@ public static class RoleEndpoint
         group.MapPost("/", (CreateRoleDto createRoleDto) =>
         {
             return roleService.AddRole(createRoleDto);
-        }).WithParameterValidation();
+        }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
 
         group.MapGet("/", () =>
         {
             return roleService.GetAllRoles();
-        });
-
-        // group.MapGet("/{id}", (string id) =>
-        // {
-        //     // return userService.GetUserById(id, userFireStore!);
-        // });
+        }).RequireAuthorization("quan-tri-vien");
 
         return group;
     }

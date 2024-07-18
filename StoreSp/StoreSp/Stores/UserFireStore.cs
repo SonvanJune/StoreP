@@ -6,21 +6,22 @@ using StoreSp.Converters.response;
 using StoreSp.Dtos.request;
 using StoreSp.Dtos.response;
 using StoreSp.Entities;
-using StoreSp.Services;
 using StoreSp.Services.Impl;
 
 namespace StoreSp.Stores;
 
 public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestoreDb)
 {
-    ///
+    //Property
     public static string _collectionUser = "Users";
     private static string _collectionRole = "Roles";
     public readonly IBaseConverter<User, UserDto> userConverter = new UserConverter();
     private readonly IBaseConverter<User, CreateUserDto> createUserConverter = new CreateUserConverter();
     private readonly IBaseConverter<User, RegisterUserDto> registerUserConverter = new RegisterUserConverter();
     private readonly IBaseConverter<User, GoogleRegisterDto> googleRegisterConverter = new GoogleRegisterConverter();
+    public readonly LogFireStore logFireStore = new LogFireStore(firestoreDb);
 
+    //Method it su dung
     public Task<List<UserDto>> GetAllUser()
     {
         var snapshot = base.GetSnapshots(_collectionUser);
@@ -33,21 +34,6 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         var snapshot = base.GetSnapshots(_collectionUser);
         var user = snapshot.Documents.Select(s => s.ConvertTo<User>()).ToList().Find(u => u.Id == id);
         return Task.FromResult(userConverter.ToDto(user!));
-    }
-
-    public Task<List<UserDto>> GetUserByRole(string roleCode)
-    {
-        var roleDb = base.GetSnapshots(_collectionRole);
-        var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Code == roleCode);
-
-        if (role == null)
-        {
-            return null!;
-        }
-
-        var snapshot = base.GetSnapshots(_collectionUser);
-        var user = snapshot.Documents.Select(s => s.ConvertTo<User>()).ToList().FindAll(u => u.RoleId == role.Id);
-        return Task.FromResult(user.Select(userConverter.ToDto).ToList());
     }
 
     public Task Add(CreateUserDto userDto)
@@ -64,7 +50,22 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         return userDb.AddAsync(user);
     }
 
-    public User Register(RegisterUserDto userDto)
+    //Method chinh
+    public Task<List<UserDto>> GetUserByRole(string roleCode)
+    {
+        var roleDb = base.GetSnapshots(_collectionRole);
+        var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Code == roleCode);
+
+        if (role == null)
+        {
+            return null!;
+        }
+
+        var snapshot = base.GetSnapshots(_collectionUser);
+        var user = snapshot.Documents.Select(s => s.ConvertTo<User>()).ToList().FindAll(u => u.RoleId == role.Id);
+        return Task.FromResult(user.Select(userConverter.ToDto).ToList());
+    }
+    public async Task<User> Register(RegisterUserDto userDto)
     {
         var userExistDb = base.GetSnapshots(_collectionUser);
         if (userDto.Email == null)
@@ -96,11 +97,16 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         user.RoleId = role.Id;
         user.Role = role;
         user.VerificationToken = AuthServiceImpl.CreateRandomToken(user);
-        userDb.AddAsync(user);
+        await userDb.AddAsync(user);
+        CreateCartForUser(user);
+
+        //tao log cho user dang ky
+        await logFireStore.AddLogForUser(user, "dang-ky");
+
         return user;
     }
 
-    public User Login(LoginUserDto loginUserDto)
+    public async Task<User> Login(LoginUserDto loginUserDto)
     {
         var userDb = base.GetSnapshots(_collectionUser);
         var roleDb = base.GetSnapshots(_collectionRole);
@@ -129,6 +135,9 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
 
         var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == user!.RoleId);
         user.Role = role;
+
+        //tao log cho user dang ky
+        await logFireStore.AddLogForUser(user, "dang-nhap");
         return user;
     }
 
@@ -167,22 +176,9 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         {
             await docref.UpdateAsync(data);
         }
+        //tao log cho user dang ky
+        await logFireStore.AddLogForUser(user, "da-xac-thuc");
         return user;
-    }
-
-    public bool CheckIsVerified(string email)
-    {
-        var userDb = base.GetSnapshots(_collectionUser);
-        var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);
-        if (user == null) return false;
-        return user.VerifiedAt.ToDateTime().Year != 1111;
-    }
-
-    public bool CheckValidToken(string email, string token)
-    {
-        var userDb = base.GetSnapshots(_collectionUser);
-        var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);
-        return user!.VerificationToken == token;
     }
 
     public async Task<User> ForgetPasword(string email, string randomCode)
@@ -207,6 +203,8 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         {
             await docref.UpdateAsync(data);
         }
+        //tao log cho user dang ky
+        await logFireStore.AddLogForUser(user, "quen-mat-khau");
         return user;
     }
 
@@ -246,10 +244,13 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         {
             await docref.UpdateAsync(data);
         }
+
+        //tao log cho user dang ky
+        await logFireStore.AddLogForUser(user, "thay-doi-mat-khau");
         return user;
     }
 
-    public User GoogleRegister(GoogleRegisterDto dto)
+    public async Task<User> GoogleRegister(GoogleRegisterDto dto)
     {
         var userExistDb = base.GetSnapshots(_collectionUser);
         var emailExist = userExistDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == dto.Email);
@@ -273,11 +274,14 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         var unspecified = DateTime.UtcNow;
         var specified = DateTime.SpecifyKind(unspecified, DateTimeKind.Utc);
         user.VerifiedAt = Timestamp.FromDateTime(specified);
-        userDb.AddAsync(user);
+        await userDb.AddAsync(user);
+        CreateCartForUser(user);
+        //tao log cho user dang ky
+        await logFireStore.AddLogForUser(user, "dang-ky-bang-google");
         return user;
     }
 
-    public User GoogleLogin(GoogleLoginDto dto)
+    public async Task<User> GoogleLogin(GoogleLoginDto dto)
     {
         var userDb = base.GetSnapshots(_collectionUser);
         var roleDb = base.GetSnapshots(_collectionRole);
@@ -288,6 +292,8 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         }
         var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == user!.RoleId);
         user.Role = role;
+        //tao log cho user dang ky
+        await logFireStore.AddLogForUser(user, "dang-nhap");
         return user;
     }
 
@@ -311,5 +317,44 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         }
         return user;
 
+    }
+
+    //method ho tro
+    public bool CheckIsVerified(string email)
+    {
+        var userDb = base.GetSnapshots(_collectionUser);
+        var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);
+        if (user == null) return false;
+        return user.VerifiedAt.ToDateTime().Year != 1111;
+    }
+
+    public bool CheckValidToken(string email, string token)
+    {
+        var userDb = base.GetSnapshots(_collectionUser);
+        var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);
+        return user!.VerificationToken == token;
+    }
+
+    public async void CreateCartForUser(User user)
+    {
+        var cartDb = _firestoreDb.Collection(CartFireStore._collectionCart);
+        var userDb = base.GetSnapshots(_collectionUser);
+        User u = null!;
+        if (user.Email == null)
+        {
+            u = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == user.Phone)!;
+        }
+        else
+        {
+            u = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == user.Email)!;
+        }
+
+        var cart = new Cart
+        {
+            UserId = u.Id,
+            TotalPrice = 0,
+            Items = new List<CartItem>()
+        };
+        await cartDb.AddAsync(cart);
     }
 }

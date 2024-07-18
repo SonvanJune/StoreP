@@ -10,6 +10,7 @@ namespace StoreSp.Stores;
 
 public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firestoreDb)
 {
+    //properties
     public static string _collectionProducts = "Products";
     public static string _collectionProductClassify = "Product_Classifies";
     private readonly IBaseConverter<User, UserDto> userConverter = new UserConverter();
@@ -17,6 +18,8 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
     private readonly IBaseConverter<ProductClassify, CreateProductClassifyDto> createProductClassifyConverter = new CreateProductClassifyConverter();
     private readonly IBaseConverter<Product, ProductDto> productConverter = new ProductConverter();
     private readonly IBaseConverter<ProductClassify, ProductClassifyDto> productClassifyConverter = new ProductClassifyConverter();
+
+    //method chinh
     public async Task<Product> AddProduct(CreateProductDto createProductDto)
     {
         var db = _firestoreDb.Collection(_collectionProducts);
@@ -44,10 +47,44 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         return product;
     }
 
+    public List<ProductDto> GetProductsByCategory(string categoryCode)
+    {
+        var productDb = base.GetSnapshots(_collectionProducts);
+        var categoryProductDb = base.GetSnapshots(Category_ProductFireStore._collectionCategoryProduct);
+        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
+        var categoryDb = base.GetSnapshots(CategoryFireStore._collectionCategory);
+        List<ProductDto> productsDto = new List<ProductDto>();
+
+        //tim category bang category code 
+        var category = categoryDb.Documents.Select(r => r.ConvertTo<Category>()).ToList().Find(r => r.Code == categoryCode);
+        if (category == null)
+        {
+            return null!;
+        }
+
+        //lay danh sach product id trong bang category_product
+        var category_product_list = categoryProductDb.Documents.Select(r => r.ConvertTo<Category_Product>()).ToList().FindAll(r => r.CategoryId == category!.Id);
+        foreach (var cp in category_product_list)
+        {
+            var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == cp.ProductId);
+            var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == product!.AuthorId);
+            ProductDto dto = productConverter.ToDto(product!);
+            dto.Author = userConverter.ToDto(user!);
+            dto.Classifies = GetProductClassifiesByProduct(cp.ProductId);
+            dto.Categories = GetCategoriesByProduct(cp.ProductId);
+            productsDto.Add(dto);
+        }
+
+        return productsDto;
+    }
+
+    
+    //method ho tro
     public async Task<CreateProductClassifyDto[]> AddProductClassify(CreateProductClassifyDto[] productClassifies, string productCode)
     {
         var db = _firestoreDb.Collection(_collectionProductClassify);
         var productDb = base.GetSnapshots(_collectionProducts);
+        var productClassifyDb = base.GetSnapshots(_collectionProductClassify);
         var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Code == productCode);
 
         foreach (var pClassify in productClassifies)
@@ -55,12 +92,19 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
             var productClassify = createProductClassifyConverter.ToEntity(pClassify);
             productClassify.Product = product;
             productClassify.ProductId = product!.Id;
+            Random rnd = new Random();
+            string randomCode = rnd.Next(1, 100000).ToString();
+            while (productClassifyDb.Documents.Select(r => r.ConvertTo<ProductClassify>()).ToList().Find(r => r.Code == randomCode) != null)
+            {
+                randomCode = rnd.Next(1, 100000).ToString();
+            }
+            productClassify.Code = randomCode;
             await db.AddAsync(productClassify);
         }
 
         return productClassifies;
     }
-
+    
     public async Task AddCategoryProduct(string categoryCode, string productCode)
     {
         var db = _firestoreDb.Collection(Category_ProductFireStore._collectionCategoryProduct);
@@ -97,38 +141,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
             await db.AddAsync(new Category_Product { CategoryId = categoryId, ProductId = product!.Id! });
         }
     }
-
-    public List<ProductDto> GetProductsByCategory(string categoryCode)
-    {
-        var productDb = base.GetSnapshots(_collectionProducts);
-        var categoryProductDb = base.GetSnapshots(Category_ProductFireStore._collectionCategoryProduct);
-        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
-        var categoryDb = base.GetSnapshots(CategoryFireStore._collectionCategory);
-        List<ProductDto> productsDto = new List<ProductDto>();
-
-        //tim category bang category code 
-        var category = categoryDb.Documents.Select(r => r.ConvertTo<Category>()).ToList().Find(r => r.Code == categoryCode);
-        if (category == null)
-        {
-            return null!;
-        }
-
-        //lay danh sach product id trong bang category_product
-        var category_product_list = categoryProductDb.Documents.Select(r => r.ConvertTo<Category_Product>()).ToList().FindAll(r => r.CategoryId == category!.Id);
-        foreach (var cp in category_product_list)
-        {
-            var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == cp.ProductId);
-            var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == product!.AuthorId);
-            ProductDto dto = productConverter.ToDto(product!);
-            dto.Author = userConverter.ToDto(user!);
-            dto.Classifies = GetProductClassifiesByProduct(cp.ProductId);
-            dto.Categories = GetCategoriesByProduct(cp.ProductId);
-            productsDto.Add(dto);
-        }
-
-        return productsDto;
-    }
-
+    
     public List<ProductClassifyDto> GetProductClassifiesByProduct(string productId)
     {
         var productDb = base.GetSnapshots(_collectionProducts);
@@ -139,13 +152,14 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         foreach (var pc in productClassifies)
         {
             ProductClassifyDto dto = productClassifyConverter.ToDto(pc);
-            dto.PriceAfterIncreasePercent = pc.IncreasePercent == 0 ? product!.Price : product!.Price + (product!.Price * pc.IncreasePercent /100);
+            dto.PriceAfterIncreasePercent = pc.IncreasePercent == 0 ? product!.Price : product!.Price + (product!.Price * pc.IncreasePercent / 100);
             productsDto.Add(dto);
         }
         return productsDto;
     }
 
-    public List<CategoryDto> GetCategoriesByProduct(string productId){
+    public List<CategoryDto> GetCategoriesByProduct(string productId)
+    {
         var productDb = base.GetSnapshots(_collectionProducts);
         var categoryDb = base.GetSnapshots(CategoryFireStore._collectionCategory);
         var categoryProductDb = base.GetSnapshots(Category_ProductFireStore._collectionCategoryProduct);
@@ -162,11 +176,12 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
             categories.Add(category!);
         }
 
-        int high = 0 ;
-        
+        int high = 0;
+
         foreach (var category in categories)
         {
-            if(high <= category.Level){
+            if (high <= category.Level)
+            {
                 high = category.Level;
             }
             categoryDtos.Add(CategoryFireStore.categoryConverter.ToDto(category));
@@ -176,14 +191,16 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         {
             for (int j = 0; j < categoryDtos.Count; j++)
             {
-                if(categoryDtos[j].ParentCategoryId == null && categoryDtos[j].Level == i ){
+                if (categoryDtos[j].ParentCategoryId == null && categoryDtos[j].Level == i)
+                {
                     result.Add(categoryDtos[j]);
                     List<CategoryDto> arr = categoryDtos.FindAll(c => c.ParentCategoryId == categoryDtos[j].Id);
                     categoryDtos[j].Children = arr;
                     break;
                 }
-                
-                if(categoryDtos[j].ParentCategoryId != null && categoryDtos[j].Level == i ){
+
+                if (categoryDtos[j].ParentCategoryId != null && categoryDtos[j].Level == i)
+                {
                     List<CategoryDto> arr = categoryDtos.FindAll(c => c.ParentCategoryId == categoryDtos[j].Id);
                     categoryDtos[j].Children = arr;
                 }

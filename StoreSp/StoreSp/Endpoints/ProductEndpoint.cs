@@ -17,7 +17,7 @@ public static class ProductEndpoint
         group.MapGet("/categories", ([FromQuery] string code) =>
         {
            return ProductService.GetProductsByCategory(code);
-        });
+        }).RequireAuthorization();
 
         group.MapPost("/", (CreateProductDto createProductDto) =>
         {

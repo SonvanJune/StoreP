@@ -83,7 +83,7 @@ public static class UserEndpoint
         group.MapGet("/users/role", ([FromQuery] string code) =>
         {
             return userService.GetUserByRole(code);
-        });
+        }).RequireAuthorization("quan-tri-vien");
 
         group.MapGet("/test", () =>
         {
@@ -93,7 +93,7 @@ public static class UserEndpoint
         group.MapPost("/users/update-status", (UpdateStatusUserDto dto) =>
         {
             return userService.UpdateStatusUser(dto);
-        }).WithParameterValidation();
+        }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
         return group;
     }
 }

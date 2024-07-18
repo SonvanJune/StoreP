@@ -16,12 +16,12 @@ public static class CategoryEndpoint
         group.MapGet("/", () =>
         {
            return CategoryService!.GetAllCategories();
-        });
+        }).RequireAuthorization();
 
         group.MapPost("/", (CreateCategoryDto createCategoryDto) =>
         {
             return CategoryService!.AddCategory(createCategoryDto);
-        }).WithParameterValidation();
+        }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
 
         return group;
     }

@@ -19,7 +19,8 @@ public class CreateProductClassifyConverter : IBaseConverter<ProductClassify, Cr
             Image = dto.Image,
             Quantity = dto.Quantity,
             IncreasePercent = dto.IncreasePercent,
-            Status = 1
+            Status = 1,
+            IsChoose = false
         };
     }
 }

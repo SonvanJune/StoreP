@@ -69,7 +69,7 @@ public class UserServiceImpl : IUserService
             });
         }
 
-        var user = userFireStore!.Register(registerUserDto);
+        var user = userFireStore!.Register(registerUserDto).Result;
         if (user == null)
         {
             return Results.BadRequest(new HttpStatusConfig
@@ -80,7 +80,7 @@ public class UserServiceImpl : IUserService
             });
         }
 
-        if (user.Email != null)
+        if (user.Email != null && user.Email != "")
         {
             emailService!.SendEmail(new EmailDto
             {
@@ -110,9 +110,9 @@ public class UserServiceImpl : IUserService
             });
         }
 
-        if (userFireStore.Login(loginUserDto) != null)
+        var user = userFireStore.Login(loginUserDto).Result;
+        if (user != null)
         {
-            var user = userFireStore.Login(loginUserDto);
             //nam thang ngay mac dinh 1111/11/11 
             if (user.VerifiedAt.ToDateTime().Year == 1111)
             {
@@ -353,7 +353,7 @@ public class UserServiceImpl : IUserService
             });
         }
 
-        var user = userFireStore!.GoogleRegister(googleRegisterDto);
+        var user = userFireStore!.GoogleRegister(googleRegisterDto).Result;
         if (user == null)
         {
             return Results.BadRequest(new HttpStatusConfig
@@ -398,9 +398,9 @@ public class UserServiceImpl : IUserService
             });
         }
 
-        if (userFireStore.GoogleLogin(googleLoginDto) != null)
+        if (userFireStore.GoogleLogin(googleLoginDto).Result != null)
         {
-            var user = userFireStore.GoogleLogin(googleLoginDto);
+            var user = userFireStore.GoogleLogin(googleLoginDto).Result;
             //nam thang ngay mac dinh 1111/11/11 
             if (user.VerifiedAt.ToDateTime().Year == 1111)
             {

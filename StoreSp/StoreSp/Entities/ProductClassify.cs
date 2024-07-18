@@ -10,6 +10,9 @@ public class ProductClassify
 
     [FirestoreProperty]
     public required string GroupName { get; set; }
+    
+    [FirestoreProperty]
+    public string? Code { get; set; }
 
     [FirestoreProperty]
     public required string Name { get; set; }
@@ -30,4 +33,7 @@ public class ProductClassify
     public string? ProductId { get; set; }
 
     public Product? Product { get; set; }
+
+    [FirestoreProperty]
+    public required bool IsChoose { get; set; } = false;
 }

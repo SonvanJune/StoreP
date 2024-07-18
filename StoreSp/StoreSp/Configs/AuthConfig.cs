@@ -1,4 +1,4 @@
-﻿namespace StoreSp;
+﻿namespace StoreSp.Configs;
 
 public class AuthConfig
 {

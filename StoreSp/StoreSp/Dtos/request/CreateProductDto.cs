@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Newtonsoft.Json;
-using StoreSp.Dtos.response;
 
 namespace StoreSp.Dtos.request;
 

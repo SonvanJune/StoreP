@@ -1,6 +1,4 @@
 ﻿using StoreSp.Dtos.request;
-using StoreSp.Dtos.response;
-using StoreSp.Stores;
 
 namespace StoreSp.Services;
 
