@@ -36,7 +36,15 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         }
         product.Code = randomCode;
 
-        var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == createProductDto.AuthEmail);
+        User user = null!;
+        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == createProductDto.Auth) == null)
+        {
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == createProductDto.Auth)!;
+        }
+        else
+        {
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == createProductDto.Auth)!;
+        }
         product.Author = user;
         product.AuthorId = user!.Id;
 
@@ -80,7 +88,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 
     
     //method ho tro
-    public async Task<CreateProductClassifyDto[]> AddProductClassify(CreateProductClassifyDto[] productClassifies, string productCode)
+    private async Task<CreateProductClassifyDto[]> AddProductClassify(CreateProductClassifyDto[] productClassifies, string productCode)
     {
         var db = _firestoreDb.Collection(_collectionProductClassify);
         var productDb = base.GetSnapshots(_collectionProducts);
@@ -105,7 +113,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         return productClassifies;
     }
     
-    public async Task AddCategoryProduct(string categoryCode, string productCode)
+    private async Task AddCategoryProduct(string categoryCode, string productCode)
     {
         var db = _firestoreDb.Collection(Category_ProductFireStore._collectionCategoryProduct);
         var productDb = base.GetSnapshots(_collectionProducts);
@@ -142,7 +150,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         }
     }
     
-    public List<ProductClassifyDto> GetProductClassifiesByProduct(string productId)
+    private List<ProductClassifyDto> GetProductClassifiesByProduct(string productId)
     {
         var productDb = base.GetSnapshots(_collectionProducts);
         var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == productId);
@@ -158,7 +166,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         return productsDto;
     }
 
-    public List<CategoryDto> GetCategoriesByProduct(string productId)
+    private List<CategoryDto> GetCategoriesByProduct(string productId)
     {
         var productDb = base.GetSnapshots(_collectionProducts);
         var categoryDb = base.GetSnapshots(CategoryFireStore._collectionCategory);

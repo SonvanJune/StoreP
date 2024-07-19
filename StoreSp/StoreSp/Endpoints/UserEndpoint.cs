@@ -50,24 +50,24 @@ public static class UserEndpoint
             return userService.GetUserByToken(authorization);
         });
 
-        group.MapGet("/users/verify/{token}", (string token) =>
+        group.MapGet("/users/email/verify/{token}", (string token) =>
         {
-            return userService.VerifyUser(token);
+            return userService.VerifyUserByEmail(token);
         });
 
-        group.MapGet("/users/check-verify/{token}", (string token) =>
+        group.MapGet("/users/email/check-verify/{token}", (string token) =>
         {
-            return userService.CheckVerify(token);
+            return userService.CheckVerifyOfEmail(token);
         });
 
-        group.MapPost("/users/forgot-password/", (ForgetPasswordDto dto) =>
+        group.MapPost("/users/email/forgot-password/", (ForgetPasswordDto dto) =>
         {
-            return userService.ForgetPassword(dto.Email);
+            return userService.ForgetPasswordByEmail(dto.Email);
         }).WithParameterValidation();
 
-        group.MapPost("/users/reset-password/", (ResetPasswordDto dto) =>
+        group.MapPost("/users/email/reset-password/", (ResetPasswordDto dto) =>
         {
-            return userService.ResetPassword(dto);
+            return userService.ResetPasswordOfEmail(dto);
         }).WithParameterValidation();
 
         group.MapPost("/users/google-login", (GoogleLoginDto dto) =>

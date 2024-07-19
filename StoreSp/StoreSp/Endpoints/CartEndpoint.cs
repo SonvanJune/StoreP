@@ -13,15 +13,15 @@ public static class CartEndpoint
         var group = app.MapGroup("api/carts");
         CartService = new CartServiceImpl();
 
-        // group.MapGet("/", () =>
-        // {
-        //     return CategoryService!.GetAllCategories();
-        // }).RequireAuthorization();
+        group.MapGet("/{username}", (string username) =>
+        {
+            return CartService!.GetCartByUser(username);
+        }).RequireAuthorization("nguoi-mua");
 
         group.MapPost("/", (AddCartItemDto addCartItemDto) =>
         {
             return CartService!.AddToCart(addCartItemDto);
-        }).WithParameterValidation();
+        }).WithParameterValidation().RequireAuthorization("nguoi-mua");
 
         return group;
     }

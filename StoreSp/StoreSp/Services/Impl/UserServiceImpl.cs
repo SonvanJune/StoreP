@@ -86,7 +86,7 @@ public class UserServiceImpl : IUserService
             {
                 Email = user.Email,
                 Subject = "Xac thuc email",
-                Message = EmailFormConfig.EMAIL_VERIFY($"http://localhost:5181/api/users/verify/{user.VerificationToken}", user.Email, "http://localhost:5181")
+                Message = EmailFormConfig.EMAIL_VERIFY($"http://localhost:5181/api/users/email/verify/{user.VerificationToken}", user.Email, "http://localhost:5181")
             });
         }
 
@@ -152,9 +152,9 @@ public class UserServiceImpl : IUserService
         if (authService!.ValidateToken(token))
         {
             var email = authService!.GetFirstByToken(token);
-            if (userFireStore!.GetUserByEmail(email) != null)
+            var user = userFireStore!.GetUserByEmail(email);
+            if (user != null)
             {
-                var user = userFireStore.GetUserByEmail(email);
                 return Results.Ok(new HttpStatusConfig
                 {
                     status = HttpStatusCode.OK,
@@ -183,7 +183,7 @@ public class UserServiceImpl : IUserService
         }
     }
 
-    IResult IUserService.VerifyUser(string token)
+    IResult IUserService.VerifyUserByEmail(string token)
     {
         if (authService!.ValidateToken(token))
         {
@@ -208,7 +208,7 @@ public class UserServiceImpl : IUserService
                 });
             }
 
-            if (userFireStore.VerifyUser(email) != null)
+            if (userFireStore.VerifyUserByEmail(email) != null)
             {
                 return Results.Ok(new HttpStatusConfig
                 {
@@ -238,10 +238,10 @@ public class UserServiceImpl : IUserService
         }
     }
 
-    IResult IUserService.ForgetPassword(string email)
+    IResult IUserService.ForgetPasswordByEmail(string email)
     {
         string genCode = Convert.ToHexString(RandomNumberGenerator.GetBytes(4));
-        if (userFireStore!.ForgetPasword(email, genCode).Result != null)
+        if (userFireStore!.ForgetPaswordByEmail(email, genCode).Result != null)
         {
             emailService!.SendEmail(new EmailDto
             {
@@ -267,9 +267,9 @@ public class UserServiceImpl : IUserService
         }
     }
 
-    IResult IUserService.ResetPassword(ResetPasswordDto dto)
+    IResult IUserService.ResetPasswordOfEmail(ResetPasswordDto dto)
     {
-        if (userFireStore!.ResetPassword(dto).Result != null)
+        if (userFireStore!.ResetPasswordOfEmail(dto).Result != null)
         {
             return Results.Ok(new HttpStatusConfig
             {
@@ -289,14 +289,14 @@ public class UserServiceImpl : IUserService
         }
     }
 
-    IResult IUserService.CheckVerify(string token)
+    IResult IUserService.CheckVerifyOfEmail(string token)
     {
         if (authService!.ValidateToken(token))
         {
             var email = authService!.GetFirstByToken(token);
-            if (userFireStore!.GetUserByEmail(email) != null)
+            var user = userFireStore!.GetUserByEmail(email);
+            if (user != null)
             {
-                var user = userFireStore.GetUserByEmail(email);
                 if (user.VerifiedAt.ToDateTime().Year != 1111)
                 {
                     return Results.Ok(new HttpStatusConfig

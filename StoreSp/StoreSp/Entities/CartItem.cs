@@ -8,6 +8,9 @@ public class CartItem
     [FirestoreDocumentId]
     public string? Id { get; set; }
 
+    [FirestoreProperty]
+    public string? Code { get; set; }
+
     public Product? Product { get; set; }
 
     [FirestoreProperty]
@@ -26,4 +29,6 @@ public class CartItem
 
     [FirestoreProperty]
     public int Total { get; set; }
+
+    public List<CartItem_ProductClassify>? CartItem_ProductClassifies { get; set;}
 }

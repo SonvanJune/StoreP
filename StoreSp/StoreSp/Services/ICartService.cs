@@ -5,4 +5,5 @@ namespace StoreSp.Services;
 public interface ICartService
 {
     public IResult AddToCart(AddCartItemDto addCartItemDto);
+    public IResult GetCartByUser(string username);
 }

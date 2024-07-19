@@ -7,5 +7,7 @@ public record UpdateStatusUserDto
     [Required]
     string Email,
     [Required]
+    string Phone,
+    [Required]
     int Status
 );

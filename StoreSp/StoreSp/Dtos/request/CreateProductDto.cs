@@ -20,7 +20,7 @@ public class CreateProductDto
     public required int SaleOff { get; set; }
 
     [Required]
-    public required string AuthEmail { get; set; }
+    public required string Auth { get; set; }
 
     [Required]
     public required string CategoryCode { get; set; }

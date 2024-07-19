@@ -155,7 +155,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         return user;
     }
 
-    public async Task<User> VerifyUser(string email)
+    public async Task<User> VerifyUserByEmail(string email)
     {
         var userDb = base.GetSnapshots(_collectionUser);
         var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);
@@ -181,7 +181,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         return user;
     }
 
-    public async Task<User> ForgetPasword(string email, string randomCode)
+    public async Task<User> ForgetPaswordByEmail(string email, string randomCode)
     {
         var userDb = base.GetSnapshots(_collectionUser);
         var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);
@@ -208,7 +208,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         return user;
     }
 
-    public async Task<User> ResetPassword(ResetPasswordDto resetPasswordDto)
+    public async Task<User> ResetPasswordOfEmail(ResetPasswordDto resetPasswordDto)
     {
         var userDb = base.GetSnapshots(_collectionUser);
         var userList = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList();
@@ -300,11 +300,16 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
     public async Task<User> UpdateStatus(UpdateStatusUserDto dto)
     {
         var userDb = base.GetSnapshots(_collectionUser);
-        var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == dto.Email);
-        if (user == null)
+        User user = null!;
+        if (dto.Email == null)
         {
-            return null!;
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == dto.Phone)!;
         }
+        else
+        {
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == dto.Email)!;
+        }
+
         DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
         Dictionary<string, object> data = new Dictionary<string, object>{
             {"Status" , dto.Status}
@@ -335,7 +340,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         return user!.VerificationToken == token;
     }
 
-    public async void CreateCartForUser(User user)
+    private async void CreateCartForUser(User user)
     {
         var cartDb = _firestoreDb.Collection(CartFireStore._collectionCart);
         var userDb = base.GetSnapshots(_collectionUser);

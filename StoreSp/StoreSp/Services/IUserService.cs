@@ -9,12 +9,12 @@ public interface IUserService
    public IResult GetUserByRole(string roleCode);
    public IResult GetUserById(string id);
    public IResult Register(RegisterUserDto registerUserDto);
-   public IResult CheckVerify(string toke);
+   public IResult CheckVerifyOfEmail(string toke);
    public IResult Login(LoginUserDto loginUserDto);
    public IResult GetUserByToken(string toke);
-   public IResult VerifyUser(string toke);
-   public IResult ForgetPassword(string email);
-   public IResult ResetPassword(ResetPasswordDto dto);
+   public IResult VerifyUserByEmail(string toke);
+   public IResult ForgetPasswordByEmail(string email);
+   public IResult ResetPasswordOfEmail(ResetPasswordDto dto);
    public IResult GoogleRegister(GoogleRegisterDto googleRegisterDto);
    public IResult GoogleLogin(GoogleLoginDto googleLoginDto);
    public IResult UpdateStatusUser(UpdateStatusUserDto dto);

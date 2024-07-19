@@ -28,4 +28,14 @@ public class CartServiceImpl : ICartService
             data = null
         });
     }
+
+    IResult ICartService.GetCartByUser(string username)
+    {
+        return Results.Ok(new HttpStatusConfig
+        {
+            status = HttpStatusCode.OK,
+            message = "success",
+            data = CartFireStore!.GetCartByUser(username)
+        });
+    }
 }
