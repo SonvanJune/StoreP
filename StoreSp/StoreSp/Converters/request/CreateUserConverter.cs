@@ -21,7 +21,8 @@ public class CreateUserConverter : IBaseConverter<User, CreateUserDto>
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             Status = 0,
             Avatar = dto.Avatar,
-            CreateAt = new Timestamp()
+            CreateAt = new Timestamp(),
+            Account = 0
         };
     }
 }

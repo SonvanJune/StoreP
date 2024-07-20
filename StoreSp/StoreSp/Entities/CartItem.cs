@@ -30,5 +30,8 @@ public class CartItem
     [FirestoreProperty]
     public int Total { get; set; }
 
+    [FirestoreProperty]
+    public required int Status { get; set; }
+
     public List<CartItem_ProductClassify>? CartItem_ProductClassifies { get; set;}
 }

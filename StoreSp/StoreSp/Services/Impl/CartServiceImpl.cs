@@ -29,6 +29,17 @@ public class CartServiceImpl : ICartService
         });
     }
 
+    IResult ICartService.CheckoutCartItem(string code)
+    {
+        var item = CartFireStore!.CheckoutItemInCart(code).Result;
+        return Results.Ok(new HttpStatusConfig
+        {
+            status = HttpStatusCode.OK,
+            message = "success",
+            data = null
+        });
+    }
+
     IResult ICartService.GetCartByUser(string username)
     {
         return Results.Ok(new HttpStatusConfig

@@ -30,5 +30,6 @@ app.MapRoleEndpoints();
 app.MapCategoryEndpoints();
 app.MapProductEndpoints();
 app.MapCartEndpoints();
+app.MapBillEndpoints();
 
 app.Run();

@@ -25,7 +25,8 @@ public class GoogleRegisterConverter : IBaseConverter<User, GoogleRegisterDto>
             CreateAt = Timestamp.FromDateTime(DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc)),
             UpdateAt = new Timestamp(),
             VerifiedAt = Timestamp.FromDateTime(specified),
-            ResetTokenExpires = Timestamp.FromDateTime(specified)
+            ResetTokenExpires = Timestamp.FromDateTime(specified),
+            Account = 0
         };
     }
 }

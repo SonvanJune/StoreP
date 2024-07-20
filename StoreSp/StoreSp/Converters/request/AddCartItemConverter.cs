@@ -13,7 +13,8 @@ public class AddCartItemConverter : IBaseConverter<CartItem, AddCartItemDto>
     CartItem IBaseConverter<CartItem, AddCartItemDto>.ToEntity(AddCartItemDto dto)
     {
         return new CartItem{
-            Quantity = dto.Quantity
+            Quantity = dto.Quantity,
+            Status = 0
         };
     }
 }

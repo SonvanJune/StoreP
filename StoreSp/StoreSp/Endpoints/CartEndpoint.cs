@@ -16,11 +16,16 @@ public static class CartEndpoint
         group.MapGet("/{username}", (string username) =>
         {
             return CartService!.GetCartByUser(username);
-        }).RequireAuthorization("nguoi-mua");
+        }).WithParameterValidation().RequireAuthorization("nguoi-mua");
 
         group.MapPost("/", (AddCartItemDto addCartItemDto) =>
         {
             return CartService!.AddToCart(addCartItemDto);
+        }).WithParameterValidation().RequireAuthorization("nguoi-mua");
+
+        group.MapPost("/check", (CheckoutCartItemDto checkoutCartItemDto) =>
+        {
+            return CartService!.CheckoutCartItem(checkoutCartItemDto.CartItemCode);
         }).WithParameterValidation().RequireAuthorization("nguoi-mua");
 
         return group;

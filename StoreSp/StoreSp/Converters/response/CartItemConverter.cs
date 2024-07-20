@@ -11,7 +11,9 @@ public class CartItemConverter : IBaseConverter<CartItem, CartItemDto>
         {
             Quantity = entity.Quantity,
             Price = entity.Price,
-            Total = entity.Total
+            Total = entity.Total,
+            Status = entity.Status,
+            Code = entity.Code
         };
     }
 

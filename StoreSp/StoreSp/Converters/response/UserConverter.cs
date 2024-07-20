@@ -14,7 +14,8 @@ public class UserConverter : IBaseConverter<User, UserDto>
             Phone = entity.Phone,
             Avatar = entity.Avatar,
             Status = entity.Status,
-            VerifiedAt = entity.VerifiedAt.ToDateTime().ToShortDateString()
+            VerifiedAt = entity.VerifiedAt.ToDateTime().ToShortDateString(),
+            Address = entity.Address
         };
     }
 

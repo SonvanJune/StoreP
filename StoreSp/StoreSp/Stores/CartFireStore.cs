@@ -30,7 +30,6 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         var cartItemDb = base.GetSnapshots(_collectionCartItem);
         CartItem item = null!;
         List<string> productClassifyIds = new List<string>();
-        int totalAfterAdd = 0;
 
         User user = null!;
         if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == itemDto.Username) == null)
@@ -68,9 +67,9 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         {
             //Update cart item of the classify of product input
             item = cartItemDb.Documents.Select(r => r.ConvertTo<CartItem>()).ToList().Find(r => r.Id == idCartItemExist)!;
+            int oldTotal = item.Total;
             int newQuantity = itemDto.Quantity + item.Quantity;
             int total = item.Price * newQuantity;
-            totalAfterAdd = item.Price * itemDto.Quantity;
             DocumentReference docref = _firestoreDb.Collection(_collectionCartItem).Document(idCartItemExist);
             Dictionary<string, object> data = new Dictionary<string, object>{
                {"Quantity" , newQuantity},
@@ -82,6 +81,9 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             {
                 await docref.UpdateAsync(data);
             }
+
+            //change status when add again
+            await UpdateWhenAddAgain(item.Code!, oldTotal);
         }
         else
         {
@@ -113,31 +115,63 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             //gen code
             Random rnd = new Random();
             string randomCode = rnd.Next(1, 100000).ToString();
-            while (cartItemDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Code == randomCode) != null)
+            while (cartItemDb.Documents.Select(r => r.ConvertTo<CartItem>()).ToList().Find(r => r.Code == randomCode) != null)
             {
                 randomCode = rnd.Next(1, 100000).ToString();
             }
             item.Code = randomCode;
 
             await db.AddAsync(item);
-            totalAfterAdd = total;
             await AddCartItem_ProductClassifies(productClassifyIds, randomCode);
         }
 
-        // add total for cart
-        totalAfterAdd += cart!.TotalPrice;
-        DocumentReference docrefCart = _firestoreDb.Collection(_collectionCart).Document(cart.Id);
-        Dictionary<string, object> dataCart = new Dictionary<string, object>{
-            {"TotalPrice" , totalAfterAdd}
-        };
-
-        DocumentSnapshot snapshotCart = await docrefCart.GetSnapshotAsync();
-        if (snapshotCart.Exists)
-        {
-            await docrefCart.UpdateAsync(dataCart);
-        }
-
         return idCartItemExist;
+    }
+
+    public async Task<CartItem> CheckoutItemInCart(string code)
+    {
+        var cartItemDb = base.GetSnapshots(_collectionCartItem);
+        var cartDb = base.GetSnapshots(_collectionCart);
+        var cartItem = cartItemDb.Documents.Select(r => r.ConvertTo<CartItem>()).ToList().Find(r => r.Code == code);
+        if (cartItem != null)
+        {
+            int status = cartItem.Status == 0 ? 1 : 0;
+            DocumentReference docref = _firestoreDb.Collection(_collectionCartItem).Document(cartItem.Id);
+            Dictionary<string, object> data = new Dictionary<string, object>{
+               {"Status" , status}
+            };
+            DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
+            if (snapshot.Exists)
+            {
+                await docref.UpdateAsync(data);
+            }
+            int totalAfterAdd = cartItem.Total;
+
+
+            var cart = cartDb.Documents.Select(r => r.ConvertTo<Cart>()).ToList().Find(r => r.Id == cartItem.CartId);
+            // add total for cart
+            if (status == 1)
+            {
+                totalAfterAdd += cart!.TotalPrice;
+            }
+            else
+            {
+                totalAfterAdd = cart!.TotalPrice - totalAfterAdd;
+            }
+
+            DocumentReference docrefCart = _firestoreDb.Collection(_collectionCart).Document(cart.Id);
+            Dictionary<string, object> dataCart = new Dictionary<string, object>{
+            {"TotalPrice" , totalAfterAdd}
+            };
+
+            DocumentSnapshot snapshotCart = await docrefCart.GetSnapshotAsync();
+            if (snapshotCart.Exists)
+            {
+                await docrefCart.UpdateAsync(dataCart);
+            }
+            return cartItem;
+        }
+        return null!;
     }
 
     public CartDto GetCartByUser(string username)
@@ -173,6 +207,7 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         List<CartItemDto> cartItemDtos = GetCartItemDtos(cart.Id!);
 
         cartDto.Items = cartItemDtos;
+        cartDto.Quantity = cartItemDtos.Count;
         return cartDto;
     }
 
@@ -280,5 +315,39 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         if (a.Count != b.Count)
             return false;
         return !a.Except(b).Any() && !b.Except(a).Any();
+    }
+
+    private async Task UpdateWhenAddAgain(string code, int oldTotal)
+    {
+        var cartItemDb = base.GetSnapshots(_collectionCartItem);
+        var cartDb = base.GetSnapshots(_collectionCart);
+        var cartItem = cartItemDb.Documents.Select(r => r.ConvertTo<CartItem>()).ToList().Find(r => r.Code == code);
+        if (cartItem != null)
+        {
+            if (cartItem.Status == 1)
+            {
+                DocumentReference docref = _firestoreDb.Collection(_collectionCartItem).Document(cartItem.Id);
+                Dictionary<string, object> data = new Dictionary<string, object>{
+                {"Status" , 0}
+                };
+                DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
+                if (snapshot.Exists)
+                {
+                    await docref.UpdateAsync(data);
+                }
+
+                var cart = cartDb.Documents.Select(r => r.ConvertTo<Cart>()).ToList().Find(r => r.Id == cartItem.CartId);
+                DocumentReference docrefCart = _firestoreDb.Collection(_collectionCart).Document(cart!.Id);
+                Dictionary<string, object> dataCart = new Dictionary<string, object>{
+                {"TotalPrice" , cart.TotalPrice-oldTotal}
+                };
+
+                DocumentSnapshot snapshotCart = await docrefCart.GetSnapshotAsync();
+                if (snapshotCart.Exists)
+                {
+                    await docrefCart.UpdateAsync(dataCart);
+                }
+            }
+        }
     }
 }
