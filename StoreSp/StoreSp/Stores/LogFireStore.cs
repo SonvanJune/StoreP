@@ -1,14 +1,20 @@
 ﻿using Google.Cloud.Firestore;
+using StoreSp.Converters;
+using StoreSp.Converters.response;
 using StoreSp.Dtos.request;
+using StoreSp.Dtos.response;
 using StoreSp.Entities;
+using StoreSp.Stores.Stores;
 
 namespace StoreSp.Stores;
 
 public class LogFireStore(FirestoreDb firestoreDb) : FirestoreService(firestoreDb)
 {
     public static string _collectionLog = "logs";
+    public readonly IBaseConverter<User, UserDto> userConverter = new UserConverter();
 
-    public async Task<Log> AddLogForUser(User user , string code){
+    public async Task<Log> AddLogForUser(User user, string code)
+    {
         var db = _firestoreDb.Collection(_collectionLog);
         var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         User u = null!;
@@ -16,11 +22,13 @@ public class LogFireStore(FirestoreDb firestoreDb) : FirestoreService(firestoreD
         {
             u = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == user.Phone)!;
         }
-        else{
+        else
+        {
             u = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == user.Email)!;
         }
 
-        var request = new CreateLogDto{
+        var request = new CreateLogDto
+        {
             Code = code,
             Message = $"{u.Id} - {code}"
         };
@@ -36,5 +44,32 @@ public class LogFireStore(FirestoreDb firestoreDb) : FirestoreService(firestoreD
 
         await db.AddAsync(log);
         return log;
+    }
+
+    public List<LogDto> GetLogsByCode(string code)
+    {
+        var logDb = base.GetSnapshots(_collectionLog);
+        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
+        var roleDb = base.GetSnapshots(RoleFireStore._collectionRole);
+        List<LogDto> logDtos = new List<LogDto>();
+        var logs = logDb.Documents.Select(r => r.ConvertTo<Log>()).ToList().FindAll(r => r.Code == code);
+        foreach (var log in logs)
+        {
+            var logdto = new LogDto
+            {
+                Code = log.Code!,
+                Message = log.Message!,
+                Status = log.Status
+            };
+            var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == log.UserId);
+            var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == user!.RoleId);
+            if (role!.Code != "quan-tri-vien")
+            {
+                var userDto = userConverter.ToDto(user!);
+                logdto.User = userDto;
+                logDtos.Add(logdto);
+            }
+        }
+        return logDtos;
     }
 }
