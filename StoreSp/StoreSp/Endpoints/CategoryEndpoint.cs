@@ -13,9 +13,9 @@ public static class CategoryEndpoint
         var group = app.MapGroup("api/categories");
         CategoryService = new CategoryServiceImpl();
         
-        group.MapGet("/", () =>
+        group.MapGet("/{isMobile}", (bool isMobile) =>
         {
-           return CategoryService!.GetAllCategories();
+           return CategoryService!.GetAllCategories(isMobile);
         }).RequireAuthorization();
 
         group.MapPost("/", (CreateCategoryDto createCategoryDto) =>

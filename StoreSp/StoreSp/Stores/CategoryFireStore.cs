@@ -47,41 +47,48 @@ public class CategoryFireStore(FirestoreDb firestoreDb) : FirestoreService(fires
         return 1;
     }
 
-    public List<CategoryDto> GetAllCategories()
+    public List<CategoryDto> GetAllCategories(bool isMobile)
     {
         var snapshot = base.GetSnapshots(_collectionCategory);
         var categories = snapshot.Documents.Select(s => s.ConvertTo<Category>()).ToList();
         List<CategoryDto> result = new List<CategoryDto>();
 
         var categoryDtos = new List<CategoryDto>();
-        int high = 0 ;
-        
+        int high = 0;
+
         foreach (var category in categories)
         {
-            if(high <= category.Level){
+            if (high <= category.Level)
+            {
                 high = category.Level;
             }
             categoryDtos.Add(categoryConverter.ToDto(category));
         }
-        
-        for (int i = 0; i < high; i++)
+
+        if (isMobile == false)
         {
-            for (int j = 0; j < categoryDtos.Count; j++)
+            for (int i = 0; i < high; i++)
             {
-                if(categoryDtos[j].ParentCategoryId == null && categoryDtos[j].Level == i ){
-                    result.Add(categoryDtos[j]);
-                    List<CategoryDto> arr = categoryDtos.FindAll(c => c.ParentCategoryId == categoryDtos[j].Id);
-                    categoryDtos[j].Children = arr;
-                    break;
-                }
-                
-                if(categoryDtos[j].ParentCategoryId != null && categoryDtos[j].Level == i ){
-                    List<CategoryDto> arr = categoryDtos.FindAll(c => c.ParentCategoryId == categoryDtos[j].Id);
-                    categoryDtos[j].Children = arr;
+                for (int j = 0; j < categoryDtos.Count; j++)
+                {
+                    if (categoryDtos[j].ParentCategoryId == null && categoryDtos[j].Level == i)
+                    {
+                        result.Add(categoryDtos[j]);
+                        List<CategoryDto> arr = categoryDtos.FindAll(c => c.ParentCategoryId == categoryDtos[j].Id);
+                        categoryDtos[j].Children = arr;
+                        break;
+                    }
+
+                    if (categoryDtos[j].ParentCategoryId != null && categoryDtos[j].Level == i)
+                    {
+                        List<CategoryDto> arr = categoryDtos.FindAll(c => c.ParentCategoryId == categoryDtos[j].Id);
+                        categoryDtos[j].Children = arr;
+                    }
                 }
             }
+            return result;
         }
-        return result;
+        return categoryDtos;
     }
 
 }

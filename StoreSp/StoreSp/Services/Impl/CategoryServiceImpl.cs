@@ -44,13 +44,13 @@ public class CategoryServiceImpl : ICategoryService
         });
     }
 
-    IResult ICategoryService.GetAllCategories()
+    IResult ICategoryService.GetAllCategories(bool isMobile)
     {
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
             message = "Success",
-            data = CategoryFireStore!.GetAllCategories()
+            data = CategoryFireStore!.GetAllCategories(isMobile)
         });
     }
 }
