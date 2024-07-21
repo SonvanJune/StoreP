@@ -14,7 +14,8 @@ public class ProductConverter : IBaseConverter<Product, ProductDto>
             Price = entity.Price,
             PriceSaleOff = entity.PriceSaleOff,
             SaleOff = entity.SaleOff,
-            ShippingUnit = entity.ShippingUnit
+            ShippingUnit = entity.ShippingUnit,
+            Code = entity.Code!
         };
     }
 

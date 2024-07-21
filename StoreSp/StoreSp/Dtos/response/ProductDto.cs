@@ -6,6 +6,7 @@ public class ProductDto
     public UserDto? Author { get; set; }
     public List<CategoryDto>? Categories { get; set; }
     public required string Description { get; set; }
+    public required string Code { get; set; }
     public required int Price { get; set; }
     public required int PriceSaleOff { get; set; }
     public required int SaleOff { get; set; }
