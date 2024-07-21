@@ -14,7 +14,8 @@ public class ProductClassifyConverter : IBaseConverter<ProductClassify, ProductC
             Image = entity.Image,
             Quantity = entity.Quantity,
             IncreasePercent = entity.IncreasePercent,
-            Status = entity.Status
+            Status = entity.Status,
+            Code = entity.Code!
         };
     }
 
