@@ -110,11 +110,12 @@ public class UserServiceImpl : IUserService
             });
         }
 
-        var user = userFireStore.Login(loginUserDto).Result;
-        if (user != null)
+        var response = userFireStore.Login(loginUserDto).Result;
+        if (response != null)
         {
-            //nam thang ngay mac dinh 1111/11/11 
-            if (user.VerifiedAt.ToDateTime().Year == 1111)
+            //nam thang ngay mac dinh 1111/11/11
+            string[] temp = response.User.VerifiedAt.Split('/');
+            if (temp[2] == "1111")
             {
                 return Results.BadRequest(new HttpStatusConfig
                 {
@@ -123,15 +124,12 @@ public class UserServiceImpl : IUserService
                     data = null
                 });
             }
+
             return Results.Ok(new HttpStatusConfig
             {
                 status = HttpStatusCode.OK,
                 message = "Login success",
-                data = new UserTokenDto
-                {
-                    Token = authService!.GenerateToken(user),
-                    User = userFireStore.userConverter.ToDto(user)
-                }
+                data = response
             });
         }
         else
@@ -152,14 +150,14 @@ public class UserServiceImpl : IUserService
         if (authService!.ValidateToken(token))
         {
             var email = authService!.GetFirstByToken(token);
-            var user = userFireStore!.GetUserByEmail(email);
-            if (user != null)
+            var response = userFireStore!.GetUserByEmail(email);
+            if (response != null)
             {
                 return Results.Ok(new HttpStatusConfig
                 {
                     status = HttpStatusCode.OK,
                     message = "Success",
-                    data = userFireStore.userConverter.ToDto(user)
+                    data = response
                 });
             }
             else
@@ -294,20 +292,17 @@ public class UserServiceImpl : IUserService
         if (authService!.ValidateToken(token))
         {
             var email = authService!.GetFirstByToken(token);
-            var user = userFireStore!.GetUserByEmail(email);
-            if (user != null)
+            var response = userFireStore!.GetUserByEmail(email);
+            if (response != null)
             {
-                if (user.VerifiedAt.ToDateTime().Year != 1111)
+                string[] temp = response.User.VerifiedAt.Split('/');
+                if (temp[2] == "1111")
                 {
                     return Results.Ok(new HttpStatusConfig
                     {
                         status = HttpStatusCode.OK,
                         message = "User has been verified",
-                        data = new UserTokenDto
-                        {
-                            Token = authService!.GenerateToken(user),
-                            User = userFireStore.userConverter.ToDto(user)
-                        }
+                        data = response
                     });
                 }
                 else

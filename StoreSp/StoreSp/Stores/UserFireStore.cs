@@ -6,6 +6,7 @@ using StoreSp.Converters.response;
 using StoreSp.Dtos.request;
 using StoreSp.Dtos.response;
 using StoreSp.Entities;
+using StoreSp.Services;
 using StoreSp.Services.Impl;
 
 namespace StoreSp.Stores;
@@ -20,6 +21,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
     private readonly IBaseConverter<User, RegisterUserDto> registerUserConverter = new RegisterUserConverter();
     private readonly IBaseConverter<User, GoogleRegisterDto> googleRegisterConverter = new GoogleRegisterConverter();
     public readonly LogFireStore logFireStore = new LogFireStore(firestoreDb);
+    public readonly IAuthService AuthService = new AuthServiceImpl();
 
     //Method it su dung
     public Task<List<UserDto>> GetAllUser()
@@ -106,7 +108,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         return user;
     }
 
-    public async Task<User> Login(LoginUserDto loginUserDto)
+    public async Task<UserTokenDto> Login(LoginUserDto loginUserDto)
     {
         var userDb = base.GetSnapshots(_collectionUser);
         var roleDb = base.GetSnapshots(_collectionRole);
@@ -138,10 +140,16 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
 
         //tao log cho user dang ky
         await logFireStore.AddLogForUser(user, "dang-nhap");
-        return user;
+        var userDto = userConverter.ToDto(user);
+        userDto.RoleCode = role!.Code;
+        return new UserTokenDto
+        {
+            Token = AuthService.GenerateToken(user),
+            User = userDto
+        };
     }
 
-    public User GetUserByEmail(string email)
+    public UserTokenDto GetUserByEmail(string email)
     {
         var userDb = base.GetSnapshots(_collectionUser);
         var roleDb = base.GetSnapshots(_collectionRole);
@@ -152,7 +160,13 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         }
         var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == user.RoleId);
         user.Role = role;
-        return user;
+        var userDto = userConverter.ToDto(user);
+        userDto.RoleCode = role!.Code;
+        return new UserTokenDto
+        {
+            Token = AuthService.GenerateToken(user),
+            User = userDto
+        };
     }
 
     public async Task<User> VerifyUserByEmail(string email)
