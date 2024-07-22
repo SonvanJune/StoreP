@@ -12,7 +12,7 @@ public static class LogEndpoint
         var group = app.MapGroup("api/logs");
         LogService = new LogServiceImpl();
 
-        group.MapPost("/{code}", (string code) =>
+        group.MapGet("/{code}", (string code) =>
         {
             return LogService!.GetLogsByCode(code);
         }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
