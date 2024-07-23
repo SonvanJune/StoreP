@@ -231,7 +231,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
 
         DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
         Dictionary<string, object> data = new Dictionary<string, object>{
-            {"IsUpdate", true}
+            {"IsUpdated", true}
         };
 
         DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
@@ -271,7 +271,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             {"PasswordHash" , BCrypt.Net.BCrypt.HashPassword(resetPasswordDto.Password)},
             {"PasswordReestToken" , ""},
             {"ResetTokenExpires" , Timestamp.FromDateTime(specified)},
-            {"IsUpdate", false}
+            {"IsUpdated", false}
         };
 
         DocumentSnapshot snapshot = await docref.GetSnapshotAsync();

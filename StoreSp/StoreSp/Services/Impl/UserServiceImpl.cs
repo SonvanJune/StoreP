@@ -482,7 +482,7 @@ public class UserServiceImpl : IUserService
             return Results.Ok(new HttpStatusConfig
             {
                 status = HttpStatusCode.OK,
-                message = "Password has been changed successfully",
+                message = "Correct reset code",
                 data = null
             });
         }
