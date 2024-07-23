@@ -12,6 +12,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 {
     //properties
     public static string _collectionProducts = "Products";
+    public static string _collectionProduct_Like = "Product_Like";
     public static string _collectionProductClassify = "Product_Classifies";
     private readonly IBaseConverter<User, UserDto> userConverter = new UserConverter();
     private readonly IBaseConverter<Product, CreateProductDto> createProductConverter = new CreateProductConverter();
@@ -100,6 +101,42 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
             dto.Categories = GetCategoriesByProduct(product.Id!);
         }
         return null!;
+    }
+
+    public async Task LikeProduct(LikeProductDto likeProductDto)
+    {
+        var db = _firestoreDb.Collection(_collectionProduct_Like);
+        var productDb = base.GetSnapshots(_collectionProducts);
+        var likeDb = base.GetSnapshots(_collectionProduct_Like);
+        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
+        //check user
+        User user = null!;
+        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == likeProductDto.Username) == null)
+        {
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == likeProductDto.Username)!;
+        }
+        else
+        {
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == likeProductDto.Username)!;
+        }
+        var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Code == likeProductDto.ProductCode);
+        //neu like da ton tai
+        if (likeDb.Documents.Select(r => r.ConvertTo<Like>()).ToList().Find(r => r.UserId == user.Id && r.ProductId == product!.Id) != null)
+        {
+            var like = likeDb.Documents.Select(r => r.ConvertTo<Like>()).ToList().Find(r => r.UserId == user.Id && r.ProductId == product!.Id);
+            DocumentReference docref = _firestoreDb.Collection(_collectionProduct_Like).Document(like!.Id);
+            await docref.DeleteAsync();
+        }
+        else
+        {
+            Like like = new Like
+            {
+                UserId = user.Id,
+                ProductId = product!.Id,
+                CreatedAt = Timestamp.FromDateTime(DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc))
+            };
+            await db.AddAsync(like);
+        }
     }
     //method ho tro
     private async Task<CreateProductClassifyDto[]> AddProductClassify(CreateProductClassifyDto[] productClassifies, string productCode)

@@ -91,4 +91,23 @@ public class CategoryFireStore(FirestoreDb firestoreDb) : FirestoreService(fires
         return categoryDtos;
     }
 
+    public async Task UpdateCategory(UpdateCategoryDto categoryDto)
+    {
+        var categoryDb = base.GetSnapshots(_collectionCategory);
+        var category = categoryDb.Documents.Select(s => s.ConvertTo<Category>()).ToList().Find(c => c.Code == categoryDto.Code);
+        if (category != null)
+        {
+            DocumentReference docref = _firestoreDb.Collection(_collectionCategory).Document(category.Id);
+            Dictionary<string, object> data = new Dictionary<string, object>{
+            {"Name" , categoryDto.Name},
+            {"Avatar" , categoryDto.Avatar}
+            };
+
+            DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
+            if (snapshot.Exists)
+            {
+                await docref.UpdateAsync(data);
+            }
+        }
+    }
 }

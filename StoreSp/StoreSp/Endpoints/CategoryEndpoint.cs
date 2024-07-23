@@ -23,6 +23,11 @@ public static class CategoryEndpoint
             return CategoryService!.AddCategory(createCategoryDto);
         }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
 
+        group.MapPut("/", (UpdateCategoryDto updateCategoryDto) =>
+        {
+            return CategoryService!.UpdateCategory(updateCategoryDto);
+        }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
+
         return group;
     }
 }

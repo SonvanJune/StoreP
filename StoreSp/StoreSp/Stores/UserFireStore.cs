@@ -96,7 +96,9 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         }
         user.RoleId = role.Id;
         user.Role = role;
-        user.VerificationToken = AuthServiceImpl.CreateRandomToken(user);
+        if(userDto.Email != null && userDto.Email != ""){
+            user.VerificationToken = AuthServiceImpl.CreateRandomToken(user);
+        }
         await userDb.AddAsync(user);
         CreateCartForUser(user);
 
@@ -161,13 +163,15 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         return user;
     }
 
-    public async Task<User> VerifyUserByEmail(string email)
+    public async Task<User> VerifyUser(string username)
     {
         var userDb = base.GetSnapshots(_collectionUser);
-        var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);
-        if (user == null)
-        {
-            return null!;
+        User user;
+        if(userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username) != null){
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username)!;
+        }
+        else{
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == username)!;
         }
 
         var unspecified = DateTime.UtcNow;

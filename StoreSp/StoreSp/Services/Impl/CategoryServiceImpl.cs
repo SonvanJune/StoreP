@@ -53,4 +53,14 @@ public class CategoryServiceImpl : ICategoryService
             data = CategoryFireStore!.GetAllCategories(isMobile)
         });
     }
+
+    IResult ICategoryService.UpdateCategory(UpdateCategoryDto updateCategoryDto)
+    {
+        return Results.Created("" , new HttpStatusConfig
+        {
+            status = HttpStatusCode.OK,
+            message = "Updated Sucess",
+            data = CategoryFireStore!.UpdateCategory(updateCategoryDto)
+        });
+    }
 }

@@ -208,7 +208,7 @@ public class UserServiceImpl : IUserService
                 });
             }
 
-            if (userFireStore.VerifyUserByEmail(email) != null)
+            if (userFireStore.VerifyUser(email) != null)
             {
                 return Results.Ok(new HttpStatusConfig
                 {
@@ -492,6 +492,57 @@ public class UserServiceImpl : IUserService
             {
                 status = HttpStatusCode.BadRequest,
                 message = "This code is not valid",
+                data = null
+            });
+        }
+    }
+
+    IResult IUserService.VerifyUserByPhone(string token)
+    {
+        if (authService!.ValidateToken(token))
+        {
+            var phone = authService!.GetFirstByToken(token);
+
+            if (userFireStore!.CheckIsVerified(phone))
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
+
+            if (userFireStore.VerifyUser(phone) != null)
+            {
+                var user = userFireStore.VerifyUser(phone).Result;
+                return Results.Ok(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.OK,
+                    message = "USer verified successfully",
+                    data = new UserTokenDto
+                    {
+                        Token = authService!.GenerateToken(user),
+                        User = userFireStore.userConverter.ToDto(user)
+                    }
+                });
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Can not find user",
+                    data = null
+                });
+            }
+        }
+        else
+        {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+                status = HttpStatusCode.BadRequest,
+                message = "Token has expired",
                 data = null
             });
         }

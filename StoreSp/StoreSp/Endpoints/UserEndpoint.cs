@@ -55,6 +55,11 @@ public static class UserEndpoint
             return userService.VerifyUserByEmail(token);
         });
 
+        group.MapGet("/users/phone/verify/{token}", (string token) =>
+        {
+            return userService.VerifyUserByPhone(token);
+        });
+
         group.MapGet("/users/check-verify/{token}", (string token) =>
         {
             return userService.CheckVerify(token);

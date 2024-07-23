@@ -13,6 +13,7 @@ public interface IUserService
    public IResult Login(LoginUserDto loginUserDto);
    public IResult GetUserByToken(string toke);
    public IResult VerifyUserByEmail(string toke);
+   public IResult VerifyUserByPhone(string token);
    public IResult ForgetPasswordByEmail(string email);
    public IResult CheckResetCode(ResetCodeDto dto);
    public IResult ResetPasswordOfEmail(ResetPasswordDto dto);

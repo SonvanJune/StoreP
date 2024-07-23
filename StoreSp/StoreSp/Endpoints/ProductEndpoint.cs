@@ -29,6 +29,10 @@ public static class ProductEndpoint
             return ProductService.AddProduct(createProductDto);
         }).WithParameterValidation().RequireAuthorization("nguoi-ban");
 
+        group.MapPost("/like", (LikeProductDto likeProductDto) =>
+        {
+            return ProductService.LikeProduct(likeProductDto);
+        }).WithParameterValidation().RequireAuthorization("nguoi-ban");
         return group;
     }
 }
