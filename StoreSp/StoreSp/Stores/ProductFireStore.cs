@@ -86,7 +86,21 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         return productsDto;
     }
 
-    
+    public ProductDto GetProductByProductCode(string productCode)
+    {
+        var productDb = base.GetSnapshots(_collectionProducts);
+        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
+        var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Code == productCode);
+        if (product != null)
+        {
+            var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == product!.AuthorId);
+            ProductDto dto = productConverter.ToDto(product!);
+            dto.Author = userConverter.ToDto(user!);
+            dto.Classifies = GetProductClassifiesByProduct(product.Id!);
+            dto.Categories = GetCategoriesByProduct(product.Id!);
+        }
+        return null!;
+    }
     //method ho tro
     private async Task<CreateProductClassifyDto[]> AddProductClassify(CreateProductClassifyDto[] productClassifies, string productCode)
     {
@@ -112,7 +126,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 
         return productClassifies;
     }
-    
+
     private async Task AddCategoryProduct(string categoryCode, string productCode)
     {
         var db = _firestoreDb.Collection(Category_ProductFireStore._collectionCategoryProduct);
@@ -149,7 +163,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
             await db.AddAsync(new Category_Product { CategoryId = categoryId, ProductId = product!.Id! });
         }
     }
-    
+
     private List<ProductClassifyDto> GetProductClassifiesByProduct(string productId)
     {
         var productDb = base.GetSnapshots(_collectionProducts);

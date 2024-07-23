@@ -19,6 +19,25 @@ public class ProductServiceImpl : IProductService
         });
     }
 
+    IResult IProductService.GetProductByCode(string code)
+    {
+        if(ProductFireStore!.GetProductByProductCode(code) == null){
+            return Results.NotFound(new HttpStatusConfig
+            {
+                status = HttpStatusCode.NotFound,
+                message = "Khong tim thay san pham",
+                data = null
+            });
+        }
+        
+        return Results.Ok(new HttpStatusConfig
+        {
+            status = HttpStatusCode.Created,
+            message = "Success",
+            data = ProductFireStore!.GetProductByProductCode(code)
+        });
+    }
+
     IResult IProductService.GetProductsByCategory(string code)
     {
         if(ProductFireStore!.GetProductsByCategory(code) == null){
@@ -30,7 +49,7 @@ public class ProductServiceImpl : IProductService
             });
         }
         
-        return Results.Created("", new HttpStatusConfig
+        return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
             message = "Success",

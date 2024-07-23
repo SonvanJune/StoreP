@@ -122,6 +122,7 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
         var cartDb = base.GetSnapshots(CartFireStore._collectionCart);
         var billDb = base.GetSnapshots(_collectionBill);
         var bill = billDb.Documents.Select(r => r.ConvertTo<Bill>()).ToList().Find(r => r.Code == billCode);
+        var productClassifyDb = base.GetSnapshots(ProductFireStore._collectionProductClassify);
         var cartItem_ProductClassifyDb = base.GetSnapshots(CartFireStore._collectionCartItem_ProductClassify);
 
         //lay user tu gio hang
@@ -143,17 +144,31 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
         //xoa gio hang
         foreach (var item in cartItems)
         {
-            DocumentReference docrefCartItem = _firestoreDb.Collection(CartFireStore._collectionCartItem).Document(item.Id);
-            await docrefCartItem.DeleteAsync();
             var cartItem_ProductClassifies = cartItem_ProductClassifyDb.Documents
             .Select(r => r.ConvertTo<CartItem_ProductClassify>())
             .ToList()
             .FindAll(r => r.CartItem_Id == item.Id);
             foreach (var it in cartItem_ProductClassifies)
             {
+                //update so luong hang ton
+                var productClassify = productClassifyDb.Documents.Select(r => r.ConvertTo<ProductClassify>()).ToList().Find(r => r.Id == it.ProductClassify_Id);
+                var a = productClassify!.Quantity - item.Quantity;
+                DocumentReference docrefProductClassify = _firestoreDb.Collection(ProductFireStore._collectionProductClassify).Document(productClassify!.Id);
+                Dictionary<string, object> dataProductClassify = new Dictionary<string, object>{
+                   {"Quantity" , a}
+                };
+                DocumentSnapshot snapshotProductClassify = await docrefProductClassify.GetSnapshotAsync();
+                if (snapshotProductClassify.Exists)
+                {
+                    await docrefProductClassify.UpdateAsync(dataProductClassify);
+                }
+
+                //xoa phan loai cua san pham cua gio hang
                 DocumentReference docrefIt = _firestoreDb.Collection(CartFireStore._collectionCartItem_ProductClassify).Document(it.Id);
                 await docrefIt.DeleteAsync();
             }
+            DocumentReference docrefCartItem = _firestoreDb.Collection(CartFireStore._collectionCartItem).Document(item.Id);
+            await docrefCartItem.DeleteAsync();
         }
 
         //update total cho cart cua user
