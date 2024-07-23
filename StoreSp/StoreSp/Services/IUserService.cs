@@ -14,6 +14,7 @@ public interface IUserService
    public IResult GetUserByToken(string toke);
    public IResult VerifyUserByEmail(string toke);
    public IResult ForgetPasswordByEmail(string email);
+   public IResult CheckResetCode(ResetCodeDto dto);
    public IResult ResetPasswordOfEmail(ResetPasswordDto dto);
    public IResult GoogleRegister(GoogleRegisterDto googleRegisterDto);
    public IResult GoogleLogin(GoogleLoginDto googleLoginDto);

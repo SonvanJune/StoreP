@@ -240,7 +240,7 @@ public class UserServiceImpl : IUserService
 
     IResult IUserService.ForgetPasswordByEmail(string email)
     {
-        string genCode = Convert.ToHexString(RandomNumberGenerator.GetBytes(4));
+        string genCode = Convert.ToHexString(RandomNumberGenerator.GetBytes(2));
         if (userFireStore!.ForgetPaswordByEmail(email, genCode).Result != null)
         {
             emailService!.SendEmail(new EmailDto
@@ -470,6 +470,28 @@ public class UserServiceImpl : IUserService
             {
                 status = HttpStatusCode.Created,
                 message = "USer updated successfully",
+                data = null
+            });
+        }
+    }
+
+    IResult IUserService.CheckResetCode(ResetCodeDto dto)
+    {
+        if (userFireStore!.CheckResetCode(dto).Result != null)
+        {
+            return Results.Ok(new HttpStatusConfig
+            {
+                status = HttpStatusCode.OK,
+                message = "Password has been changed successfully",
+                data = null
+            });
+        }
+        else
+        {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+                status = HttpStatusCode.BadRequest,
+                message = "This code is not valid",
                 data = null
             });
         }

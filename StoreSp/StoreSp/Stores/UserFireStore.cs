@@ -208,6 +208,40 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         return user;
     }
 
+    public async Task<User> CheckResetCode(ResetCodeDto resetCodeDto){
+        var userDb = base.GetSnapshots(_collectionUser);
+        var userList = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList();
+        User user = null!;
+        foreach (var u in userList)
+        {
+            if (u.PasswordReestToken != "")
+            {
+                if (BCrypt.Net.BCrypt.Verify(resetCodeDto.Code, u.PasswordReestToken))
+                {
+                    user = u;
+                    break;
+                }
+            }
+        }
+
+        if (user == null)
+        {
+            return null!;
+        }
+
+        DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
+        Dictionary<string, object> data = new Dictionary<string, object>{
+            {"IsUpdate", true}
+        };
+
+        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
+        if (snapshot.Exists)
+        {
+            await docref.UpdateAsync(data);
+        }
+        return user;
+    }
+
     public async Task<User> ResetPasswordOfEmail(ResetPasswordDto resetPasswordDto)
     {
         var userDb = base.GetSnapshots(_collectionUser);
@@ -225,7 +259,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             }
         }
 
-        if (user == null)
+        if (user == null || user.IsUpdated == false)
         {
             return null!;
         }
@@ -236,7 +270,8 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         Dictionary<string, object> data = new Dictionary<string, object>{
             {"PasswordHash" , BCrypt.Net.BCrypt.HashPassword(resetPasswordDto.Password)},
             {"PasswordReestToken" , ""},
-            {"ResetTokenExpires" , Timestamp.FromDateTime(specified)}
+            {"ResetTokenExpires" , Timestamp.FromDateTime(specified)},
+            {"IsUpdate", false}
         };
 
         DocumentSnapshot snapshot = await docref.GetSnapshotAsync();

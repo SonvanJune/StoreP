@@ -52,6 +52,9 @@ public class User
     [FirestoreProperty]
     public bool IsGoogleAccount { get; set; } = false;
 
+    [FirestoreProperty]
+    public bool IsUpdated { get; set; } = false;
+
     public Role? Role { get; set; }
 
     [FirestoreProperty]

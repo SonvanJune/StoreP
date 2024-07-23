@@ -65,6 +65,11 @@ public static class UserEndpoint
             return userService.ForgetPasswordByEmail(dto.Email);
         }).WithParameterValidation();
 
+        group.MapPost("/users/email/check-reset-code/", (ResetCodeDto dto) =>
+        {
+            return userService.CheckResetCode(dto);
+        }).WithParameterValidation();
+
         group.MapPost("/users/email/reset-password/", (ResetPasswordDto dto) =>
         {
             return userService.ResetPasswordOfEmail(dto);
