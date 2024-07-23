@@ -189,7 +189,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         {
             return null!;
         }
-
+    
         var unspecified = DateTime.UtcNow.AddDays(1);
         var specified = DateTime.SpecifyKind(unspecified, DateTimeKind.Utc);
         DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
@@ -214,7 +214,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         User user = null!;
         foreach (var u in userList)
         {
-            if (u.PasswordReestToken != "")
+            if (u.PasswordReestToken != null)
             {
                 if (BCrypt.Net.BCrypt.Verify(resetCodeDto.Code, u.PasswordReestToken))
                 {
@@ -249,7 +249,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         User user = null!;
         foreach (var u in userList)
         {
-            if (u.PasswordReestToken != "")
+            if (u.PasswordReestToken != null)
             {
                 if (BCrypt.Net.BCrypt.Verify(resetPasswordDto.Code, u.PasswordReestToken))
                 {
@@ -269,7 +269,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
         Dictionary<string, object> data = new Dictionary<string, object>{
             {"PasswordHash" , BCrypt.Net.BCrypt.HashPassword(resetPasswordDto.Password)},
-            {"PasswordReestToken" , ""},
+            {"PasswordReestToken" , null!},
             {"ResetTokenExpires" , Timestamp.FromDateTime(specified)},
             {"IsUpdated", false}
         };
