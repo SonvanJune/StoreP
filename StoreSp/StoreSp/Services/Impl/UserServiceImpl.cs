@@ -152,7 +152,7 @@ public class UserServiceImpl : IUserService
         if (authService!.ValidateToken(token))
         {
             var email = authService!.GetFirstByToken(token);
-            var user = userFireStore!.GetUserByEmail(email);
+            var user = userFireStore!.GetUserByUsername(email);
             if (user != null)
             {
                 return Results.Ok(new HttpStatusConfig
@@ -289,12 +289,12 @@ public class UserServiceImpl : IUserService
         }
     }
 
-    IResult IUserService.CheckVerifyOfEmail(string token)
+    IResult IUserService.CheckVerify(string token)
     {
         if (authService!.ValidateToken(token))
         {
-            var email = authService!.GetFirstByToken(token);
-            var user = userFireStore!.GetUserByEmail(email);
+            var username = authService!.GetFirstByToken(token);
+            var user = userFireStore!.GetUserByUsername(username);
             if (user != null)
             {
                 if (user.VerifiedAt.ToDateTime().Year != 1111)

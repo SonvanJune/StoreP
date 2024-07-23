@@ -9,7 +9,7 @@ public interface IUserService
    public IResult GetUserByRole(string roleCode);
    public IResult GetUserById(string id);
    public IResult Register(RegisterUserDto registerUserDto);
-   public IResult CheckVerifyOfEmail(string toke);
+   public IResult CheckVerify(string toke);
    public IResult Login(LoginUserDto loginUserDto);
    public IResult GetUserByToken(string toke);
    public IResult VerifyUserByEmail(string toke);

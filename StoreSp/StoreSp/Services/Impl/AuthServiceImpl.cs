@@ -73,7 +73,12 @@ public class AuthServiceImpl : IAuthService
     {
         Role role = user.Role!;
         var claims = new ClaimsIdentity();
-        claims.AddClaim(new Claim(ClaimTypes.Name, user.Email));
+        if(user.Email != null && user.Email != ""){
+            claims.AddClaim(new Claim(ClaimTypes.Name, user.Email));
+        }
+        else{
+            claims.AddClaim(new Claim(ClaimTypes.Name, user.Phone));
+        }
         claims.AddClaim(new Claim(ClaimTypes.Role, role.Code));
         return claims;
     }
@@ -87,7 +92,12 @@ public class AuthServiceImpl : IAuthService
             SecurityAlgorithms.HmacSha256Signature);
 
         var claims = new ClaimsIdentity();
-        claims.AddClaim(new Claim(ClaimTypes.Name, user.Email));
+        if(user.Email != null && user.Email != ""){
+            claims.AddClaim(new Claim(ClaimTypes.Name, user.Email));
+        }
+        else{
+            claims.AddClaim(new Claim(ClaimTypes.Name, user.Phone));
+        }
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {

@@ -141,11 +141,17 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         return user;
     }
 
-    public User GetUserByEmail(string email)
+    public User GetUserByUsername(string username)
     {
         var userDb = base.GetSnapshots(_collectionUser);
         var roleDb = base.GetSnapshots(_collectionRole);
-        var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);
+        User user;
+        if(userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username) != null){
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username)!;
+        }
+        else{
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == username)!;
+        }
         if (user == null)
         {
             return null!;
