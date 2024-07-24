@@ -166,6 +166,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
     public async Task<User> VerifyUser(string username)
     {
         var userDb = base.GetSnapshots(_collectionUser);
+        var roleDb = base.GetSnapshots(_collectionRole);
         User user;
         if(userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username) != null){
             user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username)!;
@@ -188,6 +189,8 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         }
         //tao log cho user dang ky
         await logFireStore.AddLogForUser(user, "da-xac-thuc");
+        var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == user.RoleId);
+        user.Role = role;
         return user;
     }
 
