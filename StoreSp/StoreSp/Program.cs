@@ -2,6 +2,7 @@ using Google.Cloud.Firestore;
 using Microsoft.IdentityModel.Logging;
 using StoreSp.Configs;
 using StoreSp.Endpoints;
+using StoreSp.Endpoints.SocketEndpoint;
 using StoreSp.Stores;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,6 +24,7 @@ if (app.Environment.IsDevelopment())
 }
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseWebSockets();
 app.UseCors();
 
 app.MapUserEndpoints();
@@ -32,4 +34,6 @@ app.MapProductEndpoints();
 app.MapCartEndpoints();
 app.MapBillEndpoints();
 app.MapLogEndpoints();
+
+app.MapCartSocketEndpoint();
 app.Run();
