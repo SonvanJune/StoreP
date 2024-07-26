@@ -1,14 +1,18 @@
 ﻿using Google.Cloud.Firestore;
 using StoreSp.Converters;
+using StoreSp.Converters.request;
+using StoreSp.Converters.response;
+using StoreSp.Dtos.request;
+using StoreSp.Dtos.response;
 using StoreSp.Entities;
 
 namespace StoreSp.Stores.Stores;
 
 public class RoleFireStore(FirestoreDb firestoreDb) : FirestoreService(firestoreDb)
 {
-    private const string _collectionRole = "Roles";
-    private IBaseConverter<Role, CreateRoleDto> createRoleConverter = new CreateRoleConverter();
-    private IBaseConverter<Role,RoleDto> roleConverter = new RoleConverter();
+    public static string _collectionRole = "Roles";
+    private readonly IBaseConverter<Role, CreateRoleDto> createRoleConverter = new CreateRoleConverter();
+    private readonly IBaseConverter<Role,RoleDto> roleConverter = new RoleConverter();
 
     public Task Add(CreateRoleDto roleDto)
     {

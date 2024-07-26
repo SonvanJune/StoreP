@@ -2,6 +2,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using StoreSp.Commonds;
+using StoreSp.Services;
+using StoreSp.Services.Impl;
 
 namespace StoreSp.Configs;
 
@@ -9,6 +12,7 @@ public static class BuiderConfig
 {
     public static WebApplicationBuilder RunConfig(this WebApplicationBuilder builder)
     {
+        ConfigVariables();
         builder.Services.AddTransient<AuthServiceImpl>();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(c =>
@@ -63,7 +67,9 @@ public static class BuiderConfig
             });
         builder.Services.AddAuthorization(options =>
         {
-            options.AddPolicy("Admin", policy => policy.RequireRole("admin"));
+            options.AddPolicy("quan-tri-vien", policy => policy.RequireRole("quan-tri-vien"));
+            options.AddPolicy("nguoi-mua", policy => policy.RequireRole("nguoi-mua"));
+            options.AddPolicy("nguoi-ban", policy => policy.RequireRole("nguoi-ban"));
         });
         builder.Services.AddCors(options =>
         {
@@ -71,11 +77,16 @@ public static class BuiderConfig
             {
                 policy.AllowAnyHeader()
                 .AllowAnyMethod()
-                .AllowAnyOrigin().WithOrigins("http://localhost:5288/");
+                .AllowAnyOrigin();
             });
         });
-
+        builder.Services.AddTransient<IEmailService , EmailServiceImpl>();
         return builder;
+    }
+
+    public static void ConfigVariables(){
+        //example
+        VariableConfig.Application["a"] = "noodle";
     }
 }
 

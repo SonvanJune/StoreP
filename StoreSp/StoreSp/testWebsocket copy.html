@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<script>
+    const socket = new WebSocket('ws://localhost:5065/ws');
+    socket.onopen = () => {
+        console.log('Connect to the via WebSocket server');
+    };
+
+    socket.onmessage = (event) => {
+        document.getElementById('x-value').textContent = `X: ${event.data}`;
+    };
+</script>
+<body>
+    <h1>Test web socket , show x , y realtime</h1>
+    <p id="x-value"></p>
+    <p id="y-value"></p>
+</body>
+</html>

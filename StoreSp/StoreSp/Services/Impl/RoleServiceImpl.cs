@@ -1,13 +1,15 @@
 ﻿using System.Net;
-using StoreSp.Commons;
-using StoreSp.Services;
+using StoreSp.Commonds;
+using StoreSp.Dtos.request;
 using StoreSp.Stores.Stores;
 
-namespace StoreSp;
+namespace StoreSp.Services.Impl;
 
-public class RoleServiceImpl: IRoleService
+public class RoleServiceImpl : IRoleService
 {
-    public IResult AddRole(CreateRoleDto createRoleDto, RoleFireStore roleFireStore)
+    public static RoleFireStore? roleFireStore { get; set; }
+
+    public IResult AddRole(CreateRoleDto createRoleDto)
     {
         if (roleFireStore is null)
         {
@@ -24,7 +26,7 @@ public class RoleServiceImpl: IRoleService
         });
     }
 
-    public IResult GetAllRoles(RoleFireStore roleFireStore)
+    public IResult GetAllRoles()
     {
         return Results.Ok(new HttpStatusConfig
         {

@@ -1,14 +1,23 @@
 ﻿using StoreSp.Dtos.request;
-using StoreSp.Stores;
 
 namespace StoreSp.Services;
 
 public interface IUserService
 {
-   public IResult AddUser(CreateUserDto createUserDto, UserFireStore userFireStore);
-   public IResult GetAllUsers(UserFireStore userFireStore);
-   public IResult GetUserById(string id, UserFireStore userFireStore);
-   public IResult Register(RegisterUserDto registerUserDto, UserFireStore userFireStore);
-   public IResult Login(LoginUserDto loginUserDto, UserFireStore userFireStore);
-   public IResult GetUserByToken(string token,UserFireStore userFireStore);
+   public IResult AddUser(CreateUserDto createUserDto);
+   public IResult GetAllUsers();
+   public IResult GetUserByRole(string roleCode);
+   public IResult GetUserById(string id);
+   public IResult Register(RegisterUserDto registerUserDto);
+   public IResult CheckVerify(string toke);
+   public IResult Login(LoginUserDto loginUserDto);
+   public IResult GetUserByToken(string toke);
+   public IResult VerifyUserByEmail(string toke);
+   public IResult VerifyUserByPhone(string token);
+   public IResult ForgetPasswordByEmail(string email);
+   public IResult CheckResetCode(ResetCodeDto dto);
+   public IResult ResetPasswordOfEmail(ResetPasswordDto dto);
+   public IResult GoogleRegister(GoogleRegisterDto googleRegisterDto);
+   public IResult GoogleLogin(GoogleLoginDto googleLoginDto);
+   public IResult UpdateStatusUser(UpdateStatusUserDto dto);
 }

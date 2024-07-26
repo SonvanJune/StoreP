@@ -16,4 +16,6 @@ public class Role
 
     [FirestoreProperty]
     public required string Code{ get; set; }
+
+    public List<User>? Users { get; set;}
 }

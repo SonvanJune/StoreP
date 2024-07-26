@@ -1,9 +1,8 @@
 ﻿using Google.Cloud.Firestore;
-using StoreSp.Converters;
 using StoreSp.Dtos.request;
 using StoreSp.Entities;
 
-namespace StoreSp;
+namespace StoreSp.Converters.request;
 
 public class CreateUserConverter : IBaseConverter<User, CreateUserDto>
 {
@@ -19,11 +18,11 @@ public class CreateUserConverter : IBaseConverter<User, CreateUserDto>
             Name = dto.Name,
             Email = dto.Email,
             Phone = dto.Phone,
-            Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             Status = 0,
-            Active = 0,
             Avatar = dto.Avatar,
-            CreateAt = new Timestamp()
+            CreateAt = new Timestamp(),
+            Account = 0
         };
     }
 }

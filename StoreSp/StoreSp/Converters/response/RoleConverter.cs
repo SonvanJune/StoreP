@@ -1,7 +1,7 @@
-﻿using StoreSp.Converters;
+﻿using StoreSp.Dtos.response;
 using StoreSp.Entities;
 
-namespace StoreSp;
+namespace StoreSp.Converters.response;
 
 public class RoleConverter : IBaseConverter<Role, RoleDto>
 {
@@ -9,7 +9,6 @@ public class RoleConverter : IBaseConverter<Role, RoleDto>
     {
         return new RoleDto
         {
-            Id = entity.Id,
             Name = entity.Name,
             Code = entity.Code
         };

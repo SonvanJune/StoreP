@@ -1,8 +1,8 @@
 ﻿using Google.Cloud.Firestore;
-using StoreSp.Converters;
+using StoreSp.Dtos.request;
 using StoreSp.Entities;
 
-namespace StoreSp;
+namespace StoreSp.Converters.request;
 
 public class CreateRoleConverter : IBaseConverter<Role, CreateRoleDto>
 {

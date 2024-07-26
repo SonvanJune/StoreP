@@ -6,13 +6,13 @@ public record RegisterUserDto
 (
     [Required] string Name,
 
-    [Required] string Email,
+    string Email,
 
-    [Required] string Phone,
+    string Phone,
 
     [Required] string Password,
 
-    [Required] string Avatar,
+    string Avatar,
 
-    [Required] string RoleId
+    [Required] string RoleCode
 );

@@ -2,9 +2,10 @@
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
+using StoreSp.Configs;
 using StoreSp.Entities;
 
-namespace StoreSp;
+namespace StoreSp.Services.Impl;
 
 public class AuthServiceImpl : IAuthService
 {
@@ -27,7 +28,7 @@ public class AuthServiceImpl : IAuthService
         return handler.WriteToken(token);
     }
 
-    public string GetEmailByToken(string token)
+    public string GetFirstByToken(string token)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(AuthConfig.PrivateKey);
@@ -70,10 +71,64 @@ public class AuthServiceImpl : IAuthService
 
     private static ClaimsIdentity GenerateClaims(User user)
     {
-        Role role = user.role!;
+        Role role = user.Role!;
         var claims = new ClaimsIdentity();
-        claims.AddClaim(new Claim(ClaimTypes.Name, user.Email));
+        if(user.Email != null && user.Email != ""){
+            claims.AddClaim(new Claim(ClaimTypes.Name, user.Email));
+        }
+        else{
+            claims.AddClaim(new Claim(ClaimTypes.Name, user.Phone));
+        }
         claims.AddClaim(new Claim(ClaimTypes.Role, role.Code));
         return claims;
+    }
+
+    public static string CreateRandomToken(User user)
+    {
+        var handler = new JwtSecurityTokenHandler();
+        var key = Encoding.ASCII.GetBytes(AuthConfig.PrivateKey);
+        var credentials = new SigningCredentials(
+            new SymmetricSecurityKey(key),
+            SecurityAlgorithms.HmacSha256Signature);
+
+        var claims = new ClaimsIdentity();
+        if(user.Email != null && user.Email != ""){
+            claims.AddClaim(new Claim(ClaimTypes.Name, user.Email));
+        }
+        else{
+            claims.AddClaim(new Claim(ClaimTypes.Name, user.Phone));
+        }
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = claims,
+            Expires = DateTime.UtcNow.AddMinutes(120),
+            SigningCredentials = credentials,
+        };
+
+        var token = handler.CreateToken(tokenDescriptor);
+        return handler.WriteToken(token);
+    }
+
+    public static string CreateRandomNumerToken(string randomCode)
+    {
+        var handler = new JwtSecurityTokenHandler();
+        var key = Encoding.ASCII.GetBytes(AuthConfig.PrivateKey);
+        var credentials = new SigningCredentials(
+            new SymmetricSecurityKey(key),
+            SecurityAlgorithms.HmacSha256Signature);
+
+        var claims = new ClaimsIdentity();
+        claims.AddClaim(new Claim(ClaimTypes.Name, randomCode));
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = claims,
+            Expires = DateTime.UtcNow.AddMinutes(120),
+            SigningCredentials = credentials,
+        };
+
+        var token = handler.CreateToken(tokenDescriptor);
+        return handler.WriteToken(token);
     }
 }
