@@ -103,6 +103,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
             dto.Author = userConverter.ToDto(user!);
             dto.Classifies = GetProductClassifiesByProduct(product.Id!);
             dto.Categories = GetCategoriesByProduct(product.Id!);
+            return dto;
         }
         return null!;
     }
