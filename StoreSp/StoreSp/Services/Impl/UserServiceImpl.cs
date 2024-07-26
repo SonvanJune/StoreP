@@ -130,7 +130,8 @@ public class UserServiceImpl : IUserService
                 data = new UserTokenDto
                 {
                     Token = authService!.GenerateToken(user),
-                    User = userFireStore.userConverter.ToDto(user)
+                    User = userFireStore.userConverter.ToDto(user),
+                    RoleCode = user!.Role!.Code
                 }
             });
         }
@@ -306,7 +307,8 @@ public class UserServiceImpl : IUserService
                         data = new UserTokenDto
                         {
                             Token = authService!.GenerateToken(user),
-                            User = userFireStore.userConverter.ToDto(user)
+                            User = userFireStore.userConverter.ToDto(user),
+                            RoleCode = user!.Role!.Code
                         }
                     });
                 }
@@ -370,7 +372,8 @@ public class UserServiceImpl : IUserService
             data = new UserTokenDto
             {
                 Token = authService!.GenerateToken(user),
-                User = userFireStore.userConverter.ToDto(user)
+                User = userFireStore.userConverter.ToDto(user),
+                RoleCode = user!.Role!.Code
             }
         });
     }
@@ -418,7 +421,8 @@ public class UserServiceImpl : IUserService
                 data = new UserTokenDto
                 {
                     Token = authService!.GenerateToken(user),
-                    User = userFireStore.userConverter.ToDto(user)
+                    User = userFireStore.userConverter.ToDto(user),
+                    RoleCode = user!.Role!.Code
                 }
             });
         }
@@ -523,7 +527,8 @@ public class UserServiceImpl : IUserService
                     data = new UserTokenDto
                     {
                         Token = authService!.GenerateToken(user),
-                        User = userFireStore.userConverter.ToDto(user)
+                        User = userFireStore.userConverter.ToDto(user),
+                        RoleCode = user!.Role!.Code
                     }
                 });
             }
