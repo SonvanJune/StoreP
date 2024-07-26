@@ -49,4 +49,15 @@ public class CartServiceImpl : ICartService
             data = CartFireStore!.GetCartByUser(username)
         });
     }
+
+    IResult ICartService.UpdateCartByUser(UpdateCartDto updateCartDto)
+    {
+        var a = CartFireStore!.UpdateCartByUser(updateCartDto).Result;
+        return Results.Created("",new HttpStatusConfig
+        {
+            status = HttpStatusCode.Created,
+            message = "success",
+            data = null
+        });
+    }
 }

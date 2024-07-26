@@ -23,6 +23,11 @@ public static class CartEndpoint
             return CartService!.AddToCart(addCartItemDto);
         }).WithParameterValidation().RequireAuthorization("nguoi-mua");
 
+        group.MapPut("/", (UpdateCartDto updateCartDto) =>
+        {
+            return CartService!.UpdateCartByUser(updateCartDto);
+        }).WithParameterValidation().RequireAuthorization("nguoi-mua");
+
         group.MapPost("/check", (CheckoutCartItemDto checkoutCartItemDto) =>
         {
             return CartService!.CheckoutCartItem(checkoutCartItemDto.CartItemCode);

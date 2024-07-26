@@ -1,6 +1,8 @@
-﻿namespace StoreSp;
+﻿using System.ComponentModel.DataAnnotations;
 
-public class UpdateCartItemDto
-{
-    
-}
+namespace StoreSp.Dtos.request;
+
+public record UpdateCartItemDto(
+    [Required] string ItemCode,
+    [Required] int Quantity
+);

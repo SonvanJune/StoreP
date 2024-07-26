@@ -210,8 +210,63 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         cartDto.Quantity = cartItemDtos.Count;
         return cartDto;
     }
-    
-    
+
+    public async Task<string> UpdateCartByUser(UpdateCartDto updateCartDto)
+    {
+        var cartUpdatedb = _firestoreDb.Collection(_collectionCart);
+        var cartItemUpdatedb = _firestoreDb.Collection(_collectionCartItem);
+        var cartDb = base.GetSnapshots(_collectionCart);
+        var cartItemDb = base.GetSnapshots(_collectionCartItem);
+        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
+
+        User user = null!;
+        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == updateCartDto.Username) == null)
+        {
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == updateCartDto.Username)!;
+        }
+        else
+        {
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == updateCartDto.Username)!;
+        }
+
+        var cart = cartDb.Documents.Select(r => r.ConvertTo<Cart>()).ToList().Find(r => r.UserId == user.Id);
+        
+        int totalAfterAdd = cart!.TotalPrice;
+        //update cart items
+        foreach (var item in updateCartDto.UpdateCartItems!)
+        {
+            var cartItem = cartItemDb.Documents.Select(r => r.ConvertTo<CartItem>()).ToList().Find(r => r.Code == item.ItemCode);
+            if (cartItem != null)
+            {
+                totalAfterAdd = totalAfterAdd - cartItem.Total;
+                int quantity = item.Quantity;
+                int total = item.Quantity * cartItem.Price;
+                totalAfterAdd += total;
+                DocumentReference docref = _firestoreDb.Collection(_collectionCartItem).Document(cartItem.Id);
+                Dictionary<string, object> data = new Dictionary<string, object>{
+                    {"Quantity" , quantity},
+                    {"Total" , total}
+                };
+                DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
+                if (snapshot.Exists)
+                {
+                    await docref.UpdateAsync(data);
+                }
+            }
+        }
+
+        //update cart
+        DocumentReference docrefCart = _firestoreDb.Collection(_collectionCart).Document(cart!.Id);
+        Dictionary<string, object> dataCart = new Dictionary<string, object>{
+            {"TotalPrice" , totalAfterAdd}
+        };
+        DocumentSnapshot snapshotCart = await docrefCart.GetSnapshotAsync();
+        if (snapshotCart.Exists)
+        {
+            await docrefCart.UpdateAsync(dataCart);
+        }
+        return "Updated";
+    }
     //method ho tro
     private async Task AddCartItem_ProductClassifies(List<string> productClassifyIds, string code)
     {

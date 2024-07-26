@@ -1,6 +1,7 @@
 ﻿namespace StoreSp.Dtos.request;
 
-public class UpdateCartDto
-{
-    
-}
+public record UpdateCartDto
+(    
+    string Username,
+    List<UpdateCartItemDto>? UpdateCartItems
+);
