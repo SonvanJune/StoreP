@@ -78,7 +78,11 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
             var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == cp.ProductId);
             var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == product!.AuthorId);
             ProductDto dto = productConverter.ToDto(product!);
-            dto.Author = userConverter.ToDto(user!);
+            if (user != null)
+            {
+                dto.Author = userConverter.ToDto(user!);
+
+            }
             dto.Classifies = GetProductClassifiesByProduct(cp.ProductId);
             dto.Categories = GetCategoriesByProduct(cp.ProductId);
             productsDto.Add(dto);

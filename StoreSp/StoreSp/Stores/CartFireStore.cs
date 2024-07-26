@@ -210,7 +210,8 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         cartDto.Quantity = cartItemDtos.Count;
         return cartDto;
     }
-
+    
+    
     //method ho tro
     private async Task AddCartItem_ProductClassifies(List<string> productClassifyIds, string code)
     {
