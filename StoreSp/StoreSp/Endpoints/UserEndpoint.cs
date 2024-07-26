@@ -43,7 +43,7 @@ public static class UserEndpoint
         group.MapPost("/admin/login", (LoginUserDto dto) =>
         {
             return userService.Login(dto);
-        }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
+        }).WithParameterValidation();
 
         group.MapGet("/users/token", ([FromHeader] string authorization) =>
         {
