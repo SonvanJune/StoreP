@@ -5,5 +5,5 @@ namespace StoreSp.Dtos.request;
 public class CheckoutCartItemDto
 {
     [Required]
-    public required string CartItemCode { get; set;}
+    public required List<string> CartItemCode { get; set;}
 }

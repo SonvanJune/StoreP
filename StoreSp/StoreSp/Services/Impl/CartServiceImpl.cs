@@ -29,9 +29,12 @@ public class CartServiceImpl : ICartService
         });
     }
 
-    IResult ICartService.CheckoutCartItem(string code)
+    IResult ICartService.CheckoutCartItem(List<string> codes)
     {
-        var item = CartFireStore!.CheckoutItemInCart(code).Result;
+        foreach (var code in codes)
+        {
+            var item = CartFireStore!.CheckoutItemInCart(code).Result;
+        }
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
@@ -53,7 +56,7 @@ public class CartServiceImpl : ICartService
     IResult ICartService.UpdateCartByUser(UpdateCartDto updateCartDto)
     {
         var a = CartFireStore!.UpdateCartByUser(updateCartDto).Result;
-        return Results.Created("",new HttpStatusConfig
+        return Results.Created("", new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
             message = "success",
