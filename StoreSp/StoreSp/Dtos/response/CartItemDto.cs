@@ -2,6 +2,7 @@
 
 public class CartItemDto
 {
+    public UserDto? Shop { get; set; }
     public ProductDto? Product { get; set; }
     public string? Code{ get; set; }
     public int Price { get; set; }

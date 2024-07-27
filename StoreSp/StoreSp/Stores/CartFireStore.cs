@@ -200,7 +200,6 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
 
         //lay cart tu database
         var cart = cartDb.Documents.Select(r => r.ConvertTo<Cart>()).ToList().Find(r => r.UserId == user.Id);
-        cartDto.User = userDto;
         cartDto.TotalPrice = cart!.TotalPrice;
 
         //tao list cartitem dto
@@ -324,6 +323,7 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
     {
         List<CartItemDto> cartItemDtos = new List<CartItemDto>();
         var cartItemDb = base.GetSnapshots(_collectionCartItem);
+        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         var cartItems = cartItemDb.Documents.Select(r => r.ConvertTo<CartItem>()).ToList().FindAll(r => r.CartId == cartId);
         var productDb = base.GetSnapshots(ProductFireStore._collectionProducts);
         foreach (var cartItem in cartItems)
@@ -332,6 +332,10 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             //get product for cart item
             var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == cartItem.ProductId);
             cartItemDto.Product = productConverter.ToDto(product!);
+
+            //get author for cart item
+            var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == product!.AuthorId);
+            cartItemDto.Shop = userConverter.ToDto(user!);
 
             //get string product classify for cart item
             cartItemDto.CartItem_ProductClassifies = GetStringProductClassify(cartItem.Id!);
