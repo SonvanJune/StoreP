@@ -142,6 +142,17 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
             };
             await db.AddAsync(like);
         }
+
+        //update so luong like cua san pham
+        DocumentReference docrefProduct = _firestoreDb.Collection(_collectionProducts).Document(product!.Id);
+        Dictionary<string, object> dataProduct = new Dictionary<string, object>{
+                {"QuantitySelled" , product.Likes + 1}
+            };
+        DocumentSnapshot snapshotProduct = await docrefProduct.GetSnapshotAsync();
+        if (snapshotProduct.Exists)
+        {
+            await docrefProduct.UpdateAsync(dataProduct);
+        }
     }
     //method ho tro
     private async Task<CreateProductClassifyDto[]> AddProductClassify(CreateProductClassifyDto[] productClassifies, string productCode)

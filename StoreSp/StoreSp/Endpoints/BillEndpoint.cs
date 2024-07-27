@@ -1,4 +1,5 @@
-﻿using StoreSp.Dtos.request;
+﻿using Microsoft.AspNetCore.Mvc;
+using StoreSp.Dtos.request;
 using StoreSp.Services;
 using StoreSp.Services.Impl;
 
@@ -17,7 +18,11 @@ public static class BillEndpoint
         {
             return BillService!.Checkout(createBillDto);
         }).WithParameterValidation().RequireAuthorization("nguoi-mua");
-
+        
+        group.MapPost("/" , (GetBillOfUserDto getBillOfUserDto) => 
+        {
+            return BillService!.GetBillByUser(getBillOfUserDto);
+        }).WithParameterValidation().RequireAuthorization("nguoi-mua");
         return group;
     }
 }

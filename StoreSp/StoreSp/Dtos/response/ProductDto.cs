@@ -10,6 +10,8 @@ public class ProductDto
     public required int Price { get; set; }
     public required int PriceSaleOff { get; set; }
     public required int SaleOff { get; set; }
+    public required int QuantitySelled { get; set; }
+    public required int Likes { get; set; }
     public required string ShippingUnit { get; set; }
     public List<ProductClassifyDto>? Classifies { get; set; }
 }

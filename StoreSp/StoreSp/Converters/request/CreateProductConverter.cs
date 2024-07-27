@@ -22,7 +22,9 @@ public class CreateProductConverter : IBaseConverter<Product, CreateProductDto>
             Active = 0,
             Price = dto.Price,
             SaleOff = dto.SaleOff,
-            PriceSaleOff = dto.SaleOff == 0 ? dto.Price : dto.Price - (dto.Price * dto.SaleOff /100)
+            PriceSaleOff = dto.SaleOff == 0 ? dto.Price : dto.Price - (dto.Price * dto.SaleOff /100),
+            QuantitySelled = 0,
+            Likes = 0
         };
     }
 }

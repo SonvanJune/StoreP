@@ -38,4 +38,23 @@ public class BillServiceImpl : IBillService
             data = null
         });
     }
+
+    IResult IBillService.GetBillByUser(GetBillOfUserDto getBillOfUserDto)
+    {
+        var data = BillFirestore!.GetBillByUser(getBillOfUserDto);
+        if(data == null){
+            return Results.NotFound(new HttpStatusConfig
+            {
+                status = HttpStatusCode.NotFound,
+                message = "Khong tim thay nguoi dung",
+                data = null
+            });
+        }
+        return Results.Ok(new HttpStatusConfig
+        {
+            status = HttpStatusCode.OK,
+            message = "success",
+            data = data
+        });
+    }
 }

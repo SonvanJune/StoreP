@@ -27,6 +27,9 @@ public class Product
     public required int Price { get; set; }
 
     [FirestoreProperty]
+    public required int QuantitySelled { get; set; }
+
+    [FirestoreProperty]
     public int PriceSaleOff { get; set; }
 
     [FirestoreProperty]
@@ -34,6 +37,9 @@ public class Product
 
     [FirestoreProperty]
     public required int Active { get; set; }
+
+    [FirestoreProperty]
+    public required int Likes { get; set; }
 
     public User? Author { get; set; }
 

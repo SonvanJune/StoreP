@@ -2,6 +2,7 @@
 using StoreSp.Converters;
 using StoreSp.Converters.response;
 using StoreSp.Dtos.request;
+using StoreSp.Dtos.response;
 using StoreSp.Entities;
 
 namespace StoreSp.Stores;
@@ -12,6 +13,9 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
     public static string _collectionBill_Product = "Bill_Product";
 
     public readonly IBaseConverter<Bill, CreateBillDto> AddBillConverter = new AddBillConverter();
+    public readonly IBaseConverter<Bill, BillDto> BillConverter = new BillConverter();
+    public readonly IBaseConverter<User, UserDto> userConverter = new UserConverter();
+    private readonly IBaseConverter<Product, ProductDto> productConverter = new ProductConverter();
 
     public async Task<int> Checkout(CreateBillDto createBillDto)
     {
@@ -71,7 +75,49 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
         await AfterCheckout(cart, cartItems, randomCode);
         return 1;
     }
+    public List<BillDto> GetBillByUser(GetBillOfUserDto request)
+    {
+        var billDb = base.GetSnapshots(_collectionBill);
+        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
+        List<BillDto> billDtos = new List<BillDto>();
 
+
+        //tim user
+        User user = null!;
+        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == request.Username) == null)
+        {
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == request.Username)!;
+        }
+        else
+        {
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == request.Username)!;
+        }
+
+        if(user == null){
+            return null!;
+        }
+
+        List<Bill> bills = new List<Bill>();
+
+        if (request.Status == null)
+        {
+            bills = billDb.Documents.Select(r => r.ConvertTo<Bill>()).ToList().FindAll(r => r.UserId == user.Id);
+        }
+        else{
+            bills = billDb.Documents.Select(r => r.ConvertTo<Bill>()).ToList().FindAll(r => r.UserId == user.Id && r.Status.ToString() == request.Status);
+        }
+
+        foreach (var bill in bills)
+        {
+            var billDto = BillConverter.ToDto(bill);
+            billDto.User = userConverter.ToDto(user);
+            var billItems = SetBillItem(bill.Id!);
+            billDto.BillItems = billItems;
+            billDtos.Add(billDto);
+        }
+
+        return billDtos;
+    }
     public async Task AddBill_Product(List<CartItem> cartItems, string code)
     {
         var billDb = base.GetSnapshots(_collectionBill);
@@ -89,7 +135,6 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
             await db.AddAsync(billProduct);
         }
     }
-
     private string GetStringProductClassify(string cartItemId)
     {
         string result = "";
@@ -121,7 +166,8 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
         var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         var cartDb = base.GetSnapshots(CartFireStore._collectionCart);
         var billDb = base.GetSnapshots(_collectionBill);
-        var bill = billDb.Documents.Select(r => r.ConvertTo<Bill>()).ToList().Find(r => r.Code == billCode);
+        var productDb = base.GetSnapshots(ProductFireStore._collectionProducts);
+        var bill = billDb.Documents.Select(r => r.ConvertTo<Bill>()).ToList().Find(r => r.Code == billCode); 
         var productClassifyDb = base.GetSnapshots(ProductFireStore._collectionProductClassify);
         var cartItem_ProductClassifyDb = base.GetSnapshots(CartFireStore._collectionCartItem_ProductClassify);
 
@@ -144,6 +190,18 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
         //xoa gio hang
         foreach (var item in cartItems)
         {
+            //update so luong da ban cua san pham
+            var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == item.ProductId);
+            DocumentReference docrefProduct = _firestoreDb.Collection(ProductFireStore._collectionProducts).Document(product!.Id);
+            Dictionary<string, object> dataProduct = new Dictionary<string, object>{
+                {"QuantitySelled" , product.QuantitySelled + item.Quantity}
+            };
+            DocumentSnapshot snapshotProduct = await docrefProduct.GetSnapshotAsync();
+            if (snapshotProduct.Exists)
+            {
+                await docrefProduct.UpdateAsync(dataProduct);
+            }
+
             var cartItem_ProductClassifies = cartItem_ProductClassifyDb.Documents
             .Select(r => r.ConvertTo<CartItem_ProductClassify>())
             .ToList()
@@ -181,5 +239,25 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
         {
             await docrefCart.UpdateAsync(dataCart);
         }
+    }
+    
+    private List<BillItemDto> SetBillItem(string billId){
+        var productDb = base.GetSnapshots(ProductFireStore._collectionProducts);
+        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
+        var bill_ProductDb = base.GetSnapshots(_collectionBill_Product);
+        List<BillItemDto> billItemDtos = new List<BillItemDto>();
+        var billItems = bill_ProductDb.Documents.Select(r => r.ConvertTo<Bill_Product>()).ToList().FindAll(r => r.BillId == billId);
+        foreach (var item in billItems)
+        {
+            BillItemDto billItemDto = new BillItemDto();
+            var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == item.ProductId);
+            var productDto = productConverter.ToDto(product!);
+            var author = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == product!.AuthorId);
+            productDto.Author = userConverter.ToDto(author!);
+            billItemDto.Product = productDto;
+            billItemDto.ProductClassifies = item.ProductClassifies;
+            billItemDtos.Add(billItemDto);
+        }
+        return billItemDtos;
     }
 }
