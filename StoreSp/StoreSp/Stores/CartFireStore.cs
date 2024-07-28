@@ -174,7 +174,7 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         return null!;
     }
 
-    public CartDto GetCartByUser(string username)
+    public async Task<CartDto> GetCartByUser(string username)
     {
         var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         var cartDb = base.GetSnapshots(_collectionCart);
@@ -203,7 +203,7 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         cartDto.TotalPrice = cart!.TotalPrice;
 
         //tao list cartitem dto
-        List<CartItemDto> cartItemDtos = GetCartItemDtos(cart.Id!);
+        List<CartItemDto> cartItemDtos = await GetCartItemDtos(cart.Id!);
 
         cartDto.Items = cartItemDtos;
         cartDto.Quantity = cartItemDtos.Count;
@@ -229,7 +229,7 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         }
 
         var cart = cartDb.Documents.Select(r => r.ConvertTo<Cart>()).ToList().Find(r => r.UserId == user.Id);
-        
+
         int totalAfterAdd = cart!.TotalPrice;
         //update cart items
         foreach (var item in updateCartDto.UpdateCartItems!)
@@ -319,7 +319,7 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         return status;
     }
 
-    private List<CartItemDto> GetCartItemDtos(string cartId)
+    private async Task<List<CartItemDto>> GetCartItemDtos(string cartId)
     {
         List<CartItemDto> cartItemDtos = new List<CartItemDto>();
         var cartItemDb = base.GetSnapshots(_collectionCartItem);
@@ -328,19 +328,27 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         var productDb = base.GetSnapshots(ProductFireStore._collectionProducts);
         foreach (var cartItem in cartItems)
         {
-            CartItemDto cartItemDto = cartItemConverter.ToDto(cartItem);
-            //get product for cart item
-            var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == cartItem.ProductId);
-            cartItemDto.Product = productConverter.ToDto(product!);
+            if (cartItem.Quantity == 0)
+            {
+                DocumentReference docrefCartItem = _firestoreDb.Collection(_collectionCartItem).Document(cartItem.Id);
+                await docrefCartItem.DeleteAsync();
+            }
+            else
+            {
+                CartItemDto cartItemDto = cartItemConverter.ToDto(cartItem);
+                //get product for cart item
+                var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == cartItem.ProductId);
+                cartItemDto.Product = productConverter.ToDto(product!);
 
-            //get author for cart item
-            var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == product!.AuthorId);
-            cartItemDto.Shop = userConverter.ToDto(user!);
+                //get author for cart item
+                var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == product!.AuthorId);
+                cartItemDto.Shop = userConverter.ToDto(user!);
 
-            //get string product classify for cart item
-            cartItemDto.CartItem_ProductClassifies = GetStringProductClassify(cartItem.Id!);
-            //them vao mang
-            cartItemDtos.Add(cartItemDto);
+                //get string product classify for cart item
+                cartItemDto.CartItem_ProductClassifies = GetStringProductClassify(cartItem.Id!);
+                //them vao mang
+                cartItemDtos.Add(cartItemDto);
+            }
         }
         return cartItemDtos;
     }

@@ -49,7 +49,7 @@ public class CartServiceImpl : ICartService
         {
             status = HttpStatusCode.OK,
             message = "success",
-            data = CartFireStore!.GetCartByUser(username)
+            data = CartFireStore!.GetCartByUser(username).Result
         });
     }
 

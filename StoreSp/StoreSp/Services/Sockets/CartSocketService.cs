@@ -21,7 +21,7 @@ public class CartSocketService
             while (ws.State == WebSocketState.Open)
             {
                 bool canSend = true;
-                var cartDtos = CartFireStore!.GetCartByUser(userName!);
+                var cartDtos = CartFireStore!.GetCartByUser(userName!).Result;
                 var result = new HttpStatusConfig
                 {
                     status = HttpStatusCode.OK,
