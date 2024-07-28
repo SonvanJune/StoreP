@@ -62,11 +62,14 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         }
 
         var snapshot = base.GetSnapshots(_collectionUser);
-        var user = snapshot.Documents.Select(s => s.ConvertTo<User>()).ToList().FindAll(u => u.RoleId == role.Id);
-        var userDtos = user.Select(userConverter.ToDto).ToList();
-        foreach (var item in userDtos)
+        var users = snapshot.Documents.Select(s => s.ConvertTo<User>()).ToList().FindAll(u => u.RoleId == role.Id).ToList();
+        List<UserDto> userDtos = new List<UserDto>();
+        foreach (var item in users)
         {
-            item.RoleCode  = role.Code;
+            var dto = userConverter.ToDto(item);
+            dto.RoleCode = role.Code;
+            dto.Id = item.Id;
+            userDtos.Add(dto);
         }
         return Task.FromResult(userDtos);
     }
