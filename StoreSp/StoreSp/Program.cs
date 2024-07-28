@@ -9,13 +9,21 @@ var builder = WebApplication.CreateBuilder(args);
 builder.RunConfig();
 
 Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", @"D:\storep-d7a1c-firebase-adminsdk-2a02r-18fbc15c37.json");
-FirestoreDb db = FirestoreDb.Create(builder.Configuration.GetConnectionString("ProjectId"));
-FirestoreService.Run(db);
+try
+{
+    FirestoreDb db = FirestoreDb.Create(builder.Configuration.GetConnectionString("ProjectId"));
+    FirestoreService.Run(db);
+}
+catch (System.Exception)
+{
+    Console.WriteLine("Error creating FirestoreDb instance.");
+    throw;
+}
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
-    IdentityModelEventSource.ShowPII = true;    
+    IdentityModelEventSource.ShowPII = true;
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
