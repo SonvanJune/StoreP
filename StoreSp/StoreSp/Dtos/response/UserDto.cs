@@ -10,4 +10,5 @@ public class UserDto
     public int Status { get; set; }
     public required string VerifiedAt { get; set; }
     public required string Address { get; set; }
+    public string? RoleCode { get; set; }
 }
