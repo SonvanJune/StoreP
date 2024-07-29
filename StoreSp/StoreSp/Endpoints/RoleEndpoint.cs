@@ -16,7 +16,7 @@ public static class RoleEndpoint
         group.MapPost("/", (CreateRoleDto createRoleDto) =>
         {
             return roleService.AddRole(createRoleDto);
-        }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
+        }).WithParameterValidation();
 
         group.MapGet("/", () =>
         {
