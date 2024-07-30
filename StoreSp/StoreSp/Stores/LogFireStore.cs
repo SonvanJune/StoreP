@@ -50,7 +50,6 @@ public class LogFireStore(FirestoreDb firestoreDb) : FirestoreService(firestoreD
     {
         var logDb = base.GetSnapshots(_collectionLog);
         var userDb = base.GetSnapshots(UserFireStore._collectionUser);
-        var roleDb = base.GetSnapshots(RoleFireStore._collectionRole);
         List<LogDto> logDtos = new List<LogDto>();
         var logs = logDb.Documents.Select(r => r.ConvertTo<Log>()).ToList().FindAll(r => r.Code == code);
         foreach (var log in logs)
@@ -62,13 +61,9 @@ public class LogFireStore(FirestoreDb firestoreDb) : FirestoreService(firestoreD
                 Status = log.Status
             };
             var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == log.UserId);
-            var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == user!.RoleId);
-            if (role!.Code != "quan-tri-vien")
-            {
-                var userDto = userConverter.ToDto(user!);
-                logdto.User = userDto;
-                logDtos.Add(logdto);
-            }
+            var userDto = userConverter.ToDto(user!);
+            logdto.User = userDto;
+            logDtos.Add(logdto);
         }
         return logDtos;
     }
