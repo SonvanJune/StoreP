@@ -2,5 +2,5 @@
 
 public interface ILogService
 {
-    public IResult GetLogsByCode(string code);
+    public IResult GetLogs();
 }

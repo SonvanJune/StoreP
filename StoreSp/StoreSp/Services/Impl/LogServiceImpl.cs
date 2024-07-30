@@ -8,13 +8,13 @@ namespace StoreSp.Services.Impl;
 public class LogServiceImpl : ILogService
 {
     public static LogFireStore? LogFireStore { get; set; }
-    IResult ILogService.GetLogsByCode(string code)
+    IResult ILogService.GetLogs()
     {
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
             message = "success",
-            data = LogFireStore!.GetLogsByCode(code)
+            data = LogFireStore!.GetLogs()
         });
     }
 }

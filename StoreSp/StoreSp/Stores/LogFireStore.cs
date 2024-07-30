@@ -46,12 +46,12 @@ public class LogFireStore(FirestoreDb firestoreDb) : FirestoreService(firestoreD
         return log;
     }
 
-    public List<LogDto> GetLogsByCode(string code)
+    public List<LogDto> GetLogs()
     {
         var logDb = base.GetSnapshots(_collectionLog);
         var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         List<LogDto> logDtos = new List<LogDto>();
-        var logs = logDb.Documents.Select(r => r.ConvertTo<Log>()).ToList().FindAll(r => r.Code == code);
+        var logs = logDb.Documents.Select(r => r.ConvertTo<Log>()).ToList();
         foreach (var log in logs)
         {
             var logdto = new LogDto
