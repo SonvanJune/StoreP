@@ -56,6 +56,7 @@ public class LogFireStore(FirestoreDb firestoreDb) : FirestoreService(firestoreD
         {
             var logdto = new LogDto
             {
+                Id = log.Id!,
                 Code = log.Code!,
                 Message = log.Message!,
                 Status = log.Status
