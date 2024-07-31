@@ -58,6 +58,7 @@ public class LogFireStore(FirestoreDb firestoreDb) : FirestoreService(firestoreD
             {
                 Id = log.Id!,
                 Code = log.Code!,
+                CreatedAt = log.CreatedAt.ToDateTime().ToString(),
                 Message = log.Message!,
                 Status = log.Status
             };

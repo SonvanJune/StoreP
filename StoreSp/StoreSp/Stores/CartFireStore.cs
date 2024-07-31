@@ -216,6 +216,8 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         var cartItemUpdatedb = _firestoreDb.Collection(_collectionCartItem);
         var cartDb = base.GetSnapshots(_collectionCart);
         var cartItemDb = base.GetSnapshots(_collectionCartItem);
+        var cartItem_ProductClassifyDb = base.GetSnapshots(_collectionCartItem_ProductClassify);
+        var productClassifyDb = base.GetSnapshots(ProductFireStore._collectionProductClassify);
         var userDb = base.GetSnapshots(UserFireStore._collectionUser);
 
         User user = null!;
@@ -250,6 +252,23 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
                 if (snapshot.Exists)
                 {
                     await docref.UpdateAsync(data);
+                }
+
+                //update cartItem Product_Classiffy
+                var productClasiifyItems = cartItem_ProductClassifyDb.Documents.Select(r => r.ConvertTo<CartItem_ProductClassify>()).ToList().FindAll(r => r.CartItem_Id == cartItem.Id)!;
+                for (int i = 0; i < productClasiifyItems.Count; i++)
+                {
+                    var productClassify = productClassifyDb.Documents.Select(r => r.ConvertTo<ProductClassify>()).ToList().Find(r => r.Code == item.ClassifyCodes[i])!;
+
+                    DocumentReference docrefClassifyIten = _firestoreDb.Collection(_collectionCartItem_ProductClassify).Document(productClasiifyItems[i].Id);
+                    Dictionary<string, object> dataClassifyItem = new Dictionary<string, object>{
+                    {"ProductClassify_Id" , productClassify.Id!}
+                    };
+                    DocumentSnapshot snapshotClassifyItem = await docrefClassifyIten.GetSnapshotAsync();
+                    if (snapshotClassifyItem.Exists)
+                    {
+                        await docrefClassifyIten.UpdateAsync(dataClassifyItem);
+                    }
                 }
             }
         }
