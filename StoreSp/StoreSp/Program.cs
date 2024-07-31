@@ -34,6 +34,7 @@ app.MapProductEndpoints();
 app.MapCartEndpoints();
 app.MapBillEndpoints();
 app.MapLogEndpoints();
+app.MapShippingMehodEndpoints();
 
 app.MapCartSocketEndpoint();
 app.Run();

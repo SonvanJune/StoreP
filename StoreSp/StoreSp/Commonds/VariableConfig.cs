@@ -1,6 +1,6 @@
 ﻿namespace StoreSp.Commonds;
 
-public class VariableConfig
+public class VariableConfig<T>
 {
-    public static Dictionary<string,string> Application = new Dictionary<string,string>();
+    public static Dictionary<string,T> Application = new Dictionary<string,T>();
 }

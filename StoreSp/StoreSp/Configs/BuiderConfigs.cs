@@ -86,7 +86,7 @@ public static class BuiderConfig
 
     public static void ConfigVariables(){
         //example
-        VariableConfig.Application["a"] = "noodle";
+        VariableConfig<double>.Application["price-of-kilometer"] = 500;
     }
 }
 

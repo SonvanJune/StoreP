@@ -20,4 +20,6 @@ public interface IUserService
    public IResult GoogleRegister(GoogleRegisterDto googleRegisterDto);
    public IResult GoogleLogin(GoogleLoginDto googleLoginDto);
    public IResult UpdateStatusUser(UpdateStatusUserDto dto);
+   public IResult AddAdress(CreateAddressDto dto);
+   public IResult GetAddress(string username);
 }

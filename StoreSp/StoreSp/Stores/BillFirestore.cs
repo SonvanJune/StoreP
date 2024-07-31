@@ -1,4 +1,5 @@
 ﻿using Google.Cloud.Firestore;
+using StoreSp.Commonds;
 using StoreSp.Converters;
 using StoreSp.Converters.response;
 using StoreSp.Dtos.request;
@@ -16,12 +17,16 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
     public readonly IBaseConverter<Bill, BillDto> BillConverter = new BillConverter();
     public readonly IBaseConverter<User, UserDto> userConverter = new UserConverter();
     private readonly IBaseConverter<Product, ProductDto> productConverter = new ProductConverter();
+    public readonly IBaseConverter<Address, AddressDto> addressConverter = new AddressConverter();
+    private readonly IBaseConverter<ShippingMethod, ShippingMethodDto> shippingMethodConverter = new ShippingMethodConverter();
 
     public async Task<int> Checkout(CreateBillDto createBillDto)
     {
         var db = _firestoreDb.Collection(_collectionBill);
         var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         var billDb = base.GetSnapshots(_collectionBill);
+        var shippingMethodDb = base.GetSnapshots(ShippingMethodFirestore._collectionShippingMethod);
+        var addressDb = base.GetSnapshots(UserFireStore._collectionAddress);
 
         //tao bill
         var bill = AddBillConverter.ToEntity(createBillDto);
@@ -42,7 +47,12 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
         //get cart cua user
         var cartDb = base.GetSnapshots(CartFireStore._collectionCart);
         var cart = cartDb.Documents.Select(r => r.ConvertTo<Cart>()).ToList().Find(r => r.UserId == user.Id);
-        bill.TotalPrice = cart!.TotalPrice + bill.ShippingUnitPrice;
+        var address = addressDb.Documents.Select(r => r.ConvertTo<Address>()).ToList().Find(r => r.Code == createBillDto.AddressCode);
+        bill.AddressId = address!.Id;
+        var shippingMethod = shippingMethodDb.Documents.Select(r => r.ConvertTo<ShippingMethod>()).ToList().Find(r => r.Code == createBillDto.ShippingCode);
+        bill.ShippingMethodId = shippingMethod!.Id;
+        var shippingCost = shippingMethod!.Price + (createBillDto.Kilometers * VariableConfig<double>.Application["price-of-kilometer"]);
+        bill.TotalPrice = Convert.ToInt32(cart!.TotalPrice + shippingCost);
 
         if (user.Account < bill.TotalPrice)
         {
@@ -67,7 +77,7 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
             randomCode = rnd.Next(1, 100000).ToString();
         }
         bill.Code = randomCode;
-        bill.TotalProductPrice = bill.TotalPrice - bill.ShippingUnitPrice;
+        bill.TotalProductPrice = Convert.ToInt32(bill.TotalPrice - shippingCost);
 
         //get list productIds
         await db.AddAsync(bill);
@@ -79,6 +89,8 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
     {
         var billDb = base.GetSnapshots(_collectionBill);
         var userDb = base.GetSnapshots(UserFireStore._collectionUser);
+        var shippingMethodDb = base.GetSnapshots(ShippingMethodFirestore._collectionShippingMethod);
+        var addressDb = base.GetSnapshots(UserFireStore._collectionAddress);
         List<BillDto> billDtos = new List<BillDto>();
 
 
@@ -93,7 +105,8 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
             user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == request.Username)!;
         }
 
-        if(user == null){
+        if (user == null)
+        {
             return null!;
         }
 
@@ -103,13 +116,20 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
         {
             bills = billDb.Documents.Select(r => r.ConvertTo<Bill>()).ToList().FindAll(r => r.UserId == user.Id);
         }
-        else{
+        else
+        {
             bills = billDb.Documents.Select(r => r.ConvertTo<Bill>()).ToList().FindAll(r => r.UserId == user.Id && r.Status.ToString() == request.Status);
         }
+
+
 
         foreach (var bill in bills)
         {
             var billDto = BillConverter.ToDto(bill);
+            var shippingMethod = shippingMethodDb.Documents.Select(r => r.ConvertTo<ShippingMethod>()).ToList().Find(r => r.Id == bill.ShippingMethodId);
+            billDto.ShippingMethod = shippingMethodConverter.ToDto(shippingMethod!);
+            var address = addressDb.Documents.Select(r => r.ConvertTo<Address>()).ToList().Find(r => r.Id == bill.AddressId);
+            billDto.Address = addressConverter.ToDto(address!);
             billDto.User = userConverter.ToDto(user);
             var billItems = SetBillItem(bill.Id!);
             billDto.BillItems = billItems;
@@ -167,7 +187,7 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
         var cartDb = base.GetSnapshots(CartFireStore._collectionCart);
         var billDb = base.GetSnapshots(_collectionBill);
         var productDb = base.GetSnapshots(ProductFireStore._collectionProducts);
-        var bill = billDb.Documents.Select(r => r.ConvertTo<Bill>()).ToList().Find(r => r.Code == billCode); 
+        var bill = billDb.Documents.Select(r => r.ConvertTo<Bill>()).ToList().Find(r => r.Code == billCode);
         var productClassifyDb = base.GetSnapshots(ProductFireStore._collectionProductClassify);
         var cartItem_ProductClassifyDb = base.GetSnapshots(CartFireStore._collectionCartItem_ProductClassify);
 
@@ -240,8 +260,9 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
             await docrefCart.UpdateAsync(dataCart);
         }
     }
-    
-    private List<BillItemDto> SetBillItem(string billId){
+
+    private List<BillItemDto> SetBillItem(string billId)
+    {
         var productDb = base.GetSnapshots(ProductFireStore._collectionProducts);
         var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         var bill_ProductDb = base.GetSnapshots(_collectionBill_Product);

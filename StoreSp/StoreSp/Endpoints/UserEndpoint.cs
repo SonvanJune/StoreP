@@ -90,6 +90,16 @@ public static class UserEndpoint
             return userService.GoogleRegister(dto);
         }).WithParameterValidation();
 
+        group.MapPost("/users/address", (CreateAddressDto dto) =>
+        {
+            return userService.AddAdress(dto);
+        }).WithParameterValidation();
+
+        group.MapGet("/users/address/{username}", (string username) =>
+        {
+            return userService.GetAddress(username);
+        });
+
         group.MapGet("/users/role", ([FromQuery] string code) =>
         {
             return userService.GetUserByRole(code);
@@ -97,7 +107,7 @@ public static class UserEndpoint
 
         group.MapGet("/test", () =>
         {
-            return VariableConfig.Application["a"];
+            return "";
         });
 
         group.MapPost("/users/update-status", (UpdateStatusUserDto dto) =>

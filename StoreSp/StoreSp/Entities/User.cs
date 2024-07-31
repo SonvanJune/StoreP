@@ -23,9 +23,6 @@ public class User
     public string Phone { get; set; } = null!;
 
     [FirestoreProperty]
-    public string Address { get; set; } = null!;
-
-    [FirestoreProperty]
     public required int Account { get; set; }
 
     [FirestoreProperty]

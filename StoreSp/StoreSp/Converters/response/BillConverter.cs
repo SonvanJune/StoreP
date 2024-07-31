@@ -12,9 +12,7 @@ public class BillConverter : IBaseConverter<Bill, BillDto>
             CreatedAt = entity.CreatedAt.ToDateTime().ToShortDateString(),
             Code = entity.Code!,
             Status = entity.Status,
-            ShippingUnit = entity.ShippingUnit,
             PaymentMethod = entity.PaymentMethod,
-            ShippingUnitPrice = entity.ShippingUnitPrice,
             TotalPrice = entity.TotalPrice,
             TotalProductPrice = entity.TotalProductPrice,
             Quantity = entity.Quantity

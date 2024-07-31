@@ -20,13 +20,7 @@ public class Bill
     public string? Code { get; set; }
 
     [FirestoreProperty]
-    public required string ShippingUnit { get; set; }
-
-    [FirestoreProperty]
     public required string PaymentMethod { get; set; }
-
-    [FirestoreProperty]
-    public required int ShippingUnitPrice { get; set; }
 
     [FirestoreProperty]
     public int TotalProductPrice { get; set; }
@@ -41,4 +35,14 @@ public class Bill
     public required int Status { get; set; }
 
     public List<Product>? Products { get; set; }
+
+    [FirestoreProperty]
+    public string? ShippingMethodId { get; set; }
+
+    public ShippingMethod? ShippingMethod { get; set; }
+
+    [FirestoreProperty]
+    public string? AddressId { get; set; }
+
+    public Address? Address { get; set; }
 }

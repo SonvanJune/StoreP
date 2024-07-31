@@ -14,11 +14,15 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
 {
     //Property
     public static string _collectionUser = "Users";
-    private static string _collectionRole = "Roles";
+    public static string _collectionRole = "Roles";
+    public static string _collectionAddress = "Addresses";
+    public static string _collectionAddress_User = "Address_User";
     public readonly IBaseConverter<User, UserDto> userConverter = new UserConverter();
+    public readonly IBaseConverter<Address, AddressDto> addressConverter = new AddressConverter();
     private readonly IBaseConverter<User, CreateUserDto> createUserConverter = new CreateUserConverter();
     private readonly IBaseConverter<User, RegisterUserDto> registerUserConverter = new RegisterUserConverter();
     private readonly IBaseConverter<User, GoogleRegisterDto> googleRegisterConverter = new GoogleRegisterConverter();
+    private readonly IBaseConverter<Address, CreateAddressDto> createAddressConverter = new CreateAddressConverter();
     public readonly LogFireStore logFireStore = new LogFireStore(firestoreDb);
 
     //Method it su dung
@@ -378,6 +382,70 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         }
         return user;
 
+    }
+    
+    //method address
+    public async Task<string> AddAdress(CreateAddressDto dto){
+        var db = _firestoreDb.Collection(_collectionAddress);
+        var address_UserDb = _firestoreDb.Collection(_collectionAddress_User);
+        var userDb = base.GetSnapshots(_collectionUser);
+        var addressDb = base.GetSnapshots(_collectionAddress);
+        User user = null!;
+        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == dto.Username) == null)
+        {
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == dto.Username)!;
+        }
+        else
+        {
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == dto.Username)!;
+        }
+
+        if(user == null){
+            return null!;
+        }
+
+        var address = createAddressConverter.ToEntity(dto);
+        Random rnd = new Random();
+        string randomCode = rnd.Next(1, 100000).ToString();
+        while (addressDb.Documents.Select(r => r.ConvertTo<Address>()).ToList().Find(r => r.Code == randomCode) != null)
+        {
+            randomCode = rnd.Next(1, 100000).ToString();
+        }
+        address.Code = randomCode;
+        await db.AddAsync(address);
+        var address_User = new Address_User{
+            UserId = user.Id,
+            AddressId = address.Id
+        };
+        await address_UserDb.AddAsync(address_User);
+        return "";
+    }
+    public Task<List<AddressDto>> GetAddress(string username){
+        var address_UserDb = base.GetSnapshots(_collectionAddress_User);
+        var addressDb = base.GetSnapshots(_collectionAddress);
+        var userDb = base.GetSnapshots(_collectionUser);
+        User user = null!;
+        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username) == null)
+        {
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == username)!;
+        }
+        else
+        {
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username)!;
+        }
+
+        if (user == null){
+            return null!;
+        }
+
+        var addressesUser = address_UserDb.Documents.Select(r => r.ConvertTo<Address_User>()).ToList().FindAll(r => r.UserId == user.Id);
+        var addressesDto = new List<AddressDto>();
+        foreach (var address_User in addressesUser)
+        {
+            var address = addressDb.Documents.Select(r => r.ConvertTo<Address>()).ToList().Find(r => r.Id == address_User.AddressId);
+            addressesDto.Add(addressConverter.ToDto(address!));
+        }
+        return Task.FromResult(addressesDto);
     }
 
     //method ho tro

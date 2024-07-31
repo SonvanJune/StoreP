@@ -552,4 +552,35 @@ public class UserServiceImpl : IUserService
             });
         }
     }
+
+    IResult IUserService.AddAdress(CreateAddressDto dto)
+    {
+        if (userFireStore!.AddAdress(dto).Result is null)
+        {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+                status = HttpStatusCode.NotFound,
+                message = "User not found",
+                data = null
+            });
+        }
+
+
+        return Results.Created("", new HttpStatusConfig
+        {
+            status = HttpStatusCode.Created,
+            message = "Created Success",
+            data = null
+        });
+    }
+
+    IResult IUserService.GetAddress(string username)
+    {
+        return Results.Ok(new HttpStatusConfig
+        {
+            status = HttpStatusCode.OK,
+            message = "Success",
+            data = userFireStore!.GetAddress(username)
+        });
+    }
 }

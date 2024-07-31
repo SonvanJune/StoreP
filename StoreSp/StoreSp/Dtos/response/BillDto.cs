@@ -5,9 +5,9 @@ public class BillDto{
     public required string CreatedAt { get; set; }
     public required string Code { get; set; }
     public required string PaymentMethod { get; set; }
+    public ShippingMethodDto? ShippingMethod { get; set; }
+    public AddressDto? Address { get; set; }
     public required int Quantity { get; set; }
-    public required string ShippingUnit { get; set; }
-    public required int ShippingUnitPrice { get; set; }
     public required int Status { get; set; }
     public required int TotalPrice { get; set; }
     public required int TotalProductPrice { get; set;}

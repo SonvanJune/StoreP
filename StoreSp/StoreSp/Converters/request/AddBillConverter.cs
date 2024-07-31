@@ -16,9 +16,7 @@ public class AddBillConverter : IBaseConverter<Bill, CreateBillDto>
         return new Bill{
             CreatedAt = Timestamp.FromDateTime(DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc)),
             Status = 0,
-            ShippingUnit = dto.ShippingUnit,
-            PaymentMethod = dto.PaymentMethod,
-            ShippingUnitPrice = dto.ShippingUnitPrice
+            PaymentMethod = dto.PaymentMethod
         };
     }
 }
