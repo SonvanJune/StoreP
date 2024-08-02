@@ -15,6 +15,12 @@ public class Address
     public required string Description { get; set; }
 
     [FirestoreProperty]
+    public required string Long { get; set; }
+
+    [FirestoreProperty]
+    public required string Lat { get; set; }
+
+    [FirestoreProperty]
     public required string PhoneGet { get; set; }
 
     [FirestoreProperty]

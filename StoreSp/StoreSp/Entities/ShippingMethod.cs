@@ -21,6 +21,12 @@ public class ShippingMethod
     public required string Location { get; set; }
 
     [FirestoreProperty]
+    public required string Long { get; set; }
+
+    [FirestoreProperty]
+    public required string Lat { get; set; }
+
+    [FirestoreProperty]
     public required int Ensure { get; set; }
 
     [FirestoreProperty]

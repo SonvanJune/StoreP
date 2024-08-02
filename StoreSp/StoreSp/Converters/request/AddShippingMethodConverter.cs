@@ -20,7 +20,9 @@ public class AddShippingMethodConverter : IBaseConverter<ShippingMethod, AddShip
             Status = 0,
             Location = dto.Location,
             Ensure = dto.Ensure,
-            Price = dto.Price
+            Price = dto.Price,
+            Lat = dto.Lat,
+            Long = dto.Long,
         };
     }
 }
