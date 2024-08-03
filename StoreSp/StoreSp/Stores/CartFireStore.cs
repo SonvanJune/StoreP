@@ -239,35 +239,41 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             var cartItem = cartItemDb.Documents.Select(r => r.ConvertTo<CartItem>()).ToList().Find(r => r.Code == item.ItemCode);
             if (cartItem != null)
             {
-                totalAfterAdd = totalAfterAdd - cartItem.Total;
-                int quantity = item.Quantity;
-                int total = item.Quantity * cartItem.Price;
-                totalAfterAdd += total;
-                DocumentReference docref = _firestoreDb.Collection(_collectionCartItem).Document(cartItem.Id);
-                Dictionary<string, object> data = new Dictionary<string, object>{
+                if (item.Quantity > 0)
+                {
+                    totalAfterAdd = totalAfterAdd - cartItem.Total;
+                    int quantity = item.Quantity;
+                    int total = item.Quantity * cartItem.Price;
+                    totalAfterAdd += total;
+                    DocumentReference docref = _firestoreDb.Collection(_collectionCartItem).Document(cartItem.Id);
+                    Dictionary<string, object> data = new Dictionary<string, object>{
                     {"Quantity" , quantity},
                     {"Total" , total}
                 };
-                DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-                if (snapshot.Exists)
-                {
-                    await docref.UpdateAsync(data);
+                    DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
+                    if (snapshot.Exists)
+                    {
+                        await docref.UpdateAsync(data);
+                    }
                 }
 
                 //update cartItem Product_Classiffy
-                var productClasiifyItems = cartItem_ProductClassifyDb.Documents.Select(r => r.ConvertTo<CartItem_ProductClassify>()).ToList().FindAll(r => r.CartItem_Id == cartItem.Id)!;
-                for (int i = 0; i < productClasiifyItems.Count; i++)
+                if (item.ClassifyCodes != null)
                 {
-                    var productClassify = productClassifyDb.Documents.Select(r => r.ConvertTo<ProductClassify>()).ToList().Find(r => r.Code == item.ClassifyCodes[i])!;
-
-                    DocumentReference docrefClassifyIten = _firestoreDb.Collection(_collectionCartItem_ProductClassify).Document(productClasiifyItems[i].Id);
-                    Dictionary<string, object> dataClassifyItem = new Dictionary<string, object>{
-                    {"ProductClassify_Id" , productClassify.Id!}
-                    };
-                    DocumentSnapshot snapshotClassifyItem = await docrefClassifyIten.GetSnapshotAsync();
-                    if (snapshotClassifyItem.Exists)
+                    var productClasiifyItems = cartItem_ProductClassifyDb.Documents.Select(r => r.ConvertTo<CartItem_ProductClassify>()).ToList().FindAll(r => r.CartItem_Id == cartItem.Id)!;
+                    for (int i = 0; i < productClasiifyItems.Count; i++)
                     {
-                        await docrefClassifyIten.UpdateAsync(dataClassifyItem);
+                        var productClassify = productClassifyDb.Documents.Select(r => r.ConvertTo<ProductClassify>()).ToList().Find(r => r.Code == item.ClassifyCodes[i])!;
+
+                        DocumentReference docrefClassifyIten = _firestoreDb.Collection(_collectionCartItem_ProductClassify).Document(productClasiifyItems[i].Id);
+                        Dictionary<string, object> dataClassifyItem = new Dictionary<string, object>{
+                        {"ProductClassify_Id" , productClassify.Id!}
+                        };
+                        DocumentSnapshot snapshotClassifyItem = await docrefClassifyIten.GetSnapshotAsync();
+                        if (snapshotClassifyItem.Exists)
+                        {
+                            await docrefClassifyIten.UpdateAsync(dataClassifyItem);
+                        }
                     }
                 }
             }
@@ -364,7 +370,8 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
                 cartItemDto.Shop = userConverter.ToDto(user!);
 
                 //get string product classify for cart item
-                cartItemDto.CartItem_ProductClassifies = GetStringProductClassify(cartItem.Id!);
+                cartItemDto.CartItem_ProductClassifies = GetStringProductClassify(cartItem.Id!, false);
+                cartItemDto.CartItem_ProductClassifyCodes = GetStringProductClassify(cartItem.Id!, true);
                 //them vao mang
                 cartItemDtos.Add(cartItemDto);
             }
@@ -372,7 +379,7 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         return cartItemDtos;
     }
 
-    private string GetStringProductClassify(string cartItemId)
+    private string GetStringProductClassify(string cartItemId, bool GetCode)
     {
         string result = "";
         var cartItem_ProductClassifyDb = base.GetSnapshots(_collectionCartItem_ProductClassify);
@@ -387,11 +394,26 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             var productClassify = productClassifyDb.Documents.Select(r => r.ConvertTo<ProductClassify>()).ToList().Find(r => r.Id == cartItem_ProductClassifies[i].ProductClassify_Id);
             if (i == cartItem_ProductClassifies.Count - 1)
             {
-                result += productClassify!.Name;
+                if (GetCode == true)
+                {
+                    result += productClassify!.Code;
+                }
+                else
+                {
+                    result += productClassify!.Name;
+
+                }
             }
             else
             {
-                result += productClassify!.Name + ",";
+                if (GetCode == true)
+                {
+                    result += productClassify!.Code + ",";
+                }
+                else
+                {
+                    result += productClassify!.Name + ",";
+                }
             }
         }
         return result;

@@ -9,5 +9,6 @@ public class CartItemDto
     public int Quantity { get; set; }
     public int Total { get; set; }
     public string? CartItem_ProductClassifies{get; set; }
+    public string? CartItem_ProductClassifyCodes{get; set; }
     public int Status { get; set; }
 }
