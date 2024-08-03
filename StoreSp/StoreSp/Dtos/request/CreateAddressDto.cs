@@ -7,8 +7,7 @@ public class CreateAddressDto
     [Required]
     public required string Username { get; set; }
     
-    [Required]
-    public required string Description { get; set; }
+    public string? Description { get; set; }
 
     [Required]
     public required string Lat { get; set; }

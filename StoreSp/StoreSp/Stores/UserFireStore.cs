@@ -108,7 +108,8 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         }
         user.RoleId = role.Id;
         user.Role = role;
-        if(userDto.Email != null && userDto.Email != ""){
+        if (userDto.Email != null && userDto.Email != "")
+        {
             user.VerificationToken = AuthServiceImpl.CreateRandomToken(user);
         }
         await userDb.AddAsync(user);
@@ -160,10 +161,12 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         var userDb = base.GetSnapshots(_collectionUser);
         var roleDb = base.GetSnapshots(_collectionRole);
         User user;
-        if(userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username) != null){
+        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username) != null)
+        {
             user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username)!;
         }
-        else{
+        else
+        {
             user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == username)!;
         }
         if (user == null)
@@ -180,10 +183,12 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         var userDb = base.GetSnapshots(_collectionUser);
         var roleDb = base.GetSnapshots(_collectionRole);
         User user;
-        if(userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username) != null){
+        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username) != null)
+        {
             user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username)!;
         }
-        else{
+        else
+        {
             user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == username)!;
         }
 
@@ -214,7 +219,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         {
             return null!;
         }
-    
+
         var unspecified = DateTime.UtcNow.AddDays(1);
         var specified = DateTime.SpecifyKind(unspecified, DateTimeKind.Utc);
         DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
@@ -233,7 +238,8 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         return user;
     }
 
-    public async Task<User> CheckResetCode(ResetCodeDto resetCodeDto){
+    public async Task<User> CheckResetCode(ResetCodeDto resetCodeDto)
+    {
         var userDb = base.GetSnapshots(_collectionUser);
         var userList = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList();
         User user = null!;
@@ -383,11 +389,11 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         return user;
 
     }
-    
+
     //method address
-    public async Task<string> AddAdress(CreateAddressDto dto){
+    public async Task<string> AddAdress(CreateAddressDto dto)
+    {
         var db = _firestoreDb.Collection(_collectionAddress);
-        var address_UserDb = _firestoreDb.Collection(_collectionAddress_User);
         var userDb = base.GetSnapshots(_collectionUser);
         var addressDb = base.GetSnapshots(_collectionAddress);
         User user = null!;
@@ -400,7 +406,8 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == dto.Username)!;
         }
 
-        if(user == null){
+        if (user == null)
+        {
             return null!;
         }
 
@@ -413,14 +420,11 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         }
         address.Code = randomCode;
         await db.AddAsync(address);
-        var address_User = new Address_User{
-            UserId = user.Id,
-            AddressId = address.Id
-        };
-        await address_UserDb.AddAsync(address_User);
+        await AddAddressUser(randomCode , user.Id!);
         return "";
     }
-    public Task<List<AddressDto>> GetAddress(string username){
+    public Task<List<AddressDto>> GetAddress(string username)
+    {
         var address_UserDb = base.GetSnapshots(_collectionAddress_User);
         var addressDb = base.GetSnapshots(_collectionAddress);
         var userDb = base.GetSnapshots(_collectionUser);
@@ -434,7 +438,8 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username)!;
         }
 
-        if (user == null){
+        if (user == null)
+        {
             return null!;
         }
 
@@ -485,5 +490,19 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             Items = new List<CartItem>()
         };
         await cartDb.AddAsync(cart);
+    }
+
+    private async Task AddAddressUser(string code ,string userId)
+    {
+        var address_UserDb = _firestoreDb.Collection(_collectionAddress_User);
+        var addressDb = base.GetSnapshots(_collectionAddress);
+
+        var addressExists = addressDb.Documents.Select(r => r.ConvertTo<Address>()).ToList().Find(r => r.Code == code)!;
+        var address_User = new Address_User
+        {
+            UserId = userId,
+            AddressId = addressExists.Id
+        };
+        await address_UserDb.AddAsync(address_User);
     }
 }

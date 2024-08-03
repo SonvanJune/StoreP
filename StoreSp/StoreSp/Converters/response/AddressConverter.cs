@@ -12,7 +12,9 @@ public class AddressConverter : IBaseConverter<Address, AddressDto>
             Code = entity.Code!,
             PhoneGet = entity.PhoneGet,
             NameGet = entity.NameGet,
-            Description = entity.Description
+            Description = entity.Description,
+            Lat = entity.Lat,
+            Long = entity.Long
         };
     }
 

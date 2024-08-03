@@ -580,7 +580,7 @@ public class UserServiceImpl : IUserService
         {
             status = HttpStatusCode.OK,
             message = "Success",
-            data = userFireStore!.GetAddress(username)
+            data = userFireStore!.GetAddress(username).Result
         });
     }
 }

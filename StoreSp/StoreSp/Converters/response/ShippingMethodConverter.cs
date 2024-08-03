@@ -15,7 +15,9 @@ public class ShippingMethodConverter : IBaseConverter<ShippingMethod, ShippingMe
             Code = entity.Code!,
             Location = entity.Location,
             Ensure = entity.Ensure,
-            Status = entity.Status
+            Status = entity.Status,
+            Lat = entity.Lat,
+            Long = entity.Long
         };
     }
 

@@ -14,7 +14,7 @@ public class CreateAddressConverter : IBaseConverter<Address, CreateAddressDto>
     {
         return new Address
         {
-            Description = dto.Description,
+            Description = dto.Description!,
             PhoneGet = dto.PhoneGet,
             NameGet = dto.NameGet,
             Status = dto.Status,
