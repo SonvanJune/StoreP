@@ -57,6 +57,16 @@ public class ProductServiceImpl : IProductService
         });
     }
 
+    IResult IProductService.GetProductsBySearch(string name)
+    {
+        return Results.Ok(new HttpStatusConfig
+        {
+            status = HttpStatusCode.Created,
+            message = "Success",
+            data = ProductFireStore!.GetProductsBySearch(name)
+        });
+    }
+
     IResult IProductService.LikeProduct(LikeProductDto likeProductDto)
     {
         return Results.Ok(new HttpStatusConfig

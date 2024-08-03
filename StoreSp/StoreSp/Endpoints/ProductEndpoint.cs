@@ -24,6 +24,11 @@ public static class ProductEndpoint
            return ProductService.GetProductByCode(pCode);
         }).RequireAuthorization();
 
+        group.MapGet("/search", ([FromQuery] string name) =>
+        {
+           return ProductService.GetProductsBySearch(name);
+        }).RequireAuthorization();
+
         group.MapPost("/", (CreateProductDto createProductDto) =>
         {
             return ProductService.AddProduct(createProductDto);

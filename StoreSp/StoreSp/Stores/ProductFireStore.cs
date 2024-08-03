@@ -90,7 +90,27 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 
         return productsDto;
     }
+    
+    public List<ProductDto> GetProductsBySearch(string name){
+        var productDb = base.GetSnapshots(_collectionProducts);
+        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
+        List<ProductDto> productsDto = new List<ProductDto>();
+        
+        var products = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().FindAll(r => r.Name.Contains(name));
+        foreach (var item in products)
+        {
+            var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == item!.AuthorId);
+            ProductDto dto = productConverter.ToDto(item!);
+            if (user != null)
+            {
+                dto.Author = userConverter.ToDto(user!);
 
+            }
+            dto.Classifies = GetProductClassifiesByProduct(item.Id!);
+            productsDto.Add(dto);
+        }
+        return productsDto;
+    }
     public ProductDto GetProductByProductCode(string productCode)
     {
         var productDb = base.GetSnapshots(_collectionProducts);
@@ -107,7 +127,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         }
         return null!;
     }
-
+    
     public async Task LikeProduct(LikeProductDto likeProductDto)
     {
         var db = _firestoreDb.Collection(_collectionProduct_Like);
