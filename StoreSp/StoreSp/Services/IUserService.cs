@@ -11,7 +11,7 @@ public interface IUserService
    public IResult Register(RegisterUserDto registerUserDto);
    public IResult CheckVerify(string toke);
    public IResult Login(LoginUserDto loginUserDto);
-   public IResult GetUserByToken(string toke);
+   public IResult GetUserByToken(TokenDto tokenDto);
    public IResult VerifyUserByEmail(string toke);
    public IResult VerifyUserByPhone(string token);
    public IResult ForgetPasswordByEmail(string email);

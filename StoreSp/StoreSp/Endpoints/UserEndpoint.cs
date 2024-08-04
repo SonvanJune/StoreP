@@ -45,9 +45,9 @@ public static class UserEndpoint
             return userService.Login(dto);
         }).WithParameterValidation();
 
-        group.MapGet("/users/token", ([FromHeader] string authorization) =>
+        group.MapGet("/users/token", (TokenDto tokenDto) =>
         {
-            return userService.GetUserByToken(authorization);
+            return userService.GetUserByToken(tokenDto);
         });
 
         group.MapGet("/users/email/verify/{token}", (string token) =>

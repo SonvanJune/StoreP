@@ -111,6 +111,7 @@ public class UserServiceImpl : IUserService
         }
 
         var user = userFireStore.Login(loginUserDto).Result;
+        var _ = userFireStore.GenRefreshToken(loginUserDto.Username).Result;
         if (user != null)
         {
             //nam thang ngay mac dinh 1111/11/11 
@@ -146,13 +147,11 @@ public class UserServiceImpl : IUserService
         }
     }
 
-    IResult IUserService.GetUserByToken(string authorization)
+    IResult IUserService.GetUserByToken(TokenDto tokenDto)
     {
-        string[] arrListStr = authorization.Split(' ');
-        string token = arrListStr[1];
-        if (authService!.ValidateToken(token))
+        if (authService!.ValidateToken(tokenDto.Token))
         {
-            var email = authService!.GetFirstByToken(token);
+            var email = authService!.GetFirstByToken(tokenDto.Token);
             var user = userFireStore!.GetUserByUsername(email);
             if (user != null)
             {
@@ -175,12 +174,31 @@ public class UserServiceImpl : IUserService
         }
         else
         {
-            return Results.BadRequest(new HttpStatusConfig
+            if (authService!.ValidateToken(tokenDto.RefreshToken))
             {
-                status = HttpStatusCode.BadRequest,
-                message = "Token has expired",
-                data = null
-            });
+                var email = authService!.GetFirstByToken(tokenDto.Token);
+                var user = userFireStore!.GetUserByUsername(email);
+                return Results.Ok(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.OK,
+                    message = "Login success",
+                    data = new UserTokenDto
+                    {
+                        Token = authService!.GenerateToken(user),
+                        User = userFireStore.userConverter.ToDto(user),
+                        RoleCode = user!.Role!.Code
+                    }
+                });
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
         }
     }
 
@@ -295,7 +313,7 @@ public class UserServiceImpl : IUserService
         if (authService!.ValidateToken(token))
         {
             var username = authService!.GetFirstByToken(token);
-            var user = userFireStore!.GetUserByUsername(username);
+            var user = userFireStore!.GenRefreshToken(username).Result;
             if (user != null)
             {
                 if (user.VerifiedAt.ToDateTime().Year != 1111)
@@ -356,6 +374,7 @@ public class UserServiceImpl : IUserService
         }
 
         var user = userFireStore!.GoogleRegister(googleRegisterDto).Result;
+        var _ = userFireStore.GenRefreshToken(googleRegisterDto.Email).Result;
         if (user == null)
         {
             return Results.BadRequest(new HttpStatusConfig
@@ -401,9 +420,11 @@ public class UserServiceImpl : IUserService
             });
         }
 
-        if (userFireStore.GoogleLogin(googleLoginDto).Result != null)
+
+        var user = userFireStore.GoogleLogin(googleLoginDto).Result;
+        var _ = userFireStore.GenRefreshToken(googleLoginDto.Email).Result;
+        if (user != null)
         {
-            var user = userFireStore.GoogleLogin(googleLoginDto).Result;
             //nam thang ngay mac dinh 1111/11/11 
             if (user.VerifiedAt.ToDateTime().Year == 1111)
             {
@@ -520,6 +541,7 @@ public class UserServiceImpl : IUserService
             if (userFireStore.VerifyUser(phone) != null)
             {
                 var user = userFireStore.VerifyUser(phone).Result;
+                var _ = userFireStore.GenRefreshToken(phone).Result;
                 return Results.Ok(new HttpStatusConfig
                 {
                     status = HttpStatusCode.OK,

@@ -35,6 +35,9 @@ public class User
     public string? VerificationToken { get; set; }
 
     [FirestoreProperty]
+    public string? RefreshToken { get; set; }
+
+    [FirestoreProperty]
     public Timestamp VerifiedAt { get; set; }
     
     [FirestoreProperty]

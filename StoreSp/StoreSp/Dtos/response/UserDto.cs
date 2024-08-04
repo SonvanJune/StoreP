@@ -9,6 +9,7 @@ public class UserDto
     public required string Phone { get; set;}
     public required string Avatar { get; set;}
     public int Status { get; set; }
+    public string? RefreshToken { get; set; }
     public required string VerifiedAt { get; set; }
     public string? RoleCode { get; set; }
 }

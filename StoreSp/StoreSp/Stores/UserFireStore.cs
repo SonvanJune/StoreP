@@ -420,7 +420,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         }
         address.Code = randomCode;
         await db.AddAsync(address);
-        await AddAddressUser(randomCode , user.Id!);
+        await AddAddressUser(randomCode, user.Id!);
         return "";
     }
     public Task<List<AddressDto>> GetAddress(string username)
@@ -492,7 +492,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         await cartDb.AddAsync(cart);
     }
 
-    private async Task AddAddressUser(string code ,string userId)
+    private async Task AddAddressUser(string code, string userId)
     {
         var address_UserDb = _firestoreDb.Collection(_collectionAddress_User);
         var addressDb = base.GetSnapshots(_collectionAddress);
@@ -504,5 +504,23 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             AddressId = addressExists.Id
         };
         await address_UserDb.AddAsync(address_User);
+    }
+
+    public async Task<User> GenRefreshToken(string username)
+    {
+        User user = GetUserByUsername(username);
+
+        //tao refresh token
+        DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
+        Dictionary<string, object> data = new Dictionary<string, object>{
+            {"RefreshToken" , AuthServiceImpl.CreateRefreshToken(user)}
+        };
+
+        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
+        if (snapshot.Exists)
+        {
+            await docref.UpdateAsync(data);
+        }
+        return user;
     }
 }

@@ -110,6 +110,33 @@ public class AuthServiceImpl : IAuthService
         return handler.WriteToken(token);
     }
 
+    public static string CreateRefreshToken(User user)
+    {
+        var handler = new JwtSecurityTokenHandler();
+        var key = Encoding.ASCII.GetBytes(AuthConfig.PrivateKey);
+        var credentials = new SigningCredentials(
+            new SymmetricSecurityKey(key),
+            SecurityAlgorithms.HmacSha256Signature);
+
+        var claims = new ClaimsIdentity();
+        if(user.Email != null && user.Email != ""){
+            claims.AddClaim(new Claim(ClaimTypes.Name, user.Email));
+        }
+        else{
+            claims.AddClaim(new Claim(ClaimTypes.Name, user.Phone));
+        }
+
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = claims,
+            Expires = DateTime.UtcNow.AddDays(5),
+            SigningCredentials = credentials,
+        };
+
+        var token = handler.CreateToken(tokenDescriptor);
+        return handler.WriteToken(token);
+    }
+
     public static string CreateRandomNumerToken(string randomCode)
     {
         var handler = new JwtSecurityTokenHandler();
