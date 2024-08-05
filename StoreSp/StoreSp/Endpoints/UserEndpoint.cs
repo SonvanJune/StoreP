@@ -45,7 +45,7 @@ public static class UserEndpoint
             return userService.Login(dto);
         }).WithParameterValidation();
 
-        group.MapGet("/users/token", (TokenDto tokenDto) =>
+        group.MapPost("/users/token", (TokenDto tokenDto) =>
         {
             return userService.GetUserByToken(tokenDto);
         });
