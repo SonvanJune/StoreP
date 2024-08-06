@@ -95,10 +95,16 @@ public static class UserEndpoint
 
         group.MapPost("/users/address", (CreateAddressDto dto, [FromHeader] string authorization) =>
         {
+            return authService.GetResult(authorization , userService.AddAdress(dto));
+
+        }).WithParameterValidation().RequireAuthorization("nguoi-mua");
+
+        group.MapGet("/users/address/{username}", (string username, [FromHeader] string authorization) =>
+        {
             string[] strings = authorization.Split(' ');
             if (authService.ValidateToken(strings[1]))
             {
-                return userService.AddAdress(dto);
+                return userService.GetAddress(username);
             }
             else
             {
@@ -109,11 +115,6 @@ public static class UserEndpoint
                     data = null
                 });
             }
-        }).WithParameterValidation().RequireAuthorization("nguoi-mua");
-
-        group.MapGet("/users/address/{username}", (string username) =>
-        {
-            return userService.GetAddress(username);
         });
 
         group.MapGet("/users/role", ([FromQuery] string code) =>

@@ -1,7 +1,9 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
+using StoreSp.Commonds;
 using StoreSp.Configs;
 using StoreSp.Entities;
 
@@ -73,10 +75,12 @@ public class AuthServiceImpl : IAuthService
     {
         Role role = user.Role!;
         var claims = new ClaimsIdentity();
-        if(user.Email != null && user.Email != ""){
+        if (user.Email != null && user.Email != "")
+        {
             claims.AddClaim(new Claim(ClaimTypes.Name, user.Email));
         }
-        else{
+        else
+        {
             claims.AddClaim(new Claim(ClaimTypes.Name, user.Phone));
         }
         claims.AddClaim(new Claim(ClaimTypes.Role, role.Code));
@@ -92,10 +96,12 @@ public class AuthServiceImpl : IAuthService
             SecurityAlgorithms.HmacSha256Signature);
 
         var claims = new ClaimsIdentity();
-        if(user.Email != null && user.Email != ""){
+        if (user.Email != null && user.Email != "")
+        {
             claims.AddClaim(new Claim(ClaimTypes.Name, user.Email));
         }
-        else{
+        else
+        {
             claims.AddClaim(new Claim(ClaimTypes.Name, user.Phone));
         }
 
@@ -119,10 +125,12 @@ public class AuthServiceImpl : IAuthService
             SecurityAlgorithms.HmacSha256Signature);
 
         var claims = new ClaimsIdentity();
-        if(user.Email != null && user.Email != ""){
+        if (user.Email != null && user.Email != "")
+        {
             claims.AddClaim(new Claim(ClaimTypes.Name, user.Email));
         }
-        else{
+        else
+        {
             claims.AddClaim(new Claim(ClaimTypes.Name, user.Phone));
         }
 
@@ -157,5 +165,23 @@ public class AuthServiceImpl : IAuthService
 
         var token = handler.CreateToken(tokenDescriptor);
         return handler.WriteToken(token);
+    }
+
+    public IResult GetResult(string authorization, IResult result)
+    {
+        string[] strings = authorization.Split(' ');
+        if (this.ValidateToken(strings[1]))
+        {
+            return result;
+        }
+        else
+        {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+                status = HttpStatusCode.BadRequest,
+                message = "Token has expired",
+                data = null
+            });
+        }
     }
 }
