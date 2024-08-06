@@ -113,7 +113,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             user.VerificationToken = AuthServiceImpl.CreateRandomToken(user);
         }
         await userDb.AddAsync(user);
-        CreateCartForUser(user);
+        CreateCartForUser(user , userDto.DeviceToken);
 
         //tao log cho user dang ky
         await logFireStore.AddLogForUser(user, "dang-ky");
@@ -360,7 +360,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         var specified = DateTime.SpecifyKind(unspecified, DateTimeKind.Utc);
         user.VerifiedAt = Timestamp.FromDateTime(specified);
         await userDb.AddAsync(user);
-        CreateCartForUser(user);
+        CreateCartForUser(user , dto.DeviceToken);
         //tao log cho user dang ky
         await logFireStore.AddLogForUser(user, "dang-ky-bang-google");
         return user;
@@ -499,7 +499,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         return user!.VerificationToken == token;
     }
 
-    private async void CreateCartForUser(User user)
+    private async void CreateCartForUser(User user , string deviceToken)
     {
         var cartDb = _firestoreDb.Collection(CartFireStore._collectionCart);
         var userDb = base.GetSnapshots(_collectionUser);
@@ -511,6 +511,17 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         else
         {
             u = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == user.Email)!;
+        }
+
+        DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
+        Dictionary<string, object> data = new Dictionary<string, object>{
+            {"DeviceToken" , deviceToken}
+            };
+
+        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
+        if (snapshot.Exists)
+        {
+            await docref.UpdateAsync(data);
         }
 
         var cart = new Cart

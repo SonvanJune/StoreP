@@ -37,4 +37,5 @@ app.MapLogEndpoints();
 app.MapShippingMehodEndpoints();
 
 app.MapCartSocketEndpoint();
+app.MapUploadEndpoints();
 app.Run();
