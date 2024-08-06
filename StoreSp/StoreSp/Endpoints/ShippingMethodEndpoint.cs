@@ -19,7 +19,7 @@ public static class ShippingMethodEndpoint
         group.MapPost("/", (AddShippingMethodDto dto , [FromHeader] string authorization) =>
         {
             return authService.GetResult(authorization, ShippingMethodService.AddShippingUnit(dto));
-        }).WithParameterValidation().RequireAuthorization("quan-tri-vien");;
+        }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
 
         group.MapGet("/", ([FromHeader] string authorization) =>
         {

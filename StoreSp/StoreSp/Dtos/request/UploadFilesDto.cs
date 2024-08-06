@@ -5,5 +5,5 @@ namespace StoreSp.Dtos.request;
 public class UploadFilesDto
 {
     [Required]
-    public required List<IFormFile> files;
+    public required IFormFileCollection Files { get; set; }
 }

@@ -513,7 +513,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             u = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == user.Email)!;
         }
 
-        DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
+        DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(u.Id);
         Dictionary<string, object> data = new Dictionary<string, object>{
             {"DeviceToken" , deviceToken}
             };

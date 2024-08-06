@@ -16,10 +16,13 @@ public static class UploadEndpoint
         UploadService = new UploadServiceImpl();
         authService = new AuthServiceImpl();
 
-        group.MapPost("/", (UploadFilesDto request , [FromHeader] string authorization) =>
+        group.MapPost("/", (HttpRequest request , [FromHeader] string authorization) =>
         {
-            return authService.GetResult(authorization, UploadService.UploadFiles(request));
-        }).WithParameterValidation();
+            UploadFilesDto uploadFiles = new UploadFilesDto{
+                Files = request.Form.Files
+            };
+            return authService.GetResult(authorization, UploadService.UploadFiles(uploadFiles));
+        });
         return group;
     }
 }
