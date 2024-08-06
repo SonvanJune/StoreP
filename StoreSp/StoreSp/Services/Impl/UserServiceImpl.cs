@@ -194,7 +194,7 @@ public class UserServiceImpl : IUserService
         {
             if (authService!.ValidateToken(tokenDto.RefreshToken!))
             {
-                var email = authService!.GetFirstByToken(tokenDto.Token!);
+                var email = authService!.GetFirstByToken(tokenDto.RefreshToken!);
                 var user = userFireStore!.GetUserByUsername(email);
                 return Results.Ok(new HttpStatusConfig
                 {
