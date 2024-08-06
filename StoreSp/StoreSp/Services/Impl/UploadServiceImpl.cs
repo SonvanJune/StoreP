@@ -1,4 +1,6 @@
-﻿using BCrypt.Net;
+﻿using System.Net;
+using BCrypt.Net;
+using StoreSp.Commonds;
 using StoreSp.Dtos.request;
 
 namespace StoreSp.Services.Impl;
@@ -10,21 +12,27 @@ public class UploadServiceImpl : IUploadService
     {
         if (dto.files != null && dto.files.Count > 0)
         {
-            // upload(dto.files);
+            return Results.Ok(new HttpStatusConfig
+            {
+                status = HttpStatusCode.OK,
+                message = "Upload Sucess",
+                data = Upload(dto.files).Result
+            });
         }
         return Results.NoContent();
     }
 
-    public async Task upload(List<IFormFile> files)
+    public async Task<String> Upload(List<IFormFile> files)
     {
         // Tạo thư mục nếu chưa tồn tại
         Directory.CreateDirectory(_uploadPath);
+        string name = "";
 
         foreach (var file in files)
         {
             if (file.Length > 0)
             {
-                string name = BCrypt.Net.BCrypt.HashPassword(file.FileName);
+                name = BCrypt.Net.BCrypt.HashPassword(file.FileName);
                 var filePath = Path.Combine(_uploadPath, name);
 
                 using (var stream = new FileStream(filePath, FileMode.Create))
@@ -33,5 +41,6 @@ public class UploadServiceImpl : IUploadService
                 }
             }
         }
+        return name;
     }
 }

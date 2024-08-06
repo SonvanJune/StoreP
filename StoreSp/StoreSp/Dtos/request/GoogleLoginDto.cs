@@ -5,5 +5,6 @@ namespace StoreSp.Dtos.request;
 public record GoogleLoginDto
 (
     [Required] string Email,
-    [Required] bool EmailVerified
+    [Required] bool EmailVerified,
+    [Required] string DeviceToken
 );

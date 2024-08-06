@@ -379,6 +379,17 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         user.Role = role;
         //tao log cho user dang ky
         await logFireStore.AddLogForUser(user, "dang-nhap");
+        //tao refresh token
+        DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
+        Dictionary<string, object> data = new Dictionary<string, object>{
+            {"DeviceToken" , dto.DeviceToken}
+            };
+
+        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
+        if (snapshot.Exists)
+        {
+            await docref.UpdateAsync(data);
+        }
         return user;
     }
 
