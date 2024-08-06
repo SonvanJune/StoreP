@@ -171,7 +171,8 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             {
                 await docref.UpdateAsync(data);
             }
-            await GenRefreshToken(loginUserDto.Username);
+            var u = await GenRefreshToken(loginUserDto.Username);
+            user.RefreshToken = u.RefreshToken;
             return user;
         }
     }
@@ -228,7 +229,8 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         await logFireStore.AddLogForUser(user, "da-xac-thuc");
         var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == user.RoleId);
         user.Role = role;
-        await GenRefreshToken(username);
+        var u = await GenRefreshToken(username);
+        user.RefreshToken = u.RefreshToken;
         return user;
     }
 
@@ -365,7 +367,8 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         CreateCartForUser(user, dto.DeviceToken);
         //tao log cho user dang ky
         await logFireStore.AddLogForUser(user, "dang-ky-bang-google");
-        await GenRefreshToken(dto.Email);
+        var u = await GenRefreshToken(dto.Email);
+        user.RefreshToken = u.RefreshToken;
         return user;
     }
 
@@ -393,7 +396,8 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         {
             await docref.UpdateAsync(data);
         }
-        await GenRefreshToken(dto.Email);
+        var u = await GenRefreshToken(dto.Email);
+        user.RefreshToken = u.RefreshToken;
         return user;
     }
 
@@ -556,17 +560,19 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         User user = GetUserByUsername(username);
         if (user != null)
         {
+            var token = AuthServiceImpl.CreateRefreshToken(user);
             //tao refresh token
             DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
             Dictionary<string, object> data = new Dictionary<string, object>{
-            {"RefreshToken" , AuthServiceImpl.CreateRefreshToken(user)}
-        };
+            {"RefreshToken" , token}
+            };
 
             DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
             if (snapshot.Exists)
             {
                 await docref.UpdateAsync(data);
             }
+            user.RefreshToken = token;
             return user;
         }
         return null!;
