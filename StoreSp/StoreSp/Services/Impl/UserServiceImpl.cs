@@ -149,34 +149,42 @@ public class UserServiceImpl : IUserService
 
     IResult IUserService.GetUserByToken(TokenDto tokenDto)
     {
-        if (authService!.ValidateToken(tokenDto.Token))
+        if (tokenDto.RefreshToken is null && tokenDto.Token != null)
         {
-            var email = authService!.GetFirstByToken(tokenDto.Token);
-            var user = userFireStore!.GetUserByUsername(email);
-            if (user != null)
+            if (authService!.ValidateToken(tokenDto.Token))
             {
-                return Results.Ok(new HttpStatusConfig
+                var email = authService!.GetFirstByToken(tokenDto.Token);
+                var user = userFireStore!.GetUserByUsername(email);
+                if (user != null)
                 {
-                    status = HttpStatusCode.OK,
-                    message = "Success",
-                    data = userFireStore.userConverter.ToDto(user)
-                });
+                    return Results.Ok(new HttpStatusConfig
+                    {
+                        status = HttpStatusCode.OK,
+                        message = "Success",
+                        data = null
+                    });
+                }
+                else{
+                    return Results.BadRequest(new HttpStatusConfig
+                    {
+                        status = HttpStatusCode.BadRequest,
+                        message = "User not found",
+                        data = null
+                    });
+                }
             }
-            else
+            return Results.BadRequest(new HttpStatusConfig
             {
-                return Results.BadRequest(new HttpStatusConfig
-                {
-                    status = HttpStatusCode.BadRequest,
-                    message = "Can not find user",
-                    data = null
-                });
-            }
+                status = HttpStatusCode.BadRequest,
+                message = "Token is Expired",
+                data = null
+            });
         }
         else
         {
-            if (authService!.ValidateToken(tokenDto.RefreshToken))
+            if (authService!.ValidateToken(tokenDto.RefreshToken!))
             {
-                var email = authService!.GetFirstByToken(tokenDto.Token);
+                var email = authService!.GetFirstByToken(tokenDto.Token!);
                 var user = userFireStore!.GetUserByUsername(email);
                 return Results.Ok(new HttpStatusConfig
                 {
@@ -190,15 +198,12 @@ public class UserServiceImpl : IUserService
                     }
                 });
             }
-            else
+            return Results.BadRequest(new HttpStatusConfig
             {
-                return Results.BadRequest(new HttpStatusConfig
-                {
-                    status = HttpStatusCode.BadRequest,
-                    message = "Token has expired",
-                    data = null
-                });
-            }
+                status = HttpStatusCode.BadRequest,
+                message = "Refresh token has expired",
+                data = null
+            });
         }
     }
 
