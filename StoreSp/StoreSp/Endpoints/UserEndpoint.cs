@@ -95,31 +95,18 @@ public static class UserEndpoint
 
         group.MapPost("/users/address", (CreateAddressDto dto, [FromHeader] string authorization) =>
         {
-            return authService.GetResult(authorization , userService.AddAdress(dto));
+            return authService.GetResult(authorization, userService.AddAdress(dto));
 
         }).WithParameterValidation().RequireAuthorization("nguoi-mua");
 
         group.MapGet("/users/address/{username}", (string username, [FromHeader] string authorization) =>
         {
-            string[] strings = authorization.Split(' ');
-            if (authService.ValidateToken(strings[1]))
-            {
-                return userService.GetAddress(username);
-            }
-            else
-            {
-                return Results.BadRequest(new HttpStatusConfig
-                {
-                    status = HttpStatusCode.BadRequest,
-                    message = "Token has expired",
-                    data = null
-                });
-            }
+            return authService.GetResult(authorization, userService.GetAddress(username));
         });
 
-        group.MapGet("/users/role", ([FromQuery] string code) =>
+        group.MapGet("/users/role", ([FromQuery] string code , [FromHeader] string authorization) =>
         {
-            return userService.GetUserByRole(code);
+            return authService.GetResult(authorization, userService.GetUserByRole(code));
         }).RequireAuthorization("quan-tri-vien");
 
         group.MapGet("/test", () =>
@@ -127,9 +114,9 @@ public static class UserEndpoint
             return "";
         });
 
-        group.MapPost("/users/update-status", (UpdateStatusUserDto dto) =>
+        group.MapPost("/users/update-status", (UpdateStatusUserDto dto , [FromHeader] string authorization) =>
         {
-            return userService.UpdateStatusUser(dto);
+            return authService.GetResult(authorization, userService.UpdateStatusUser(dto));
         }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
         return group;
     }

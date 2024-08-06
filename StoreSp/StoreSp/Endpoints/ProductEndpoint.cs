@@ -8,35 +8,37 @@ namespace StoreSp.Endpoints;
 public static class ProductEndpoint
 {
     public static IProductService? ProductService { get; set; }
+    public static IAuthService? authService { get; set; }
 
     public static RouteGroupBuilder MapProductEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("api/products");
         ProductService = new ProductServiceImpl();
+        authService = new AuthServiceImpl();
         
-        group.MapGet("/categories", ([FromQuery] string code) =>
+        group.MapGet("/categories", ([FromQuery] string code , [FromHeader] string authorization) =>
         {
-           return ProductService.GetProductsByCategory(code);
+           return authService.GetResult(authorization, ProductService.GetProductsByCategory(code));
         }).RequireAuthorization();
 
-        group.MapGet("", ([FromQuery] string pCode) =>
+        group.MapGet("", ([FromQuery] string pCode , [FromHeader] string authorization) =>
         {
-           return ProductService.GetProductByCode(pCode);
+           return authService.GetResult(authorization, ProductService.GetProductByCode(pCode));
         }).RequireAuthorization();
 
-        group.MapGet("/search", ([FromQuery] string name) =>
+        group.MapGet("/search", ([FromQuery] string name , [FromHeader] string authorization) =>
         {
-           return ProductService.GetProductsBySearch(name);
+           return authService.GetResult(authorization, ProductService.GetProductsBySearch(name));
         }).RequireAuthorization();
 
-        group.MapPost("/", (CreateProductDto createProductDto) =>
+        group.MapPost("/", (CreateProductDto createProductDto , [FromHeader] string authorization) =>
         {
-            return ProductService.AddProduct(createProductDto);
+            return authService.GetResult(authorization, ProductService.AddProduct(createProductDto));
         }).WithParameterValidation().RequireAuthorization("nguoi-ban");
 
-        group.MapPost("/like", (LikeProductDto likeProductDto) =>
+        group.MapPost("/like", (LikeProductDto likeProductDto , [FromHeader] string authorization) =>
         {
-            return ProductService.LikeProduct(likeProductDto);
+            return authService.GetResult(authorization, ProductService.LikeProduct(likeProductDto));
         }).WithParameterValidation().RequireAuthorization("nguoi-ban");
         return group;
     }

@@ -35,6 +35,9 @@ public class User
     public string? VerificationToken { get; set; }
 
     [FirestoreProperty]
+    public string? DeviceToken { get; set; }
+
+    [FirestoreProperty]
     public string? RefreshToken { get; set; }
 
     [FirestoreProperty]

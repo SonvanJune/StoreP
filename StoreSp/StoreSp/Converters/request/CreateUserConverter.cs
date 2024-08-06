@@ -22,7 +22,8 @@ public class CreateUserConverter : IBaseConverter<User, CreateUserDto>
             Status = 0,
             Avatar = dto.Avatar,
             CreateAt = new Timestamp(),
-            Account = 0
+            Account = 0,
+            DeviceToken = dto.DeviceToken
         };
     }
 }

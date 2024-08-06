@@ -11,6 +11,9 @@ public class CreateUserDto
     public required string Email { get; set;}
 
     [Required]
+    public required string DeviceToken { get; set;}
+
+    [Required]
     public string Phone { get; set;} = "";
 
     [Required]

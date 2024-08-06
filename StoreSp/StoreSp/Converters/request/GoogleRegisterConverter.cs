@@ -26,7 +26,8 @@ public class GoogleRegisterConverter : IBaseConverter<User, GoogleRegisterDto>
             UpdateAt = new Timestamp(),
             VerifiedAt = Timestamp.FromDateTime(specified),
             ResetTokenExpires = Timestamp.FromDateTime(specified),
-            Account = 0
+            Account = 0,
+            DeviceToken = dto.DeviceToken
         };
     }
 }
