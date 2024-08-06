@@ -109,7 +109,7 @@ public static class UserEndpoint
                     data = null
                 });
             }
-        }).WithParameterValidation().RequireAuthorization("nguoi-ban");
+        }).WithParameterValidation().RequireAuthorization("nguoi-mua");
 
         group.MapGet("/users/address/{username}", (string username) =>
         {
