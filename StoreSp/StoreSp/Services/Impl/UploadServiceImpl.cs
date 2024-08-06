@@ -15,7 +15,7 @@ public class UploadServiceImpl : IUploadService
             {
                 status = HttpStatusCode.OK,
                 message = "Upload Sucess",
-                data = null
+                data = Upload(dto.Files).Result
             });
         }
         else
@@ -29,7 +29,7 @@ public class UploadServiceImpl : IUploadService
         }
     }
 
-    public async Task<List<string>> Upload(List<IFormFile> files)
+    public async Task<List<string>> Upload(IFormFileCollection files)
     {
         var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".svg" };
 
@@ -48,9 +48,9 @@ public class UploadServiceImpl : IUploadService
                     return null!;
                 }
 
-                string name = BCrypt.Net.BCrypt.HashPassword(file.FileName);
-                var filePath = Path.Combine(_uploadPath, name);
-                names.Add(name);
+                // string name = BCrypt.Net.BCrypt.HashPassword(file.FileName);
+                var filePath = Path.Combine(_uploadPath, file.FileName);
+                names.Add(file.FileName);
 
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {

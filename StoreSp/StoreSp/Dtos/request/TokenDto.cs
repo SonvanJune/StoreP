@@ -4,6 +4,6 @@ namespace StoreSp.Dtos.request;
 
 public record TokenDto
 (
-    [Required] string Token,
-    [Required] string RefreshToken
+    string Token,
+    string RefreshToken
 );
