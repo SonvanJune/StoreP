@@ -114,6 +114,15 @@ public class UserServiceImpl : IUserService
         var _ = userFireStore.GenRefreshToken(loginUserDto.Username).Result;
         if (user != null)
         {
+            if (user.IsGoogleAccount)
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.UnprocessableEntity,
+                    message = "User is not a System account",
+                    data = null
+                });
+            }
             //nam thang ngay mac dinh 1111/11/11 
             if (user.VerifiedAt.ToDateTime().Year == 1111)
             {
@@ -164,7 +173,8 @@ public class UserServiceImpl : IUserService
                         data = null
                     });
                 }
-                else{
+                else
+                {
                     return Results.BadRequest(new HttpStatusConfig
                     {
                         status = HttpStatusCode.BadRequest,

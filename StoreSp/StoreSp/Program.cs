@@ -37,6 +37,4 @@ app.MapLogEndpoints();
 app.MapShippingMehodEndpoints();
 
 app.MapCartSocketEndpoint();
-
-// FirestoreService.UploadFile(@"C:\Users\son\Downloads\anime wallpaper.jpg" , "fir-84aea.appspot.com" , "images/logo.png");
 app.Run();

@@ -143,29 +143,36 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == loginUserDto.Username)!;
         }
 
-        if (!BCrypt.Net.BCrypt.Verify(loginUserDto.Password, user.PasswordHash))
+        if (user.IsGoogleAccount)
         {
-            return null!;
+            return user;
         }
+        else
+        {
+            if (!BCrypt.Net.BCrypt.Verify(loginUserDto.Password, user.PasswordHash))
+            {
+                return null!;
+            }
 
-        var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == user!.RoleId);
-        user.Role = role;
+            var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == user!.RoleId);
+            user.Role = role;
 
-        //tao log cho user dang ky
-        await logFireStore.AddLogForUser(user, "dang-nhap");
+            //tao log cho user dang ky
+            await logFireStore.AddLogForUser(user, "dang-nhap");
 
-        //tao refresh token
-        DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
-        Dictionary<string, object> data = new Dictionary<string, object>{
+            //tao refresh token
+            DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
+            Dictionary<string, object> data = new Dictionary<string, object>{
             {"DeviceToken" , loginUserDto.DeviceToken}
-        };
+            };
 
-        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-        if (snapshot.Exists)
-        {
-            await docref.UpdateAsync(data);
+            DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
+            if (snapshot.Exists)
+            {
+                await docref.UpdateAsync(data);
+            }
+            return user;
         }
-        return user;
     }
 
     public User GetUserByUsername(string username)
