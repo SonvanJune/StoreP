@@ -111,7 +111,6 @@ public class UserServiceImpl : IUserService
         }
 
         var user = userFireStore.Login(loginUserDto).Result;
-        var _ = userFireStore.GenRefreshToken(loginUserDto.Username).Result;
         if (user != null)
         {
             if (user.IsGoogleAccount)
@@ -389,7 +388,6 @@ public class UserServiceImpl : IUserService
         }
 
         var user = userFireStore!.GoogleRegister(googleRegisterDto).Result;
-        var _ = userFireStore.GenRefreshToken(googleRegisterDto.Email).Result;
         if (user == null)
         {
             return Results.BadRequest(new HttpStatusConfig
@@ -437,7 +435,6 @@ public class UserServiceImpl : IUserService
 
 
         var user = userFireStore.GoogleLogin(googleLoginDto).Result;
-        var _ = userFireStore.GenRefreshToken(googleLoginDto.Email).Result;
         if (user != null)
         {
             //nam thang ngay mac dinh 1111/11/11 
@@ -556,7 +553,6 @@ public class UserServiceImpl : IUserService
             if (userFireStore.VerifyUser(phone) != null)
             {
                 var user = userFireStore.VerifyUser(phone).Result;
-                var _ = userFireStore.GenRefreshToken(phone).Result;
                 return Results.Ok(new HttpStatusConfig
                 {
                     status = HttpStatusCode.OK,

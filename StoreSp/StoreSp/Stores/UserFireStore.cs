@@ -171,6 +171,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             {
                 await docref.UpdateAsync(data);
             }
+            await GenRefreshToken(loginUserDto.Username);
             return user;
         }
     }
@@ -227,6 +228,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         await logFireStore.AddLogForUser(user, "da-xac-thuc");
         var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == user.RoleId);
         user.Role = role;
+        await GenRefreshToken(username);
         return user;
     }
 
@@ -363,6 +365,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         CreateCartForUser(user, dto.DeviceToken);
         //tao log cho user dang ky
         await logFireStore.AddLogForUser(user, "dang-ky-bang-google");
+        await GenRefreshToken(dto.Email);
         return user;
     }
 
@@ -390,6 +393,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         {
             await docref.UpdateAsync(data);
         }
+        await GenRefreshToken(dto.Email);
         return user;
     }
 
