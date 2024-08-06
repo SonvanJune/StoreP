@@ -5,7 +5,7 @@ namespace StoreSp.Dtos.request;
 public record RegisterUserDto
 (
     [Required] string Name,
-    [Required] string DeviceToken,
+    string DeviceToken,
 
     string Email,
 

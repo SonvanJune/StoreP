@@ -113,7 +113,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             user.VerificationToken = AuthServiceImpl.CreateRandomToken(user);
         }
         await userDb.AddAsync(user);
-        CreateCartForUser(user , userDto.DeviceToken);
+        CreateCartForUser(user, userDto.DeviceToken);
 
         //tao log cho user dang ky
         await logFireStore.AddLogForUser(user, "dang-ky");
@@ -360,7 +360,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         var specified = DateTime.SpecifyKind(unspecified, DateTimeKind.Utc);
         user.VerifiedAt = Timestamp.FromDateTime(specified);
         await userDb.AddAsync(user);
-        CreateCartForUser(user , dto.DeviceToken);
+        CreateCartForUser(user, dto.DeviceToken);
         //tao log cho user dang ky
         await logFireStore.AddLogForUser(user, "dang-ky-bang-google");
         return user;
@@ -499,7 +499,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         return user!.VerificationToken == token;
     }
 
-    private async void CreateCartForUser(User user , string deviceToken)
+    private async void CreateCartForUser(User user, string deviceToken)
     {
         var cartDb = _firestoreDb.Collection(CartFireStore._collectionCart);
         var userDb = base.GetSnapshots(_collectionUser);
@@ -550,18 +550,21 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
     public async Task<User> GenRefreshToken(string username)
     {
         User user = GetUserByUsername(username);
-
-        //tao refresh token
-        DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
-        Dictionary<string, object> data = new Dictionary<string, object>{
+        if (user != null)
+        {
+            //tao refresh token
+            DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
+            Dictionary<string, object> data = new Dictionary<string, object>{
             {"RefreshToken" , AuthServiceImpl.CreateRefreshToken(user)}
         };
 
-        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-        if (snapshot.Exists)
-        {
-            await docref.UpdateAsync(data);
+            DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
+            if (snapshot.Exists)
+            {
+                await docref.UpdateAsync(data);
+            }
+            return user;
         }
-        return user;
+        return null!;
     }
 }

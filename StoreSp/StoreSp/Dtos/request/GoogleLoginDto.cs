@@ -6,5 +6,5 @@ public record GoogleLoginDto
 (
     [Required] string Email,
     [Required] bool EmailVerified,
-    [Required] string DeviceToken
+    string DeviceToken
 );

@@ -5,7 +5,7 @@ namespace StoreSp.Dtos.request;
 public record GoogleRegisterDto
 (
     [Required] string Name,
-    [Required] string DeviceToken,
+    string DeviceToken,
 
     string Email,
 
