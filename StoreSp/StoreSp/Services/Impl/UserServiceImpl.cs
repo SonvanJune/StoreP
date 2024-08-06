@@ -181,7 +181,7 @@ public class UserServiceImpl : IUserService
                 return Results.Ok(new HttpStatusConfig
                 {
                     status = HttpStatusCode.OK,
-                    message = "Login success",
+                    message = "ok",
                     data = new UserTokenDto
                     {
                         Token = authService!.GenerateToken(user),

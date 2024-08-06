@@ -1,4 +1,6 @@
-﻿using Google.Cloud.Firestore;
+﻿using Google.Apis.Auth.OAuth2;
+using Google.Cloud.Firestore;
+using Google.Cloud.Storage.V1;
 using StoreSp.Services.Impl;
 using StoreSp.Services.Sockets;
 using StoreSp.Stores.Stores;
@@ -8,6 +10,7 @@ namespace StoreSp.Stores;
 public abstract class FirestoreService(FirestoreDb firestoreDb)
 {
     public readonly FirestoreDb _firestoreDb = firestoreDb;
+    private static StorageClient _storageClient = null!;
 
     public QuerySnapshot GetSnapshots(string collectionName)
     {
@@ -23,8 +26,9 @@ public abstract class FirestoreService(FirestoreDb firestoreDb)
         }
     }
 
-    public static void Run(FirestoreDb db)
+    public static void Run(FirestoreDb db , string credentialPath)
     {
+        FirebaseStorageHelper(credentialPath);
         if (db != null)
         {
             UserServiceImpl.userFireStore = new UserFireStore(db);
@@ -36,6 +40,23 @@ public abstract class FirestoreService(FirestoreDb firestoreDb)
             BillServiceImpl.BillFirestore = new BillFirestore(db);
             LogServiceImpl.LogFireStore = new LogFireStore(db);
             ShippingMethodServiceImpl.ShippingMethodFirestore =  new ShippingMethodFirestore(db);
+        }
+    }
+
+    public static void FirebaseStorageHelper(string credentialPath){
+        GoogleCredential credential;
+        using (var stream = new FileStream(credentialPath, FileMode.Open, FileAccess.Read))
+        {
+            credential = GoogleCredential.FromStream(stream);
+        }
+        _storageClient = StorageClient.Create(credential);
+    }
+
+    public static void UploadFile(string localFilePath, string bucketName, string objectName)
+    {
+        using (var fileStream = new FileStream(localFilePath, FileMode.Open))
+        {
+            _storageClient.UploadObject(bucketName, objectName, null, fileStream);
         }
     }
 }

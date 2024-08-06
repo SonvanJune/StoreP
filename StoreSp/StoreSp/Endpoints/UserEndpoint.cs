@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Net;
+using Microsoft.AspNetCore.Mvc;
 using StoreSp.Commonds;
 using StoreSp.Dtos.request;
 using StoreSp.Services;
@@ -9,11 +10,13 @@ namespace StoreSp.Endpoints;
 public static class UserEndpoint
 {
     public static IUserService? userService { get; set; }
+    public static IAuthService? authService { get; set; }
 
     public static RouteGroupBuilder MapUserEndpoints(this WebApplication app)
     {
         var group = app.MapGroup("api/");
         userService = new UserServiceImpl();
+        authService = new AuthServiceImpl();
 
         group.MapPost("/users", (CreateUserDto createUserDto) =>
         {
@@ -90,10 +93,23 @@ public static class UserEndpoint
             return userService.GoogleRegister(dto);
         }).WithParameterValidation();
 
-        group.MapPost("/users/address", (CreateAddressDto dto) =>
+        group.MapPost("/users/address", (CreateAddressDto dto, [FromHeader] string authorization) =>
         {
-            return userService.AddAdress(dto);
-        }).WithParameterValidation();
+            string[] strings = authorization.Split(' ');
+            if (authService.ValidateToken(strings[1]))
+            {
+                return userService.AddAdress(dto);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
+        }).WithParameterValidation().RequireAuthorization("nguoi-ban");
 
         group.MapGet("/users/address/{username}", (string username) =>
         {

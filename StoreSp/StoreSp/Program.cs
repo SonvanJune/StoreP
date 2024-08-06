@@ -10,7 +10,7 @@ builder.RunConfig();
 
 Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", @"D:\fir-84aea-firebase-adminsdk-5fzab-9504e21114.json");
 FirestoreDb db = FirestoreDb.Create(builder.Configuration.GetConnectionString("ProjectId"));
-FirestoreService.Run(db);
+FirestoreService.Run(db , @"D:\fir-84aea-firebase-adminsdk-5fzab-9504e21114.json");
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
@@ -37,4 +37,6 @@ app.MapLogEndpoints();
 app.MapShippingMehodEndpoints();
 
 app.MapCartSocketEndpoint();
+
+// FirestoreService.UploadFile(@"C:\Users\son\Downloads\anime wallpaper.jpg" , "fir-84aea.appspot.com" , "images/logo.png");
 app.Run();
