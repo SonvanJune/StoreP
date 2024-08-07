@@ -19,6 +19,8 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
     private readonly IBaseConverter<ProductClassify, CreateProductClassifyDto> createProductClassifyConverter = new CreateProductClassifyConverter();
     private readonly IBaseConverter<Product, ProductDto> productConverter = new ProductConverter();
     private readonly IBaseConverter<ProductClassify, ProductClassifyDto> productClassifyConverter = new ProductClassifyConverter();
+    public readonly LogFireStore logFireStore = new LogFireStore(firestoreDb);
+    public readonly NotificationFireStore notificationFireStore = new NotificationFireStore(firestoreDb);
 
     //method chinh
     public async Task<Product> AddProduct(CreateProductDto createProductDto)
@@ -53,6 +55,8 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         await db.AddAsync(product);
         await AddCategoryProduct(createProductDto.CategoryCode, randomCode);
         await AddProductClassify(createProductDto.ClassiFies!, randomCode);
+        await logFireStore.AddLogForUser(user, "dang-san-pham");
+        await notificationFireStore.AddNotificationForUser(user , "Bạn vừa đăng sản phẩm" , 0);
         return product;
     }
 
@@ -173,6 +177,9 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         {
             await docrefProduct.UpdateAsync(dataProduct);
         }
+        var shop = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == product.AuthorId)!;
+        await logFireStore.AddLogForUser(shop, "dang-san-pham");
+        await notificationFireStore.AddNotificationForUser(shop , "Bạn vừa đăng sản phẩm" , 0);
     }
     //method ho tro
     private async Task<CreateProductClassifyDto[]> AddProductClassify(CreateProductClassifyDto[] productClassifies, string productCode)

@@ -19,6 +19,8 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
     private readonly IBaseConverter<Product, ProductDto> productConverter = new ProductConverter();
     public readonly IBaseConverter<Address, AddressDto> addressConverter = new AddressConverter();
     private readonly IBaseConverter<ShippingMethod, ShippingMethodDto> shippingMethodConverter = new ShippingMethodConverter();
+    public readonly LogFireStore logFireStore = new LogFireStore(firestoreDb);
+    public readonly NotificationFireStore notificationFireStore = new NotificationFireStore(firestoreDb);
 
     public async Task<int> Checkout(CreateBillDto createBillDto)
     {
@@ -83,6 +85,8 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
         await db.AddAsync(bill);
         await AddBill_Product(cartItems, randomCode);
         await AfterCheckout(cart, cartItems, randomCode);
+        await logFireStore.AddLogForUser(user, "thanh-toan");
+        await notificationFireStore.AddNotificationForUser(user , "Bạn vừa than toán đơn hàng" , 0);
         return 1;
     }
     public List<BillDto> GetBillByUser(GetBillOfUserDto request)

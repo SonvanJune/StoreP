@@ -1,4 +1,6 @@
 ﻿using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using StoreSp.Commonds;
 using StoreSp.Dtos.request;
 
@@ -41,16 +43,23 @@ public class UploadServiceImpl : IUploadService
         {
             if (file.Length > 0)
             {
-                var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                var fileExtension = Path.GetExtension(file.FileName);
 
-                if (!allowedExtensions.Contains(fileExtension))
+                if (!allowedExtensions.Contains(fileExtension.ToLowerInvariant()))
                 {
                     return null!;
                 }
 
-                // string name = BCrypt.Net.BCrypt.HashPassword(file.FileName);
-                var filePath = Path.Combine(_uploadPath, file.FileName);
-                names.Add(file.FileName);
+               // Tạo hash MD5 cho tên file gốc
+                var originalFileName = Path.GetFileNameWithoutExtension(file.FileName);
+                var md5 = MD5.Create();
+                var hashBytes = md5.ComputeHash(Encoding.UTF8.GetBytes(originalFileName));
+                var hashString = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+
+                // Tạo tên file mới với phần mở rộng gốc
+                var newFileName = $"{hashString}{fileExtension}";
+                var filePath = Path.Combine(_uploadPath, newFileName);
+                names.Add(newFileName);
 
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {

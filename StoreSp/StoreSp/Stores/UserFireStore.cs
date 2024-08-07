@@ -24,6 +24,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
     private readonly IBaseConverter<User, GoogleRegisterDto> googleRegisterConverter = new GoogleRegisterConverter();
     private readonly IBaseConverter<Address, CreateAddressDto> createAddressConverter = new CreateAddressConverter();
     public readonly LogFireStore logFireStore = new LogFireStore(firestoreDb);
+    public readonly NotificationFireStore notificationFireStore = new NotificationFireStore(firestoreDb);
 
     //Method it su dung
     public Task<List<UserDto>> GetAllUser()
@@ -117,7 +118,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
 
         //tao log cho user dang ky
         await logFireStore.AddLogForUser(user, "dang-ky");
-
+        await notificationFireStore.AddNotificationForUser(user , "Chào mừng bạn đến với ứng dụng" , 0);
         return user;
     }
 
@@ -293,6 +294,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         {
             await docref.UpdateAsync(data);
         }
+        await logFireStore.AddLogForUser(user, "da-nhap-ma-otp");
         return user;
     }
 
@@ -367,6 +369,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         CreateCartForUser(user, dto.DeviceToken);
         //tao log cho user dang ky
         await logFireStore.AddLogForUser(user, "dang-ky-bang-google");
+        await notificationFireStore.AddNotificationForUser(user , "Chào mừng bạn đến với ứng dụng" , 0);
         var u = await GenRefreshToken(dto.Email);
         user.RefreshToken = u.RefreshToken;
         return user;
@@ -424,6 +427,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         {
             await docref.UpdateAsync(data);
         }
+        await logFireStore.AddLogForUser(user, "cap-nhat-trang-thai");
         return user;
 
     }
@@ -459,6 +463,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         address.Code = randomCode;
         await db.AddAsync(address);
         await AddAddressUser(randomCode, user.Id!);
+        await logFireStore.AddLogForUser(user, "them-dia-chi");
         return "";
     }
     public Task<List<AddressDto>> GetAddress(string username)

@@ -39,6 +39,7 @@ public abstract class FirestoreService(FirestoreDb firestoreDb)
             CartSocketService.CartFireStore = new CartFireStore(db);
             BillServiceImpl.BillFirestore = new BillFirestore(db);
             LogServiceImpl.LogFireStore = new LogFireStore(db);
+            NotificationServiceImpl.NotificationFireStore = new NotificationFireStore(db);
             ShippingMethodServiceImpl.ShippingMethodFirestore =  new ShippingMethodFirestore(db);
         }
     }
