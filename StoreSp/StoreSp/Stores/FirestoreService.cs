@@ -1,6 +1,9 @@
-﻿using Google.Apis.Auth.OAuth2;
+﻿using System.Net.Http.Headers;
+using System.Text;
+using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Firestore;
 using Google.Cloud.Storage.V1;
+using Newtonsoft.Json;
 using StoreSp.Services.Impl;
 using StoreSp.Services.Sockets;
 using StoreSp.Stores.Stores;
@@ -11,6 +14,8 @@ public abstract class FirestoreService(FirestoreDb firestoreDb)
 {
     public readonly FirestoreDb _firestoreDb = firestoreDb;
     private static StorageClient _storageClient = null!;
+    public static FcmService _fmcService = null!;
+
 
     public QuerySnapshot GetSnapshots(string collectionName)
     {
@@ -26,9 +31,10 @@ public abstract class FirestoreService(FirestoreDb firestoreDb)
         }
     }
 
-    public static void Run(FirestoreDb db , string credentialPath)
+    public static void Run(FirestoreDb db , string credentialPath , string projectId)
     {
         FirebaseStorageHelper(credentialPath);
+        FmcSendNotificaton(projectId , credentialPath);
         if (db != null)
         {
             UserServiceImpl.userFireStore = new UserFireStore(db);
@@ -59,5 +65,9 @@ public abstract class FirestoreService(FirestoreDb firestoreDb)
         {
             _storageClient.UploadObject(bucketName, objectName, null, fileStream);
         }
+    }
+
+    public static void FmcSendNotificaton(string credentialPath , string projectId){
+        _fmcService = new FcmService(credentialPath, projectId);
     }
 }

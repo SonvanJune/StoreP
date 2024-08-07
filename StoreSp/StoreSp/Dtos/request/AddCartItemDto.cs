@@ -7,6 +7,8 @@ public class AddCartItemDto
     [Required]
     public required string ProductCode { get; set;}
 
+    public string? Status { get; set;}
+
     [Required]
     public required string Username { get; set;}
 

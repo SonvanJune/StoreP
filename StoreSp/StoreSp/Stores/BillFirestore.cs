@@ -21,7 +21,9 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
     private readonly IBaseConverter<ShippingMethod, ShippingMethodDto> shippingMethodConverter = new ShippingMethodConverter();
     public readonly LogFireStore logFireStore = new LogFireStore(firestoreDb);
     public readonly NotificationFireStore notificationFireStore = new NotificationFireStore(firestoreDb);
+    public readonly CartFireStore cartFirestore = new CartFireStore(firestoreDb);
 
+    //method chinh
     public async Task<int> Checkout(CreateBillDto createBillDto)
     {
         var db = _firestoreDb.Collection(_collectionBill);
@@ -142,6 +144,41 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
 
         return billDtos;
     }
+    public async Task<string> ReOrderProducts(string code){
+        var billDb = base.GetSnapshots(_collectionBill);
+        var bill_ProductDb = base.GetSnapshots(_collectionBill_Product);
+        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
+        var productClassifyDb = base.GetSnapshots(ProductFireStore._collectionProductClassify);
+        var productDb = base.GetSnapshots(ProductFireStore._collectionProducts);
+
+        var bill = billDb.Documents.Select(r => r.ConvertTo<Bill>()).ToList().Find(r => r.Code == code);
+        var billProducts = bill_ProductDb.Documents.Select(r => r.ConvertTo<Bill_Product>()).ToList().FindAll(r => r.Id == bill!.Id);
+        var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == bill!.UserId);
+        foreach (var billProduct in billProducts)
+        {
+            List<string> productClassifyCodes = new List<string>();
+            var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == billProduct.ProductId);
+            string[] productClassifyNames = billProduct.ProductClassifies!.Split(',');
+            foreach (var item in productClassifyNames)
+            {
+                var productClassify = productClassifyDb.Documents.Select(r => r.ConvertTo<ProductClassify>()).ToList().Find(r => r.Name == item && r.ProductId == product!.Id);
+                productClassifyCodes.Add(productClassify!.Code!);
+            }
+
+            var addCartDto = new AddCartItemDto{
+                Status = "1",
+                ProductCode = product!.Code!,
+                Quantity = billProduct.Quantity,
+                Username = user!.Email != null ? user!.Email : user!.Phone,
+                ProductClassifyCodes = productClassifyCodes 
+            };
+
+            await cartFirestore.AddToCart(addCartDto);
+        }
+        return "success";
+    }
+
+    //method ho tro
     public async Task AddBill_Product(List<CartItem> cartItems, string code)
     {
         var billDb = base.GetSnapshots(_collectionBill);
@@ -154,7 +191,8 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
             {
                 BillId = bill!.Id!,
                 ProductId = item.ProductId!,
-                ProductClassifies = GetStringProductClassify(item.Id!)
+                ProductClassifies = GetStringProductClassify(item.Id!),
+                Quantity = item.Quantity
             };
             await db.AddAsync(billProduct);
         }
@@ -183,7 +221,6 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
         }
         return result;
     }
-
     private async Task AfterCheckout(Cart c, List<CartItem> cartItems, string billCode)
     {
         //truong hop thanh toan thanh cong thi update lai tai khoan user va xoa gio hang

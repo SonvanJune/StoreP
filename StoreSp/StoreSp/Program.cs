@@ -10,7 +10,7 @@ builder.RunConfig();
 
 Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", @"D:\fir-84aea-firebase-adminsdk-5fzab-9504e21114.json");
 FirestoreDb db = FirestoreDb.Create(builder.Configuration.GetConnectionString("ProjectId"));
-FirestoreService.Run(db , @"D:\fir-84aea-firebase-adminsdk-5fzab-9504e21114.json");
+FirestoreService.Run(db , @"D:\fir-84aea-firebase-adminsdk-5fzab-9504e21114.json" , builder.Configuration.GetConnectionString("ProjectId")!);
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())
@@ -38,4 +38,6 @@ app.MapShippingMehodEndpoints();
 
 app.MapCartSocketEndpoint();
 app.MapUploadEndpoints();
+
+await FirestoreService._fmcService.SendNotificationAsync("cCpHlMnYS2O745lGEJ52wS:APA91bHJlWsLSRX5e6XomhJaHiJxUTxKJN_41gFMRDYGc6aDfcPRr0svGbLsIg8-OodlX57XtJ09ZAunYu-IaXsF6btdr4-Td6E1QOOBC2miT4h7Uy3e3r2AFsoJ6yeJYVHqngRLzNZC","Son dau buoi", "This is a test notification");
 app.Run();

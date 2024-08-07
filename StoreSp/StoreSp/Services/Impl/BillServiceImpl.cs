@@ -57,4 +57,14 @@ public class BillServiceImpl : IBillService
             data = data
         });
     }
+
+    IResult IBillService.ReOrderProducts(string code)
+    {
+        return Results.Ok(new HttpStatusConfig
+        {
+            status = HttpStatusCode.OK,
+            message = "success",
+            data = BillFirestore!.ReOrderProducts(code)
+        });
+    }
 }

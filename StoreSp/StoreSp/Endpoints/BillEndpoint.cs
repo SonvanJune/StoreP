@@ -25,6 +25,11 @@ public static class BillEndpoint
         {
             return authService.GetResult(authorization, BillService!.GetBillByUser(getBillOfUserDto));
         }).WithParameterValidation().RequireAuthorization("nguoi-mua");
+
+        group.MapPost("/re-order" , (ReOrderProductsDto request , [FromHeader] string authorization) => 
+        {
+            return authService.GetResult(authorization, BillService!.ReOrderProducts(request.Code));
+        }).WithParameterValidation().RequireAuthorization("nguoi-mua");
         return group;
     }
 }

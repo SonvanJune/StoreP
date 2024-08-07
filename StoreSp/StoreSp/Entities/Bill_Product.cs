@@ -14,6 +14,9 @@ public class Bill_Product
     [FirestoreProperty]
     public required string BillId { get; set; }
 
+    [FirestoreProperty]
+    public required int Quantity { get; set; }
+
     public Product? Product { get; set; }
     public Bill? Bill { get; set; }
 

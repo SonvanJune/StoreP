@@ -14,7 +14,7 @@ public class AddCartItemConverter : IBaseConverter<CartItem, AddCartItemDto>
     {
         return new CartItem{
             Quantity = dto.Quantity,
-            Status = 0
+            Status = dto.Status != null && dto.Status != "" ? Convert.ToInt32(dto.Status) : 0  
         };
     }
 }
