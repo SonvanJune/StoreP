@@ -214,6 +214,7 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
     {
         var cartUpdatedb = _firestoreDb.Collection(_collectionCart);
         var cartItemUpdatedb = _firestoreDb.Collection(_collectionCartItem);
+        var cartItem_ProductClassifyUpdateDb = _firestoreDb.Collection(_collectionCartItem_ProductClassify);
         var cartDb = base.GetSnapshots(_collectionCart);
         var cartItemDb = base.GetSnapshots(_collectionCartItem);
         var cartItem_ProductClassifyDb = base.GetSnapshots(_collectionCartItem_ProductClassify);
@@ -237,24 +238,30 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         foreach (var item in updateCartDto.UpdateCartItems!)
         {
             var cartItem = cartItemDb.Documents.Select(r => r.ConvertTo<CartItem>()).ToList().Find(r => r.Code == item.ItemCode);
+            if(item.Quantity <=  0){
+                var CartItem_ProductClassify = cartItem_ProductClassifyDb.Documents.Select(r => r.ConvertTo<CartItem_ProductClassify>()).ToList().FindAll(r => r.CartItem_Id == cartItem!.Id);
+                foreach (var i in CartItem_ProductClassify)
+                {
+                    await cartItem_ProductClassifyUpdateDb.Document(i.Id).DeleteAsync();
+                }
+                await cartItemUpdatedb.Document(cartItem!.Id).DeleteAsync();
+                continue;
+            }
             if (cartItem != null)
             {
-                if (item.Quantity > 0)
-                {
-                    totalAfterAdd = totalAfterAdd - cartItem.Total;
-                    int quantity = item.Quantity;
-                    int total = item.Quantity * cartItem.Price;
-                    totalAfterAdd += total;
-                    DocumentReference docref = _firestoreDb.Collection(_collectionCartItem).Document(cartItem.Id);
-                    Dictionary<string, object> data = new Dictionary<string, object>{
+                totalAfterAdd = totalAfterAdd - cartItem.Total;
+                int quantity = item.Quantity;
+                int total = item.Quantity * cartItem.Price;
+                totalAfterAdd += total;
+                DocumentReference docref = _firestoreDb.Collection(_collectionCartItem).Document(cartItem.Id);
+                Dictionary<string, object> data = new Dictionary<string, object>{
                     {"Quantity" , quantity},
                     {"Total" , total}
-                };
-                    DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-                    if (snapshot.Exists)
-                    {
-                        await docref.UpdateAsync(data);
-                    }
+                    };
+                DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
+                if (snapshot.Exists)
+                {
+                    await docref.UpdateAsync(data);
                 }
 
                 //update cartItem Product_Classiffy

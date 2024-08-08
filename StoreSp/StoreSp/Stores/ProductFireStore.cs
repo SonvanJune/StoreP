@@ -115,6 +115,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         }
         return productsDto;
     }
+    
     public ProductDto GetProductByProductCode(string productCode)
     {
         var productDb = base.GetSnapshots(_collectionProducts);
@@ -181,6 +182,10 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         await logFireStore.AddLogForUser(shop, "dang-san-pham");
         await notificationFireStore.AddNotificationForUser(shop , "Bạn vừa đăng sản phẩm" , 0);
     }
+    
+    // public List<ProductDto> GetProductsNew(){
+        
+    // }
     //method ho tro
     private async Task<CreateProductClassifyDto[]> AddProductClassify(CreateProductClassifyDto[] productClassifies, string productCode)
     {
