@@ -67,6 +67,26 @@ public class ProductServiceImpl : IProductService
         });
     }
 
+    IResult IProductService.GetProductsHot(GetProductHot getProductHot)
+    {
+        return Results.Ok(new HttpStatusConfig
+        {
+            status = HttpStatusCode.Created,
+            message = "Success",
+            data = ProductFireStore!.GetProductsHot(getProductHot)
+        });
+    }
+
+    IResult IProductService.GetProductsNew(GetNewProductDto getNewProductDto)
+    {
+        return Results.Ok(new HttpStatusConfig
+        {
+            status = HttpStatusCode.Created,
+            message = "Success",
+            data = ProductFireStore!.GetProductsNew(getNewProductDto)
+        });
+    }
+
     IResult IProductService.LikeProduct(LikeProductDto likeProductDto)
     {
         return Results.Ok(new HttpStatusConfig

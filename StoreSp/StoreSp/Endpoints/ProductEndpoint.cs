@@ -31,6 +31,16 @@ public static class ProductEndpoint
            return authService.GetResult(authorization, ProductService.GetProductsBySearch(name));
         }).RequireAuthorization();
 
+        group.MapPost("/new", (GetNewProductDto dto , [FromHeader] string authorization) =>
+        {
+           return authService.GetResult(authorization, ProductService.GetProductsNew(dto));
+        }).RequireAuthorization();
+
+        group.MapPost("/hot", (GetProductHot dto , [FromHeader] string authorization) =>
+        {
+           return authService.GetResult(authorization, ProductService.GetProductsHot(dto));
+        }).RequireAuthorization();
+
         group.MapPost("/", (CreateProductDto createProductDto , [FromHeader] string authorization) =>
         {
             return authService.GetResult(authorization, ProductService.AddProduct(createProductDto));

@@ -3,6 +3,7 @@
 public class ProductDto
 {
     public required string Name { get; set; }
+    public required string CreatedAt { get; set; }
     public UserDto? Author { get; set; }
     public List<CategoryDto>? Categories { get; set; }
     public required string Description { get; set; }

@@ -17,7 +17,8 @@ public class ProductConverter : IBaseConverter<Product, ProductDto>
             ShippingUnit = entity.ShippingUnit,
             Code = entity.Code!,
             QuantitySelled = entity.QuantitySelled,
-            Likes = entity.Likes
+            Likes = entity.Likes,
+            CreatedAt = entity.CreatedAt.ToDateTime().ToShortDateString()
         };
     }
 

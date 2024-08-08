@@ -183,9 +183,53 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         await notificationFireStore.AddNotificationForUser(shop , "Bạn vừa đăng sản phẩm" , 0);
     }
     
-    // public List<ProductDto> GetProductsNew(){
+    public List<ProductDto> GetProductsNew(GetNewProductDto getNewProductDto){
+        var productDb = base.GetSnapshots(_collectionProducts);
+        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
+        List<ProductDto> productsDto = new List<ProductDto>();
+        DateTime dateLimit = DateTime.Now.AddDays(-getNewProductDto.Day);
+        var startIndex = getNewProductDto.ProductInPage * (getNewProductDto.Page - 1);
+        var lastIndex = startIndex + getNewProductDto.ProductInPage;
+
+        var products = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().FindAll( r => r.CreatedAt.ToDateTime() >= dateLimit)[startIndex..lastIndex];
         
-    // }
+        foreach (var item in products)
+        {
+            var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == item!.AuthorId);
+            ProductDto dto = productConverter.ToDto(item!);
+            if (user != null)
+            {
+                dto.Author = userConverter.ToDto(user!);
+
+            }
+            dto.Classifies = GetProductClassifiesByProduct(item.Id!);
+            productsDto.Add(dto);
+        }
+        return productsDto;
+    }
+
+    public List<ProductDto> GetProductsHot(GetProductHot getProductHot){
+        var productDb = base.GetSnapshots(_collectionProducts);
+        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
+        List<ProductDto> productsDto = new List<ProductDto>();
+        var startIndex = getProductHot.ProductInPage * (getProductHot.Page - 1);
+        var lastIndex = startIndex + getProductHot.ProductInPage;
+        
+        var products = productDb.Documents.Select(r => r.ConvertTo<Product>()).OrderByDescending(p => p.QuantitySelled).ToList()[startIndex..lastIndex];
+        foreach (var item in products)
+        {
+            var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == item!.AuthorId);
+            ProductDto dto = productConverter.ToDto(item!);
+            if (user != null)
+            {
+                dto.Author = userConverter.ToDto(user!);
+
+            }
+            dto.Classifies = GetProductClassifiesByProduct(item.Id!);
+            productsDto.Add(dto);
+        }
+        return productsDto;
+    }
     //method ho tro
     private async Task<CreateProductClassifyDto[]> AddProductClassify(CreateProductClassifyDto[] productClassifies, string productCode)
     {
