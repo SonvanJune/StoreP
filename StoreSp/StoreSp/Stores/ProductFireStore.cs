@@ -191,9 +191,17 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         var startIndex = getNewProductDto.ProductInPage * (getNewProductDto.Page - 1);
         var lastIndex = startIndex + getNewProductDto.ProductInPage;
 
-        var products = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().FindAll( r => r.CreatedAt.ToDateTime() >= dateLimit)[startIndex..lastIndex];
+        var productResult = new List<Product>();
+
+        var products = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().FindAll( r => r.CreatedAt.ToDateTime() >= dateLimit);
+        for (int i = startIndex; i < lastIndex + 1; i++)
+        {
+            if(products[i] != null){
+                productResult.Add(products[i]);
+            }
+        }
         
-        foreach (var item in products)
+        foreach (var item in productResult)
         {
             var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == item!.AuthorId);
             ProductDto dto = productConverter.ToDto(item!);
@@ -215,8 +223,16 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         var startIndex = getProductHot.ProductInPage * (getProductHot.Page - 1);
         var lastIndex = startIndex + getProductHot.ProductInPage;
         
+        var productResult = new List<Product>();
         var products = productDb.Documents.Select(r => r.ConvertTo<Product>()).OrderByDescending(p => p.QuantitySelled).ToList()[startIndex..lastIndex];
-        foreach (var item in products)
+        for (int i = startIndex; i < lastIndex + 1; i++)
+        {
+            if(products[i] != null){
+                productResult.Add(products[i]);
+            }
+        }
+
+        foreach (var item in productResult)
         {
             var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == item!.AuthorId);
             ProductDto dto = productConverter.ToDto(item!);
