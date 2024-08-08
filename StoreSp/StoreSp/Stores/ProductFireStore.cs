@@ -56,7 +56,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         await AddCategoryProduct(createProductDto.CategoryCode, randomCode);
         await AddProductClassify(createProductDto.ClassiFies!, randomCode);
         await logFireStore.AddLogForUser(user, "dang-san-pham");
-        await notificationFireStore.AddNotificationForUser(user , "Bạn vừa đăng sản phẩm" , 0);
+        await notificationFireStore.AddNotificationForUser(user, "Bạn vừa đăng sản phẩm", 0);
         return product;
     }
 
@@ -94,12 +94,13 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 
         return productsDto;
     }
-    
-    public List<ProductDto> GetProductsBySearch(string name){
+
+    public List<ProductDto> GetProductsBySearch(string name)
+    {
         var productDb = base.GetSnapshots(_collectionProducts);
         var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         List<ProductDto> productsDto = new List<ProductDto>();
-        
+
         var products = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().FindAll(r => r.Name.Contains(name));
         foreach (var item in products)
         {
@@ -115,7 +116,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         }
         return productsDto;
     }
-    
+
     public ProductDto GetProductByProductCode(string productCode)
     {
         var productDb = base.GetSnapshots(_collectionProducts);
@@ -132,7 +133,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         }
         return null!;
     }
-    
+
     public async Task LikeProduct(LikeProductDto likeProductDto)
     {
         var db = _firestoreDb.Collection(_collectionProduct_Like);
@@ -180,10 +181,11 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         }
         var shop = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == product.AuthorId)!;
         await logFireStore.AddLogForUser(shop, "dang-san-pham");
-        await notificationFireStore.AddNotificationForUser(shop , "Bạn vừa đăng sản phẩm" , 0);
+        await notificationFireStore.AddNotificationForUser(shop, "Bạn vừa đăng sản phẩm", 0);
     }
-    
-    public List<ProductDto> GetProductsNew(GetNewProductDto getNewProductDto){
+
+    public List<ProductDto> GetProductsNew(GetNewProductDto getNewProductDto)
+    {
         var productDb = base.GetSnapshots(_collectionProducts);
         var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         List<ProductDto> productsDto = new List<ProductDto>();
@@ -193,14 +195,21 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 
         var productResult = new List<Product>();
 
-        var products = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().FindAll( r => r.CreatedAt.ToDateTime() >= dateLimit);
+        var products = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().FindAll(r => r.CreatedAt.ToDateTime() >= dateLimit);
         for (int i = startIndex; i < lastIndex + 1; i++)
         {
-            if(products[i] != null){
-                productResult.Add(products[i]);
+            if (i < products.Count)
+            {
+                if (products[i] != null)
+                {
+                    productResult.Add(products[i]);
+                }
+            }
+            else{
+                break;
             }
         }
-        
+
         foreach (var item in productResult)
         {
             var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == item!.AuthorId);
@@ -216,19 +225,27 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         return productsDto;
     }
 
-    public List<ProductDto> GetProductsHot(GetProductHot getProductHot){
+    public List<ProductDto> GetProductsHot(GetProductHot getProductHot)
+    {
         var productDb = base.GetSnapshots(_collectionProducts);
         var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         List<ProductDto> productsDto = new List<ProductDto>();
         var startIndex = getProductHot.ProductInPage * (getProductHot.Page - 1);
         var lastIndex = startIndex + getProductHot.ProductInPage;
-        
+
         var productResult = new List<Product>();
         var products = productDb.Documents.Select(r => r.ConvertTo<Product>()).OrderByDescending(p => p.QuantitySelled).ToList()[startIndex..lastIndex];
         for (int i = startIndex; i < lastIndex + 1; i++)
         {
-            if(products[i] != null){
-                productResult.Add(products[i]);
+            if (i < products.Count)
+            {
+                if (products[i] != null)
+                {
+                    productResult.Add(products[i]);
+                }
+            }
+            else{
+                break;
             }
         }
 
