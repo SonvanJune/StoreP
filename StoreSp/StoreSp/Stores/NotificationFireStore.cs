@@ -31,7 +31,7 @@ public class NotificationFireStore(FirestoreDb firestoreDb) : FirestoreService(f
 
         var notification = new Notification
         {
-            UserId = user.Id,
+            UserId = u.Id,
             Type = request.Type,
             Message = request.Message,
             Status = 0,
