@@ -12,6 +12,7 @@ public class CategoryConverter : IBaseConverter<Category, CategoryDto>
             Id = entity.Id,
             Code = entity.Code,
             Name = entity.Name,
+            Image = entity.Avatar,
             ParentCategoryId = entity.ParentCategoryId,
             Level = entity.Level
         };
