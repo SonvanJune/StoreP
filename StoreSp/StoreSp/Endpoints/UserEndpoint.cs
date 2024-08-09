@@ -10,6 +10,7 @@ namespace StoreSp.Endpoints;
 public static class UserEndpoint
 {
     public static IUserService? userService { get; set; }
+    public static INotificationService? notificationService { get; set; }
     public static IAuthService? authService { get; set; }
 
     public static RouteGroupBuilder MapUserEndpoints(this WebApplication app)
@@ -17,6 +18,7 @@ public static class UserEndpoint
         var group = app.MapGroup("api/");
         userService = new UserServiceImpl();
         authService = new AuthServiceImpl();
+        notificationService = new NotificationServiceImpl();
 
         group.MapPost("/users", (CreateUserDto createUserDto) =>
         {
@@ -31,6 +33,10 @@ public static class UserEndpoint
         group.MapGet("/users/{id}", (string id) =>
         {
             return userService.GetUserById(id);
+        });
+        group.MapGet("/users/notifications/{username}", (string username) =>
+        {
+            return notificationService!.GetNotifications(username);
         });
 
         group.MapPost("/register", (RegisterUserDto dto) =>
