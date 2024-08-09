@@ -58,6 +58,16 @@ public class BillServiceImpl : IBillService
         });
     }
 
+    IResult IBillService.GetBills()
+    {
+        return Results.Ok(new HttpStatusConfig
+        {
+            status = HttpStatusCode.OK,
+            message = "success",
+            data = BillFirestore!.GetBills()
+        });
+    }
+
     IResult IBillService.ReOrderProducts(string code)
     {
         return Results.Ok(new HttpStatusConfig

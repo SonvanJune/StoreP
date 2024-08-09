@@ -144,6 +144,33 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
 
         return billDtos;
     }
+    public List<BillDto> GetBills()
+    {
+        var billDb = base.GetSnapshots(_collectionBill);
+        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
+        var shippingMethodDb = base.GetSnapshots(ShippingMethodFirestore._collectionShippingMethod);
+        var addressDb = base.GetSnapshots(UserFireStore._collectionAddress);
+        List<BillDto> billDtos = new List<BillDto>();
+
+        var bills = billDb.Documents.Select(r => r.ConvertTo<Bill>()).ToList();
+
+        foreach (var bill in bills)
+        {
+            var billDto = BillConverter.ToDto(bill);
+            var shippingMethod = shippingMethodDb.Documents.Select(r => r.ConvertTo<ShippingMethod>()).ToList().Find(r => r.Id == bill.ShippingMethodId);
+            billDto.ShippingMethod = shippingMethodConverter.ToDto(shippingMethod!);
+            var address = addressDb.Documents.Select(r => r.ConvertTo<Address>()).ToList().Find(r => r.Id == bill.AddressId);
+            billDto.Address = addressConverter.ToDto(address!);
+            var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == bill.UserId)!;
+            billDto.User = userConverter.ToDto(user);
+            var billItems = SetBillItem(bill.Id!);
+            billDto.BillItems = billItems;
+            billDtos.Add(billDto);
+        }
+
+        return billDtos;
+    }
+    
     public async Task<string> ReOrderProducts(string code){
         var billDb = base.GetSnapshots(_collectionBill);
         var bill_ProductDb = base.GetSnapshots(_collectionBill_Product);
