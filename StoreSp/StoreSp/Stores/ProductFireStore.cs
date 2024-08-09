@@ -196,7 +196,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         var productResult = new List<Product>();
 
         var products = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().FindAll(r => r.CreatedAt.ToDateTime() >= dateLimit);
-        for (int i = startIndex; i < lastIndex + 1; i++)
+        for (int i = startIndex; i < lastIndex; i++)
         {
             if (i < products.Count)
             {
@@ -235,7 +235,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 
         var productResult = new List<Product>();
         var products = productDb.Documents.Select(r => r.ConvertTo<Product>()).OrderByDescending(p => p.QuantitySelled).ToList()[startIndex..lastIndex];
-        for (int i = startIndex; i < lastIndex + 1; i++)
+        for (int i = startIndex; i < lastIndex; i++)
         {
             if (i < products.Count)
             {
