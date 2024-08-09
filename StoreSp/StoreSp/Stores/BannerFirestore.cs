@@ -34,11 +34,21 @@ public class BannerFirestore(FirestoreDb firestoreDb) : FirestoreService(firesto
         {
             var banner = new BannerDto
             {
+                Id = item.Id!,
                 CreatedAt = item.CreatedAt.ToDateTime().ToString(),
                 Name = item.Name
             };
             result.Add(banner);
         } 
         return result;
+    }
+
+    public async Task<string> DeleteBanner(AddBannerDto addBannerDto){
+        var db = _firestoreDb.Collection(_collectionBanner);
+        foreach (var item in addBannerDto.Images)
+        {
+            await db.Document(item).DeleteAsync();
+        }
+        return "success";
     }
 }

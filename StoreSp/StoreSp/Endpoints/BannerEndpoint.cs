@@ -21,6 +21,11 @@ public static class BannerEndpoint
             return authService.GetResult(authorization, BannerService!.AddBanners(addBannerDto));
         }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
 
+        group.MapPost("/delete", (AddBannerDto addBannerDto ,[FromHeader] string authorization) =>
+        {
+            return authService.GetResult(authorization, BannerService!.DeleteBanners(addBannerDto));
+        }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
+
         group.MapGet("/" , ([FromHeader] string authorization) => 
         {
             return authService.GetResult(authorization, BannerService!.GetBanners());
