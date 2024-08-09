@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="FirebaseAdmin" Version="3.0.0" />
     <PackageReference Include="Google.Apis.FirebaseCloudMessaging.v1" Version="1.68.0.3431" />
     <PackageReference Include="Google.Cloud.Firestore" Version="3.7.0" />
     <PackageReference Include="Google.Cloud.Storage.V1" Version="4.10.0" />

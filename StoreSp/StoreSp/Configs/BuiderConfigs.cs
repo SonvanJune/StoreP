@@ -15,6 +15,7 @@ public static class BuiderConfig
         ConfigVariables();
         builder.Services.AddTransient<AuthServiceImpl>();
         builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddControllers();
         builder.Services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "AuthCore API", Version = "v1" });

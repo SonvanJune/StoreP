@@ -1,9 +1,7 @@
-﻿using System.Net.Http.Headers;
-using System.Text;
+﻿using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Firestore;
 using Google.Cloud.Storage.V1;
-using Newtonsoft.Json;
 using StoreSp.Services.Impl;
 using StoreSp.Services.Sockets;
 using StoreSp.Stores.Stores;
@@ -31,10 +29,14 @@ public abstract class FirestoreService(FirestoreDb firestoreDb)
         }
     }
 
-    public static void Run(FirestoreDb db , string credentialPath , string projectId)
+    public static void Run(FirestoreDb db, string credentialPath, string projectId)
     {
+        FirebaseApp.Create(new AppOptions()
+        {
+            Credential = GoogleCredential.FromFile(credentialPath),
+        });
         FirebaseStorageHelper(credentialPath);
-        FmcSendNotificaton(projectId , credentialPath);
+        FmcSendNotificaton();
         if (db != null)
         {
             UserServiceImpl.userFireStore = new UserFireStore(db);
@@ -47,11 +49,12 @@ public abstract class FirestoreService(FirestoreDb firestoreDb)
             LogServiceImpl.LogFireStore = new LogFireStore(db);
             NotificationServiceImpl.NotificationFireStore = new NotificationFireStore(db);
             BannerServiceImpl.BannerFirestore = new BannerFirestore(db);
-            ShippingMethodServiceImpl.ShippingMethodFirestore =  new ShippingMethodFirestore(db);
+            ShippingMethodServiceImpl.ShippingMethodFirestore = new ShippingMethodFirestore(db);
         }
     }
 
-    public static void FirebaseStorageHelper(string credentialPath){
+    public static void FirebaseStorageHelper(string credentialPath)
+    {
         GoogleCredential credential;
         using (var stream = new FileStream(credentialPath, FileMode.Open, FileAccess.Read))
         {
@@ -68,7 +71,8 @@ public abstract class FirestoreService(FirestoreDb firestoreDb)
         }
     }
 
-    public static void FmcSendNotificaton(string credentialPath , string projectId){
-        _fmcService = new FcmService(credentialPath, projectId);
+    public static void FmcSendNotificaton()
+    {
+        _fmcService = new FcmService();
     }
 }
