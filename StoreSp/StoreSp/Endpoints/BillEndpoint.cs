@@ -26,6 +26,11 @@ public static class BillEndpoint
             return authService.GetResult(authorization, BillService!.GetBillByUser(getBillOfUserDto));
         }).WithParameterValidation().RequireAuthorization("nguoi-mua");
 
+        group.MapPost("/update-status" , (UpdateBillDto updateBillDto , [FromHeader] string authorization) => 
+        {
+            return authService.GetResult(authorization, BillService!.UpdateBillStatus(updateBillDto));
+        }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
+
         group.MapGet("/" , ([FromHeader] string authorization) => 
         {
             return authService.GetResult(authorization, BillService!.GetBills());

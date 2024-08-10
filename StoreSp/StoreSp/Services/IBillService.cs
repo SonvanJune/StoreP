@@ -8,4 +8,5 @@ public interface IBillService
     public IResult GetBillByUser(GetBillOfUserDto getBillOfUserDto);
     public IResult GetBills();
     public IResult ReOrderProducts(string code);
+    public IResult UpdateBillStatus(UpdateBillDto updateBillDto);
 }

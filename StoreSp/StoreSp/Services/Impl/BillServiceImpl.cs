@@ -77,4 +77,23 @@ public class BillServiceImpl : IBillService
             data = BillFirestore!.ReOrderProducts(code)
         });
     }
+
+    IResult IBillService.UpdateBillStatus(UpdateBillDto updateBillDto)
+    {
+        var data = BillFirestore!.UpdateStatusBill(updateBillDto).Result;
+        if(data == null){
+            return Results.NotFound(new HttpStatusConfig
+            {
+                status = HttpStatusCode.NotFound,
+                message = "Khong tim thay hoa don",
+                data = null
+            });
+        }
+        return Results.Ok(new HttpStatusConfig
+        {
+            status = HttpStatusCode.OK,
+            message = "success",
+            data = data
+        });
+    }
 }

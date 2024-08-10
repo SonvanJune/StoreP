@@ -171,7 +171,6 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
 
         return billDtos;
     }
-    
     public async Task<string> ReOrderProducts(string code){
         var billDb = base.GetSnapshots(_collectionBill);
         var bill_ProductDb = base.GetSnapshots(_collectionBill_Product);
@@ -205,7 +204,23 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
         }
         return "success";
     }
-
+    public async Task<string> UpdateStatusBill(UpdateBillDto updateBillDto){
+        var billDb = base.GetSnapshots(_collectionBill);
+        var bill = billDb.Documents.Select(r => r.ConvertTo<Bill>()).ToList().Find(r => r.Code == updateBillDto.Code);
+        if(bill == null){
+            return null!;
+        }
+        DocumentReference docref = _firestoreDb.Collection(_collectionBill).Document(bill!.Id);
+        Dictionary<string, object> data = new Dictionary<string, object>{
+            {"Status" , updateBillDto.Status}
+        };
+        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
+        if (snapshot.Exists)
+        {
+            await docref.UpdateAsync(data);
+        }
+        return "success";
+    }
     //method ho tro
     public async Task AddBill_Product(List<CartItem> cartItems, string code)
     {
