@@ -10,7 +10,7 @@ public class BannerServiceImpl : IBannerService
     public static BannerFirestore? BannerFirestore { get; set; }
     IResult IBannerService.AddBanners(AddBannerDto addBannerDto)
     {
-        var banners = BannerFirestore!.AddBanner(addBannerDto);
+        var banners = BannerFirestore!.AddBanner(addBannerDto).Result;
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
