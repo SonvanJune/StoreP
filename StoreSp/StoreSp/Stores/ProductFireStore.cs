@@ -368,7 +368,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         return productsDto;
     }
 
-    private List<string> GetProductImage(string productId){
+    public List<string> GetProductImage(string productId){
         var productDb = base.GetSnapshots(_collectionProducts);
         var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == productId);
         var productImagesDb = base.GetSnapshots(_collectionProductImage);

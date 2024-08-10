@@ -22,6 +22,7 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
     public readonly LogFireStore logFireStore = new LogFireStore(firestoreDb);
     public readonly NotificationFireStore notificationFireStore = new NotificationFireStore(firestoreDb);
     public readonly CartFireStore cartFirestore = new CartFireStore(firestoreDb);
+    public readonly ProductFireStore productFireStore = new ProductFireStore(firestoreDb);
 
     //method chinh
     public async Task<int> Checkout(CreateBillDto createBillDto)
@@ -344,6 +345,7 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
             var author = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == product!.AuthorId);
             productDto.Author = userConverter.ToDto(author!);
             billItemDto.Product = productDto;
+            billItemDto.Product.Images = productFireStore.GetProductImage(product!.Id!);
             billItemDto.ProductClassifies = item.ProductClassifies;
             billItemDtos.Add(billItemDto);
         }
