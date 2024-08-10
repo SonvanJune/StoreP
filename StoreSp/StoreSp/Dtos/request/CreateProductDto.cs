@@ -25,5 +25,7 @@ public class CreateProductDto
     [Required]
     public required string CategoryCode { get; set; }
 
-    public required CreateProductClassifyDto[]? ClassiFies { get; set; } 
+    public required CreateProductClassifyDto[]? ClassiFies { get; set; }
+    
+    public required CreateImageDto[]? Images { get; set; }
 }

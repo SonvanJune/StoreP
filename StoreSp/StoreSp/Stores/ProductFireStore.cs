@@ -14,6 +14,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
     public static string _collectionProducts = "Products";
     public static string _collectionProduct_Like = "Product_Like";
     public static string _collectionProductClassify = "Product_Classifies";
+    public static string _collectionProductImage = "Product_Images";
     private readonly IBaseConverter<User, UserDto> userConverter = new UserConverter();
     private readonly IBaseConverter<Product, CreateProductDto> createProductConverter = new CreateProductConverter();
     private readonly IBaseConverter<ProductClassify, CreateProductClassifyDto> createProductClassifyConverter = new CreateProductClassifyConverter();
@@ -55,6 +56,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         await db.AddAsync(product);
         await AddCategoryProduct(createProductDto.CategoryCode, randomCode);
         await AddProductClassify(createProductDto.ClassiFies!, randomCode);
+        await AddImage(createProductDto.Images! , randomCode);
         await logFireStore.AddLogForUser(user, "dang-san-pham");
         await notificationFireStore.AddNotificationForUser(user, "Bạn vừa đăng sản phẩm", 0);
         return product;
@@ -88,6 +90,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 
             }
             dto.Classifies = GetProductClassifiesByProduct(cp.ProductId);
+            dto.Images = GetProductImage(cp.ProductId);
             dto.Categories = GetCategoriesByProduct(cp.ProductId);
             productsDto.Add(dto);
         }
@@ -112,6 +115,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 
             }
             dto.Classifies = GetProductClassifiesByProduct(item.Id!);
+            dto.Images = GetProductImage(item.Id!);
             productsDto.Add(dto);
         }
         return productsDto;
@@ -128,6 +132,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
             ProductDto dto = productConverter.ToDto(product!);
             dto.Author = userConverter.ToDto(user!);
             dto.Classifies = GetProductClassifiesByProduct(product.Id!);
+            dto.Images = GetProductImage(product.Id!);
             dto.Categories = GetCategoriesByProduct(product.Id!);
             return dto;
         }
@@ -220,6 +225,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 
             }
             dto.Classifies = GetProductClassifiesByProduct(item.Id!);
+            dto.Images = GetProductImage(item.Id!);
             productsDto.Add(dto);
         }
         return productsDto;
@@ -259,6 +265,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 
             }
             dto.Classifies = GetProductClassifiesByProduct(item.Id!);
+            dto.Images = GetProductImage(item.Id!);
             productsDto.Add(dto);
         }
         return productsDto;
@@ -287,6 +294,25 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         }
 
         return productClassifies;
+    }
+
+    private async Task<CreateImageDto[]> AddImage(CreateImageDto[] productImages, string productCode)
+    {
+        var db = _firestoreDb.Collection(_collectionProductImage);
+        var productDb = base.GetSnapshots(_collectionProducts);
+        var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Code == productCode);
+
+        foreach (var pImage in productImages)
+        {
+            var productImage = new ProductImage{
+                Image = pImage.Image,
+                Product = product,
+                ProductId = product!.Id
+            };
+            await db.AddAsync(productImage);
+        }
+
+        return productImages;
     }
 
     private async Task AddCategoryProduct(string categoryCode, string productCode)
@@ -340,6 +366,19 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
             productsDto.Add(dto);
         }
         return productsDto;
+    }
+
+    private List<string> GetProductImage(string productId){
+        var productDb = base.GetSnapshots(_collectionProducts);
+        var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == productId);
+        var productImagesDb = base.GetSnapshots(_collectionProductImage);
+        List<string> images = new List<string>();
+        List<ProductImage> productImages = productImagesDb.Documents.Select(r => r.ConvertTo<ProductImage>()).ToList().FindAll(r => r.ProductId == productId);
+        foreach (var pc in productImages)
+        {
+            images.Add(pc.Image);
+        }
+        return images;
     }
 
     private List<CategoryDto> GetCategoriesByProduct(string productId)

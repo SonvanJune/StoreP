@@ -49,6 +49,7 @@ public class Product
     public List<Category>? Categories { get; set; }
 
     public List<ProductClassify>? ProductClassifies { get; set; }
+    public List<ProductImage>? ProductImages { get; set; }
 
     public List<Bill>? Checkouts { get; set; }
 }

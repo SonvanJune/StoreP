@@ -15,4 +15,5 @@ public class ProductDto
     public required int Likes { get; set; }
     public required string ShippingUnit { get; set; }
     public List<ProductClassifyDto>? Classifies { get; set; }
+    public List<string>? Images { get; set; }
 }
