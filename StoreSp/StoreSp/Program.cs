@@ -40,7 +40,9 @@ app.MapShippingMehodEndpoints();
 app.MapBannerEndpoints();
 
 app.MapCartSocketEndpoint();
+app.MapPaymentEndpoints();
 app.MapUploadEndpoints();
 
 //await FirestoreService._fmcService.SendNotificationAsync("eopJfBtBRlysVuuaY1AwL2:APA91bFagkLLw0OqbwkJZPTBsDGtDfBO8KaxTRbmu8BwflZy6pJRjqgD70p1-Edfbn6t8CSaJJibxsbMSqU_9T1itjeXIQ2k8lEKOunoRUd1BE-eLMXLV-cHvHhJOj5mAj9Kq-l9k1Uj","Son dau buoi", "This is a test notification");
+
 app.Run();

@@ -1,23 +1,56 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<script>
-    const socket = new WebSocket('ws://localhost:5065/ws');
-    socket.onopen = () => {
-        console.log('Connect to the via WebSocket server');
-    };
+<html>
+  <head>
+    <title>PayPal Payment</title>
+  </head>
+  <body>
+    <script src="https://www.paypal.com/sdk/js?client-id=AWTvt6vimYcopjpCVZvQK1yQu_MF1DyYr4A253i9JUAQgf7xODeedoGJbkDCcJsRoG9kapx5C8LR0xfj&currency=USD"></script>
+    <div class="mx-auto p-4 rounded border shadow" style="width: 420px">
+      <h2 class="text-center mb-5">Complete your order</h2>
+      <div class="form-group-mb-3">
+        <label class="form-label">Total Amount ($)</label>
+        <input
+          class="form-control"
+          type="number"
+          id="totalAmount"
+          step="'0.01"
+        />
+      </div>
+      <br />
+      <div id="notification-container"></div>
+      <div id="paypal-button-container"></div>
+    </div>
+    <script>
+      paypal
+        .Buttons({
+          async createOrder() {
+            const response = await fetch(
+              "http://localhost:5181/api/payment/paypal/create-order",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  amount: document.getElementById("totalAmount").value,
+                }),
+              }
+            );
 
-    socket.onmessage = (event) => {
-        document.getElementById('x-value').textContent = `X: ${event.data}`;
-    };
-</script>
-<body>
-    <h1>Test web socket , show x , y realtime</h1>
-    <p id="x-value"></p>
-    <p id="y-value"></p>
-</body>
+            const order = await response.json();
+            console.log(order.value.id);
+            return order.value.id;
+          },
+
+          oncancel(data) {
+            console.log("The user cancelled the payment");
+          },
+
+          onerror(err) {
+            console.error(err);
+          },
+        })
+        .render("#paypal-button-container");
+    </script>
+  </body>
 </html>
