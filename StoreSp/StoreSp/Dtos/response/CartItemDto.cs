@@ -10,5 +10,6 @@ public class CartItemDto
     public int Total { get; set; }
     public string? CartItem_ProductClassifies{get; set; }
     public string? CartItem_ProductClassifyCodes{get; set; }
+    public List<OptionClassifyDto>? options { get; set; }
     public int Status { get; set; }
 }

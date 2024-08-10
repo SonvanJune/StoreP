@@ -5,6 +5,7 @@ using StoreSp.Converters.response;
 using StoreSp.Dtos.request;
 using StoreSp.Dtos.response;
 using StoreSp.Entities;
+using Vonage.Voice.EventWebhooks;
 
 namespace StoreSp.Stores;
 
@@ -377,6 +378,7 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
                 cartItemDto.Shop = userConverter.ToDto(user!);
 
                 //get string product classify for cart item
+                cartItemDto.options = GetOptionClassifyDtos(cartItem.Id!);
                 cartItemDto.CartItem_ProductClassifies = GetStringProductClassify(cartItem.Id!, false);
                 cartItemDto.CartItem_ProductClassifyCodes = GetStringProductClassify(cartItem.Id!, true);
                 //them vao mang
@@ -425,7 +427,38 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         }
         return result;
     }
+    private List<OptionClassifyDto> GetOptionClassifyDtos(string cartItemId){
+        var cartItemDb = base.GetSnapshots(_collectionCartItem);
+        var cartItem = cartItemDb.Documents
+        .Select(r => r.ConvertTo<CartItem>())
+        .ToList()
+        .Find(r => r.Id == cartItemId);
 
+        var productDb = base.GetSnapshots(ProductFireStore._collectionProducts);
+        var product = productDb.Documents
+        .Select(r => r.ConvertTo<Product>())
+        .ToList()
+        .Find(r => r.Id == cartItem!.Id);
+
+        var productClassifyDb = base.GetSnapshots(ProductFireStore._collectionProductClassify);
+        var productClassifies = productClassifyDb.Documents
+        .Select(r => r.ConvertTo<ProductClassify>())
+        .ToList().FindAll(r => r.ProductId == product!.Id);
+
+        List<OptionClassifyDto> optionClassifyDtos = new List<OptionClassifyDto>();
+        foreach (var item in productClassifies)
+        {
+            OptionClassifyDto optionClassifyDto = new OptionClassifyDto{
+                Code = item.Code!,
+                Name = item.Name,
+                GroupName = item.GroupName,
+                Image = item.Image,
+                Quantity = item.Quantity
+            };
+            optionClassifyDtos.Add(optionClassifyDto);
+        }
+        return optionClassifyDtos;
+    }
     private bool CompareArray(List<string> a, List<string> b)
     {
         if (a.Count != b.Count)
