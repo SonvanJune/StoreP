@@ -22,7 +22,7 @@ public class AuthServiceImpl : IAuthService
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = GenerateClaims(user),
-            Expires = DateTime.UtcNow.AddMinutes(30),
+            Expires = DateTime.UtcNow.AddMinutes(3),
             SigningCredentials = credentials,
         };
 
@@ -108,7 +108,7 @@ public class AuthServiceImpl : IAuthService
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = claims,
-            Expires = DateTime.UtcNow.AddMinutes(30),
+            Expires = DateTime.UtcNow.AddMinutes(3),
             SigningCredentials = credentials,
         };
 
