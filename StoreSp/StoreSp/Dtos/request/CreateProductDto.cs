@@ -27,5 +27,5 @@ public class CreateProductDto
 
     public required CreateProductClassifyDto[]? ClassiFies { get; set; }
     
-    public required CreateImageDto[]? Images { get; set; }
+    public required List<string> Images { get; set; }
 }

@@ -296,7 +296,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         return productClassifies;
     }
 
-    private async Task<CreateImageDto[]> AddImage(CreateImageDto[] productImages, string productCode)
+    private async Task<List<string>> AddImage(List<string> productImages, string productCode)
     {
         var db = _firestoreDb.Collection(_collectionProductImage);
         var productDb = base.GetSnapshots(_collectionProducts);
@@ -305,7 +305,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         foreach (var pImage in productImages)
         {
             var productImage = new ProductImage{
-                Image = pImage.Image,
+                Image = pImage,
                 Product = product,
                 ProductId = product!.Id
             };
