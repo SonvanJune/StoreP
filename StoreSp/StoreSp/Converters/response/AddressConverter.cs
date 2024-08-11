@@ -14,7 +14,8 @@ public class AddressConverter : IBaseConverter<Address, AddressDto>
             NameGet = entity.NameGet,
             Description = entity.Description,
             Lat = entity.Lat,
-            Long = entity.Long
+            Long = entity.Long,
+            Location = entity.Location
         };
     }
 
