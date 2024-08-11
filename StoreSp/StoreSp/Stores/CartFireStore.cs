@@ -438,7 +438,7 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         var product = productDb.Documents
         .Select(r => r.ConvertTo<Product>())
         .ToList()
-        .Find(r => r.Id == cartItem!.Id);
+        .Find(r => r.Id == cartItem!.ProductId);
 
         var productClassifyDb = base.GetSnapshots(ProductFireStore._collectionProductClassify);
         var productClassifies = productClassifyDb.Documents
