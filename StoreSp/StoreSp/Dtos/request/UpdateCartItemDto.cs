@@ -5,6 +5,6 @@ namespace StoreSp.Dtos.request;
 
 public record UpdateCartItemDto(
     [Required] string ItemCode,
-    [Required] string Quantity,
+    string Quantity,
     List<string> ClassifyCodes
 );
