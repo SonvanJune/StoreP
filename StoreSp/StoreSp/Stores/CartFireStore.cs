@@ -239,7 +239,7 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         foreach (var item in updateCartDto.UpdateCartItems!)
         {
             var cartItem = cartItemDb.Documents.Select(r => r.ConvertTo<CartItem>()).ToList().Find(r => r.Code == item.ItemCode);
-            if (Convert.ToInt32(item.Quantity) <= 0)
+            if (Convert.ToInt32(item.Quantity) <= 0 && item.Quantity != null)
             {
                 var CartItem_ProductClassify = cartItem_ProductClassifyDb.Documents.Select(r => r.ConvertTo<CartItem_ProductClassify>()).ToList().FindAll(r => r.CartItem_Id == cartItem!.Id);
                 foreach (var i in CartItem_ProductClassify)
@@ -251,7 +251,7 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             }
             if (cartItem != null)
             {
-                if (item.Quantity != null!)
+                if (item.Quantity != null)
                 {
                     totalAfterAdd = totalAfterAdd - cartItem.Total;
                     int quantity = Convert.ToInt32(item.Quantity);
