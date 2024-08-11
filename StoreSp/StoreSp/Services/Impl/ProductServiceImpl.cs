@@ -77,6 +77,25 @@ public class ProductServiceImpl : IProductService
         });
     }
 
+    IResult IProductService.GetProductsLike(GetProductLikeDto getProductLikeDto)
+    {
+        var data = ProductFireStore!.GetProductsLike(getProductLikeDto);
+        if(data == null){
+            return Results.NotFound(new HttpStatusConfig
+            {
+                status = HttpStatusCode.NotFound,
+                message = "Khong tim thay user",
+                data = null
+            });
+        }
+        return Results.Ok(new HttpStatusConfig
+        {
+            status = HttpStatusCode.Created,
+            message = "Success",
+            data = data
+        });
+    }
+
     IResult IProductService.GetProductsNew(GetNewProductDto getNewProductDto)
     {
         return Results.Ok(new HttpStatusConfig

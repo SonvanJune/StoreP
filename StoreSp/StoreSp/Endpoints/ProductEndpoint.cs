@@ -87,6 +87,23 @@ public static class ProductEndpoint
          }
       }).RequireAuthorization();
 
+      group.MapPost("/like/get", (GetProductLikeDto dto, [FromHeader] string authorization) =>
+      {
+         if (authService.GetResult(authorization) == 1)
+         {
+            return ProductService.GetProductsLike(dto);
+         }
+         else
+         {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+               status = HttpStatusCode.BadRequest,
+               message = "Token has expired",
+               data = null
+            });
+         }
+      }).RequireAuthorization();
+
       group.MapPost("/hot", (GetProductHot dto, [FromHeader] string authorization) =>
       {
          if (authService.GetResult(authorization) == 1)

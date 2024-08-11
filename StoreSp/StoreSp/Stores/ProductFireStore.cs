@@ -231,6 +231,51 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         return productsDto;
     }
 
+    public List<ProductDto> GetProductsLike(GetProductLikeDto getProductLikeDto){
+        var productDb = base.GetSnapshots(_collectionProducts);
+        var productlikeDb = base.GetSnapshots(_collectionProduct_Like);
+        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
+        List<ProductDto> productsDto = new List<ProductDto>();
+        var startIndex = getProductLikeDto.ProductInPage * (getProductLikeDto.Page - 1);
+        var lastIndex = startIndex + getProductLikeDto.ProductInPage;
+
+        var productResult = new List<Product>();
+        
+        //find user
+        User user = null!;
+        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == getProductLikeDto.Username) == null)
+        {
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == getProductLikeDto.Username)!;
+        }
+        else
+        {
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == getProductLikeDto.Username)!;
+        }
+
+        if(user == null){
+            return null!;
+        }
+
+        //find product like by user
+        var productLikes = productlikeDb.Documents.Select(r => r.ConvertTo<Like>()).ToList().FindAll(r => r.UserId == user.Id);
+        var productLikeResult = productLikes[startIndex..(lastIndex-1)];
+
+        foreach (var item in productResult)
+        {
+            var shop = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == item!.AuthorId);
+            ProductDto dto = productConverter.ToDto(item!);
+            if (shop != null)
+            {
+                dto.Author = userConverter.ToDto(shop!);
+
+            }
+            dto.Classifies = GetProductClassifiesByProduct(item.Id!);
+            dto.Images = GetProductImage(item.Id!);
+            productsDto.Add(dto);
+        }
+        return productsDto;
+    }
+
     public List<ProductDto> GetProductsHot(GetProductHot getProductHot)
     {
         var productDb = base.GetSnapshots(_collectionProducts);
@@ -240,7 +285,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         var lastIndex = startIndex + getProductHot.ProductInPage;
 
         var productResult = new List<Product>();
-        var products = productDb.Documents.Select(r => r.ConvertTo<Product>()).OrderByDescending(p => p.QuantitySelled).ToList()[startIndex..lastIndex];
+        var products = productDb.Documents.Select(r => r.ConvertTo<Product>()).OrderByDescending(p => p.QuantitySelled).ToList();
         for (int i = startIndex; i < lastIndex; i++)
         {
             if (i < products.Count)

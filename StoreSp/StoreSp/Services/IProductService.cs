@@ -10,5 +10,6 @@ public interface IProductService
     public IResult GetProductsBySearch(string name);
     public IResult GetProductsNew(GetNewProductDto getNewProductDto);
     public IResult GetProductsHot(GetProductHot getProductHot);
+    public IResult GetProductsLike(GetProductLikeDto getProductLikeDto);
     public IResult LikeProduct(LikeProductDto likeProductDto);
 }
