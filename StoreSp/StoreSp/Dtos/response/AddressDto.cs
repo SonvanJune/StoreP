@@ -9,4 +9,5 @@ public class AddressDto
     public required string NameGet { get; set; }
     public required string Lat { get; set; }
     public required string Long { get; set; }
+    public required string Status { get; set; }
 }

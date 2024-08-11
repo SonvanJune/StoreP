@@ -118,7 +118,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
 
         //tao log cho user dang ky
         await logFireStore.AddLogForUser(user, "dang-ky");
-        await notificationFireStore.AddNotificationForUser(user , "Chào mừng bạn đến với ứng dụng" , 0);
+        await notificationFireStore.AddNotificationForUser(user, "Chào mừng bạn đến với ứng dụng", 0);
         return user;
     }
 
@@ -369,7 +369,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         CreateCartForUser(user, dto.DeviceToken);
         //tao log cho user dang ky
         await logFireStore.AddLogForUser(user, "dang-ky-bang-google");
-        await notificationFireStore.AddNotificationForUser(user , "Chào mừng bạn đến với ứng dụng" , 0);
+        await notificationFireStore.AddNotificationForUser(user, "Chào mừng bạn đến với ứng dụng", 0);
         var u = await GenRefreshToken(dto.Email);
         user.RefreshToken = u.RefreshToken;
         return user;
@@ -461,6 +461,24 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             randomCode = rnd.Next(1, 100000).ToString();
         }
         address.Code = randomCode;
+
+        if (address.Status == "1")
+        {
+            var addExits = addressDb.Documents.Select(r => r.ConvertTo<Address>()).ToList().Find(r => r.Status.Contains("1"));
+            if (addExits != null)
+            {
+                DocumentReference docref = _firestoreDb.Collection(_collectionAddress).Document(addExits.Id);
+                Dictionary<string, object> data = new Dictionary<string, object>{
+                    {"Status" , "0"},
+                };
+                DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
+                if (snapshot.Exists)
+                {
+                    await docref.UpdateAsync(data);
+                }
+            }
+        }
+
         await db.AddAsync(address);
         await AddAddressUser(randomCode, user.Id!);
         await logFireStore.AddLogForUser(user, "them-dia-chi");
