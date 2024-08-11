@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Net;
+using Microsoft.AspNetCore.Mvc;
+using StoreSp.Commonds;
 using StoreSp.Dtos.request;
 using StoreSp.Services;
 using StoreSp.Services.Impl;
@@ -18,27 +20,87 @@ public static class BillEndpoint
 
         group.MapPost("/check-out", (CreateBillDto createBillDto , [FromHeader] string authorization) =>
         {
-            return authService.GetResult(authorization, BillService!.Checkout(createBillDto));
+            if (authService.GetResult(authorization) == 1)
+            {
+                return BillService!.Checkout(createBillDto);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
         }).WithParameterValidation().RequireAuthorization("nguoi-mua");
         
         group.MapPost("/" , (GetBillOfUserDto getBillOfUserDto , [FromHeader] string authorization) => 
         {
-            return authService.GetResult(authorization, BillService!.GetBillByUser(getBillOfUserDto));
+            if (authService.GetResult(authorization) == 1)
+            {
+                return BillService!.GetBillByUser(getBillOfUserDto);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
         }).WithParameterValidation().RequireAuthorization("nguoi-mua");
 
         group.MapPost("/update-status" , (UpdateBillDto updateBillDto , [FromHeader] string authorization) => 
         {
-            return authService.GetResult(authorization, BillService!.UpdateBillStatus(updateBillDto));
+            if (authService.GetResult(authorization) == 1)
+            {
+                return BillService!.UpdateBillStatus(updateBillDto);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
         }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
 
         group.MapGet("/" , ([FromHeader] string authorization) => 
         {
-            return authService.GetResult(authorization, BillService!.GetBills());
+            if (authService.GetResult(authorization) == 1)
+            {
+                return BillService!.GetBills();
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
         }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
 
         group.MapPost("/re-order" , (ReOrderProductsDto request , [FromHeader] string authorization) => 
         {
-            return authService.GetResult(authorization, BillService!.ReOrderProducts(request.Code));
+            if (authService.GetResult(authorization) == 1)
+            {
+                return BillService!.ReOrderProducts(request.Code);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
         }).WithParameterValidation().RequireAuthorization("nguoi-mua");
         return group;
     }

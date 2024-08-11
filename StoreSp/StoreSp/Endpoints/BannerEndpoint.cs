@@ -1,4 +1,6 @@
+using System.Net;
 using Microsoft.AspNetCore.Mvc;
+using StoreSp.Commonds;
 using StoreSp.Dtos.request;
 using StoreSp.Services;
 using StoreSp.Services.Impl;
@@ -16,19 +18,55 @@ public static class BannerEndpoint
         BannerService = new BannerServiceImpl();
         authService = new AuthServiceImpl();
 
-        group.MapPost("/", (AddBannerDto addBannerDto ,[FromHeader] string authorization) =>
+        group.MapPost("/", (AddBannerDto addBannerDto, [FromHeader] string authorization) =>
         {
-            return authService.GetResult(authorization, BannerService!.AddBanners(addBannerDto));
+            if (authService.GetResult(authorization) == 1)
+            {
+                return BannerService!.AddBanners(addBannerDto);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
         }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
 
-        group.MapPost("/delete", (AddBannerDto addBannerDto ,[FromHeader] string authorization) =>
+        group.MapPost("/delete", (AddBannerDto addBannerDto, [FromHeader] string authorization) =>
         {
-            return authService.GetResult(authorization, BannerService!.DeleteBanners(addBannerDto));
+            if (authService.GetResult(authorization) == 1)
+            {
+                return BannerService!.DeleteBanners(addBannerDto);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
         }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
 
-        group.MapGet("/" , ([FromHeader] string authorization) => 
+        group.MapGet("/", ([FromHeader] string authorization) =>
         {
-            return authService.GetResult(authorization, BannerService!.GetBanners());
+            if (authService.GetResult(authorization) == 1)
+            {
+                return BannerService!.GetBanners();
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
         }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
 
         return group;

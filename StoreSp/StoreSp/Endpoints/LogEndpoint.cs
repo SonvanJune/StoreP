@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Net;
+using Microsoft.AspNetCore.Mvc;
+using StoreSp.Commonds;
 using StoreSp.Services;
 using StoreSp.Services.Impl;
 
@@ -17,7 +19,19 @@ public static class LogEndpoint
 
         group.MapPost("/", ([FromHeader] string authorization) =>
         {
-            return authService.GetResult(authorization, LogService!.GetLogs());
+            if (authService.GetResult(authorization) == 1)
+            {
+                return LogService!.GetLogs();
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
         }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
 
         return group;

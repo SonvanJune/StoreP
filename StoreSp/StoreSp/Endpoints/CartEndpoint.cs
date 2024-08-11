@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Net;
+using Microsoft.AspNetCore.Mvc;
+using StoreSp.Commonds;
 using StoreSp.Dtos.request;
 using StoreSp.Services;
 using StoreSp.Services.Impl;
@@ -18,22 +20,70 @@ public static class CartEndpoint
 
         group.MapGet("/{username}", (string username , [FromHeader] string authorization) =>
         {
-            return authService.GetResult(authorization, CartService!.GetCartByUser(username));
+            if (authService.GetResult(authorization) == 1)
+            {
+                return CartService!.GetCartByUser(username);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
         }).WithParameterValidation().RequireAuthorization("nguoi-mua");
 
         group.MapPost("/", (AddCartItemDto addCartItemDto , [FromHeader] string authorization) =>
         {
-            return authService.GetResult(authorization, CartService!.AddToCart(addCartItemDto));
+            if (authService.GetResult(authorization) == 1)
+            {
+                return CartService!.AddToCart(addCartItemDto);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
         }).WithParameterValidation().RequireAuthorization("nguoi-mua");
 
         group.MapPut("/update", (UpdateCartDto updateCartDto , [FromHeader] string authorization) =>
         {
-            return authService.GetResult(authorization, CartService!.UpdateCartByUser(updateCartDto));
+            if (authService.GetResult(authorization) == 1)
+            {
+                return CartService!.UpdateCartByUser(updateCartDto);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
         }).WithParameterValidation().RequireAuthorization("nguoi-mua");
 
         group.MapPost("/check", (CheckoutCartItemDto checkoutCartItemDto , [FromHeader] string authorization) =>
         {
-            return authService.GetResult(authorization, CartService!.CheckoutCartItem(checkoutCartItemDto.CartItemCode));
+            if (authService.GetResult(authorization) == 1)
+            {
+                return CartService!.CheckoutCartItem(checkoutCartItemDto.CartItemCode);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
         }).WithParameterValidation().RequireAuthorization("nguoi-mua");
 
         return group;

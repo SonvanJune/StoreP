@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Net;
+using Microsoft.AspNetCore.Mvc;
+using StoreSp.Commonds;
 using StoreSp.Dtos.request;
 using StoreSp.Services;
 using StoreSp.Services.Impl;
@@ -21,7 +23,19 @@ public static class UploadEndpoint
             UploadFilesDto uploadFiles = new UploadFilesDto{
                 Files = request.Form.Files
             };
-            return authService.GetResult(authorization, UploadService.UploadFiles(uploadFiles));
+            if (authService.GetResult(authorization) == 1)
+            {
+                return UploadService.UploadFiles(uploadFiles);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
         });
 
         group.MapGet("/get/image/{imageName}", (string imageName) =>

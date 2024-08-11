@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using StoreSp.Commonds;
 using StoreSp.Configs;
 using StoreSp.Entities;
+using Vonage.Common.Monads;
 
 namespace StoreSp.Services.Impl;
 
@@ -167,21 +168,16 @@ public class AuthServiceImpl : IAuthService
         return handler.WriteToken(token);
     }
 
-    public IResult GetResult(string authorization, IResult result)
+    public int GetResult(string authorization)
     {
         string[] strings = authorization.Split(' ');
         if (this.ValidateToken(strings[1]))
         {
-            return result;
+            return 1;
         }
         else
         {
-            return Results.BadRequest(new HttpStatusConfig
-            {
-                status = HttpStatusCode.BadRequest,
-                message = "Token has expired",
-                data = null
-            });
+            return 0;
         }
     }
 }

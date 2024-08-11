@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Net;
+using Microsoft.AspNetCore.Mvc;
+using StoreSp.Commonds;
 using StoreSp.Dtos.request;
 using StoreSp.Services;
 using StoreSp.Services.Impl;
@@ -18,12 +20,36 @@ public static class RoleEndpoint
 
         group.MapPost("/", (CreateRoleDto createRoleDto , [FromHeader] string authorization) =>
         {
-            return authService.GetResult(authorization, roleService.AddRole(createRoleDto));
+            if (authService.GetResult(authorization) == 1)
+            {
+                return roleService.AddRole(createRoleDto);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
         }).WithParameterValidation();
 
         group.MapGet("/", ([FromHeader] string authorization) =>
         {
-            return authService.GetResult(authorization, roleService.GetAllRoles());
+            if (authService.GetResult(authorization) == 1)
+            {
+                return roleService.GetAllRoles();
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
         }).RequireAuthorization("quan-tri-vien");
 
         return group;

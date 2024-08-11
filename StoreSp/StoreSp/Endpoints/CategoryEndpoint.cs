@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Net;
+using Microsoft.AspNetCore.Mvc;
+using StoreSp.Commonds;
 using StoreSp.Dtos.request;
 using StoreSp.Services;
 using StoreSp.Services.Impl;
@@ -18,17 +20,53 @@ public static class CategoryEndpoint
         
         group.MapGet("/{isMobile}", (bool isMobile , [FromHeader] string authorization) =>
         {
-           return authService.GetResult(authorization, CategoryService!.GetAllCategories(isMobile));
+            if (authService.GetResult(authorization) == 1)
+            {
+                return CategoryService!.GetAllCategories(isMobile);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
         }).RequireAuthorization();
 
         group.MapPost("/", (CreateCategoryDto createCategoryDto , [FromHeader] string authorization) =>
         {
-            return authService.GetResult(authorization, CategoryService!.AddCategory(createCategoryDto));
+            if (authService.GetResult(authorization) == 1)
+            {
+                return CategoryService!.AddCategory(createCategoryDto);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
         }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
 
         group.MapPut("/update", (UpdateCategoryDto updateCategoryDto , [FromHeader] string authorization) =>
         {
-            return authService.GetResult(authorization, CategoryService!.UpdateCategory(updateCategoryDto));
+            if (authService.GetResult(authorization) == 1)
+            {
+                return CategoryService!.UpdateCategory(updateCategoryDto);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
         }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
 
         return group;

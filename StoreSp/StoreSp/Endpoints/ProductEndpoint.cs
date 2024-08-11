@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Net;
+using Microsoft.AspNetCore.Mvc;
+using StoreSp.Commonds;
 using StoreSp.Dtos.request;
 using StoreSp.Services;
 using StoreSp.Services.Impl;
@@ -7,49 +9,134 @@ namespace StoreSp.Endpoints;
 
 public static class ProductEndpoint
 {
-    public static IProductService? ProductService { get; set; }
-    public static IAuthService? authService { get; set; }
+   public static IProductService? ProductService { get; set; }
+   public static IAuthService? authService { get; set; }
 
-    public static RouteGroupBuilder MapProductEndpoints(this WebApplication app)
-    {
-        var group = app.MapGroup("api/products");
-        ProductService = new ProductServiceImpl();
-        authService = new AuthServiceImpl();
-        
-        group.MapGet("/categories", ([FromQuery] string code , [FromHeader] string authorization) =>
-        {
-           return authService.GetResult(authorization, ProductService.GetProductsByCategory(code));
-        }).RequireAuthorization();
+   public static RouteGroupBuilder MapProductEndpoints(this WebApplication app)
+   {
+      var group = app.MapGroup("api/products");
+      ProductService = new ProductServiceImpl();
+      authService = new AuthServiceImpl();
 
-        group.MapGet("", ([FromQuery] string pCode , [FromHeader] string authorization) =>
-        {
-           return authService.GetResult(authorization, ProductService.GetProductByCode(pCode));
-        }).RequireAuthorization();
+      group.MapGet("/categories", ([FromQuery] string code, [FromHeader] string authorization) =>
+      {
+         if (authService.GetResult(authorization) == 1)
+         {
+            return ProductService.GetProductsByCategory(code);
+         }
+         else
+         {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+               status = HttpStatusCode.BadRequest,
+               message = "Token has expired",
+               data = null
+            });
+         }
 
-        group.MapGet("/search", ([FromQuery] string name , [FromHeader] string authorization) =>
-        {
-           return authService.GetResult(authorization, ProductService.GetProductsBySearch(name));
-        }).RequireAuthorization();
+      }).RequireAuthorization();
 
-        group.MapPost("/new", (GetNewProductDto dto , [FromHeader] string authorization) =>
-        {
-           return authService.GetResult(authorization, ProductService.GetProductsNew(dto));
-        }).RequireAuthorization();
+      group.MapGet("", ([FromQuery] string pCode, [FromHeader] string authorization) =>
+      {
+         if (authService.GetResult(authorization) == 1)
+         {
+            return ProductService.GetProductByCode(pCode);
+         }
+         else
+         {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+               status = HttpStatusCode.BadRequest,
+               message = "Token has expired",
+               data = null
+            });
+         }
+      }).RequireAuthorization();
 
-        group.MapPost("/hot", (GetProductHot dto , [FromHeader] string authorization) =>
-        {
-           return authService.GetResult(authorization, ProductService.GetProductsHot(dto));
-        }).RequireAuthorization();
+      group.MapGet("/search", ([FromQuery] string name, [FromHeader] string authorization) =>
+      {
+         if (authService.GetResult(authorization) == 1)
+         {
+            return ProductService.GetProductsBySearch(name);
+         }
+         else
+         {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+               status = HttpStatusCode.BadRequest,
+               message = "Token has expired",
+               data = null
+            });
+         }
+      }).RequireAuthorization();
 
-        group.MapPost("/", (CreateProductDto createProductDto , [FromHeader] string authorization) =>
-        {
-            return authService.GetResult(authorization, ProductService.AddProduct(createProductDto));
-        }).WithParameterValidation().RequireAuthorization("nguoi-ban");
+      group.MapPost("/new", (GetNewProductDto dto, [FromHeader] string authorization) =>
+      {
+         if (authService.GetResult(authorization) == 1)
+         {
+            return ProductService.GetProductsNew(dto);
+         }
+         else
+         {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+               status = HttpStatusCode.BadRequest,
+               message = "Token has expired",
+               data = null
+            });
+         }
+      }).RequireAuthorization();
 
-        group.MapPost("/like", (LikeProductDto likeProductDto , [FromHeader] string authorization) =>
-        {
-            return authService.GetResult(authorization, ProductService.LikeProduct(likeProductDto));
-        }).WithParameterValidation().RequireAuthorization("nguoi-ban");
-        return group;
-    }
+      group.MapPost("/hot", (GetProductHot dto, [FromHeader] string authorization) =>
+      {
+         if (authService.GetResult(authorization) == 1)
+         {
+            return ProductService.GetProductsHot(dto);
+         }
+         else
+         {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+               status = HttpStatusCode.BadRequest,
+               message = "Token has expired",
+               data = null
+            });
+         }
+      }).RequireAuthorization();
+
+      group.MapPost("/", (CreateProductDto createProductDto, [FromHeader] string authorization) =>
+      {
+         if (authService.GetResult(authorization) == 1)
+         {
+            return ProductService.AddProduct(createProductDto);
+         }
+         else
+         {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+               status = HttpStatusCode.BadRequest,
+               message = "Token has expired",
+               data = null
+            });
+         }
+      }).WithParameterValidation().RequireAuthorization("nguoi-ban");
+
+      group.MapPost("/like", (LikeProductDto likeProductDto, [FromHeader] string authorization) =>
+      {
+         if (authService.GetResult(authorization) == 1)
+         {
+            return ProductService.LikeProduct(likeProductDto);
+         }
+         else
+         {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+               status = HttpStatusCode.BadRequest,
+               message = "Token has expired",
+               data = null
+            }); 
+         }
+      }).WithParameterValidation().RequireAuthorization("nguoi-ban");
+      return group;
+   }
 }

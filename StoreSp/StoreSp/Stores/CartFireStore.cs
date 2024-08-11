@@ -276,7 +276,7 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
                     for (int i = 0; i < productClasiifyItems.Count; i++)
                     {
                         var productClassify = productClassifyDb.Documents.Select(r => r.ConvertTo<ProductClassify>()).ToList().Find(r => r.Code == item.ClassifyCodes[i])!;
-
+                        
                         DocumentReference docrefClassifyIten = _firestoreDb.Collection(_collectionCartItem_ProductClassify).Document(productClasiifyItems[i].Id);
                         Dictionary<string, object> dataClassifyItem = new Dictionary<string, object>{
                         {"ProductClassify_Id" , productClassify.Id!}

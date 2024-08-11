@@ -101,18 +101,54 @@ public static class UserEndpoint
 
         group.MapPost("/users/address", (CreateAddressDto dto, [FromHeader] string authorization) =>
         {
-            return authService.GetResult(authorization, userService.AddAdress(dto));
+            if (authService.GetResult(authorization) == 1)
+            {
+                return userService.AddAdress(dto);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
 
         }).WithParameterValidation().RequireAuthorization("nguoi-mua");
 
         group.MapGet("/users/address/{username}", (string username, [FromHeader] string authorization) =>
         {
-            return authService.GetResult(authorization, userService.GetAddress(username));
+            if (authService.GetResult(authorization) == 1)
+            {
+                return userService.GetAddress(username);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
         });
 
         group.MapGet("/users/role", ([FromQuery] string code , [FromHeader] string authorization) =>
         {
-            return authService.GetResult(authorization, userService.GetUserByRole(code));
+            if (authService.GetResult(authorization) == 1)
+            {
+                return userService.GetUserByRole(code);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
         }).RequireAuthorization("quan-tri-vien");
 
         group.MapGet("/test", () =>
@@ -122,7 +158,19 @@ public static class UserEndpoint
 
         group.MapPost("/users/update-status", (UpdateStatusUserDto dto , [FromHeader] string authorization) =>
         {
-            return authService.GetResult(authorization, userService.UpdateStatusUser(dto));
+            if (authService.GetResult(authorization) == 1)
+            {
+                return userService.UpdateStatusUser(dto);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
         }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
         return group;
     }
