@@ -239,7 +239,8 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         foreach (var item in updateCartDto.UpdateCartItems!)
         {
             var cartItem = cartItemDb.Documents.Select(r => r.ConvertTo<CartItem>()).ToList().Find(r => r.Code == item.ItemCode);
-            if(item.Quantity <=  0){
+            if (Convert.ToInt32(item.Quantity) <= 0)
+            {
                 var CartItem_ProductClassify = cartItem_ProductClassifyDb.Documents.Select(r => r.ConvertTo<CartItem_ProductClassify>()).ToList().FindAll(r => r.CartItem_Id == cartItem!.Id);
                 foreach (var i in CartItem_ProductClassify)
                 {
@@ -250,19 +251,22 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             }
             if (cartItem != null)
             {
-                totalAfterAdd = totalAfterAdd - cartItem.Total;
-                int quantity = item.Quantity;
-                int total = item.Quantity * cartItem.Price;
-                totalAfterAdd += total;
-                DocumentReference docref = _firestoreDb.Collection(_collectionCartItem).Document(cartItem.Id);
-                Dictionary<string, object> data = new Dictionary<string, object>{
+                if (item.Quantity != null!)
+                {
+                    totalAfterAdd = totalAfterAdd - cartItem.Total;
+                    int quantity = Convert.ToInt32(item.Quantity);
+                    int total = Convert.ToInt32(item.Quantity) * cartItem.Price;
+                    totalAfterAdd += total;
+                    DocumentReference docref = _firestoreDb.Collection(_collectionCartItem).Document(cartItem.Id);
+                    Dictionary<string, object> data = new Dictionary<string, object>{
                     {"Quantity" , quantity},
                     {"Total" , total}
-                    };
-                DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-                if (snapshot.Exists)
-                {
-                    await docref.UpdateAsync(data);
+                };
+                    DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
+                    if (snapshot.Exists)
+                    {
+                        await docref.UpdateAsync(data);
+                    }
                 }
 
                 //update cartItem Product_Classiffy
@@ -427,7 +431,8 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         }
         return result;
     }
-    private List<OptionClassifyDto> GetOptionClassifyDtos(string cartItemId){
+    private List<OptionClassifyDto> GetOptionClassifyDtos(string cartItemId)
+    {
         var cartItemDb = base.GetSnapshots(_collectionCartItem);
         var cartItem = cartItemDb.Documents
         .Select(r => r.ConvertTo<CartItem>())
@@ -448,7 +453,8 @@ public class CartFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         List<OptionClassifyDto> optionClassifyDtos = new List<OptionClassifyDto>();
         foreach (var item in productClassifies)
         {
-            OptionClassifyDto optionClassifyDto = new OptionClassifyDto{
+            OptionClassifyDto optionClassifyDto = new OptionClassifyDto
+            {
                 Code = item.Code!,
                 Name = item.Name,
                 GroupName = item.GroupName,
