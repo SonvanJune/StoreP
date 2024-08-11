@@ -78,7 +78,7 @@ public static class BuiderConfig
             {
                 policy.AllowAnyHeader()
                 .AllowAnyMethod()
-                .AllowAnyOrigin();
+                .AllowAnyOrigin().WithOrigins("http://10.0.2.2");
             });
         });
         builder.Services.AddTransient<IEmailService , EmailServiceImpl>();
