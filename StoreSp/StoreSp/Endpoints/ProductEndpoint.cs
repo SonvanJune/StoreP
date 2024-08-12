@@ -153,7 +153,7 @@ public static class ProductEndpoint
                data = null
             }); 
          }
-      }).WithParameterValidation().RequireAuthorization("nguoi-ban");
+      }).WithParameterValidation().RequireAuthorization("nguoi-mua");
       return group;
    }
 }
