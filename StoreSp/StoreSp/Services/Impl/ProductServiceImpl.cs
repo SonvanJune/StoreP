@@ -19,9 +19,10 @@ public class ProductServiceImpl : IProductService
         });
     }
 
-    IResult IProductService.GetProductByCode(string code)
+    IResult IProductService.GetProductByCode(string code , string username)
     {
-        if(ProductFireStore!.GetProductByProductCode(code) == null){
+        var data = ProductFireStore!.GetProductByProductCode(code , username);
+        if( data == null){
             return Results.NotFound(new HttpStatusConfig
             {
                 status = HttpStatusCode.NotFound,
@@ -34,13 +35,14 @@ public class ProductServiceImpl : IProductService
         {
             status = HttpStatusCode.Created,
             message = "Success",
-            data = ProductFireStore!.GetProductByProductCode(code)
+            data = data
         });
     }
 
-    IResult IProductService.GetProductsByCategory(string code)
+    IResult IProductService.GetProductsByCategory(string code , string username)
     {
-        if(ProductFireStore!.GetProductsByCategory(code) == null){
+        var data = ProductFireStore!.GetProductsByCategory(code , username);
+        if( data == null){
             return Results.NotFound(new HttpStatusConfig
             {
                 status = HttpStatusCode.NotFound,
@@ -53,27 +55,27 @@ public class ProductServiceImpl : IProductService
         {
             status = HttpStatusCode.Created,
             message = "Success",
-            data = ProductFireStore!.GetProductsByCategory(code)
+            data = data
         });
     }
 
-    IResult IProductService.GetProductsBySearch(string name)
+    IResult IProductService.GetProductsBySearch(string name , string username)
     {
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
             message = "Success",
-            data = ProductFireStore!.GetProductsBySearch(name)
+            data = ProductFireStore!.GetProductsBySearch(name , username)
         });
     }
 
-    IResult IProductService.GetProductsHot(GetProductHot getProductHot)
+    IResult IProductService.GetProductsHot(GetProductHot getProductHot , string username)
     {
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
             message = "Success",
-            data = ProductFireStore!.GetProductsHot(getProductHot)
+            data = ProductFireStore!.GetProductsHot(getProductHot , username)
         });
     }
 
@@ -96,13 +98,13 @@ public class ProductServiceImpl : IProductService
         });
     }
 
-    IResult IProductService.GetProductsNew(GetNewProductDto getNewProductDto)
+    IResult IProductService.GetProductsNew(GetNewProductDto getNewProductDto , string username)
     {
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
             message = "Success",
-            data = ProductFireStore!.GetProductsNew(getNewProductDto)
+            data = ProductFireStore!.GetProductsNew(getNewProductDto, username)
         });
     }
 

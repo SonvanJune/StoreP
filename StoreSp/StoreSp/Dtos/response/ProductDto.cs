@@ -12,7 +12,8 @@ public class ProductDto
     public required int PriceSaleOff { get; set; }
     public required int SaleOff { get; set; }
     public required int QuantitySelled { get; set; }
-    public required int Likes { get; set; }
+    public int Likes { get; set; }
+    public bool IsLiked { get; set; } = false;
     public required string ShippingUnit { get; set; }
     public List<ProductClassifyDto>? Classifies { get; set; }
     public List<string>? Images { get; set; }

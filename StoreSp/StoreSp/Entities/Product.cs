@@ -38,9 +38,6 @@ public class Product
     [FirestoreProperty]
     public required int Active { get; set; }
 
-    [FirestoreProperty]
-    public required int Likes { get; set; }
-
     public User? Author { get; set; }
 
     [FirestoreProperty]

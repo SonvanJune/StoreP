@@ -56,13 +56,13 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         await db.AddAsync(product);
         await AddCategoryProduct(createProductDto.CategoryCode, randomCode);
         await AddProductClassify(createProductDto.ClassiFies!, randomCode);
-        await AddImage(createProductDto.Images! , randomCode);
+        await AddImage(createProductDto.Images!, randomCode);
         await logFireStore.AddLogForUser(user, "dang-san-pham");
         await notificationFireStore.AddNotificationForUser(user, "Bạn vừa đăng sản phẩm", 0);
         return product;
     }
 
-    public List<ProductDto> GetProductsByCategory(string categoryCode)
+    public List<ProductDto> GetProductsByCategory(string categoryCode, string username)
     {
         var productDb = base.GetSnapshots(_collectionProducts);
         var categoryProductDb = base.GetSnapshots(Category_ProductFireStore._collectionCategoryProduct);
@@ -92,13 +92,15 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
             dto.Classifies = GetProductClassifiesByProduct(cp.ProductId);
             dto.Images = GetProductImage(cp.ProductId);
             dto.Categories = GetCategoriesByProduct(cp.ProductId);
+            dto.Likes = GetLikeOfProduct(cp.ProductId);
+            dto.IsLiked = CheckIsLike(username, cp.ProductId);
             productsDto.Add(dto);
         }
 
         return productsDto;
     }
 
-    public List<ProductDto> GetProductsBySearch(string name)
+    public List<ProductDto> GetProductsBySearch(string name, string username)
     {
         var productDb = base.GetSnapshots(_collectionProducts);
         var userDb = base.GetSnapshots(UserFireStore._collectionUser);
@@ -115,13 +117,15 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 
             }
             dto.Classifies = GetProductClassifiesByProduct(item.Id!);
+            dto.Likes = GetLikeOfProduct(item.Id!);
+            dto.IsLiked = CheckIsLike(username, item.Id!);
             dto.Images = GetProductImage(item.Id!);
             productsDto.Add(dto);
         }
         return productsDto;
     }
 
-    public ProductDto GetProductByProductCode(string productCode)
+    public ProductDto GetProductByProductCode(string productCode, string username)
     {
         var productDb = base.GetSnapshots(_collectionProducts);
         var userDb = base.GetSnapshots(UserFireStore._collectionUser);
@@ -132,6 +136,8 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
             ProductDto dto = productConverter.ToDto(product!);
             dto.Author = userConverter.ToDto(user!);
             dto.Classifies = GetProductClassifiesByProduct(product.Id!);
+            dto.Likes = GetLikeOfProduct(product.Id!);
+            dto.IsLiked = CheckIsLike(username, product.Id!);
             dto.Images = GetProductImage(product.Id!);
             dto.Categories = GetCategoriesByProduct(product.Id!);
             return dto;
@@ -174,23 +180,13 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
             await db.AddAsync(like);
         }
 
-        //update so luong like cua san pham
-        DocumentReference docrefProduct = _firestoreDb.Collection(_collectionProducts).Document(product!.Id);
-        Dictionary<string, object> dataProduct = new Dictionary<string, object>{
-                {"QuantitySelled" , product.Likes + 1}
-            };
-        DocumentSnapshot snapshotProduct = await docrefProduct.GetSnapshotAsync();
-        if (snapshotProduct.Exists)
-        {
-            await docrefProduct.UpdateAsync(dataProduct);
-        }
-        var shop = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == product.AuthorId)!;
+        var shop = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == product!.AuthorId)!;
         await logFireStore.AddLogForUser(shop, "dang-san-pham");
         await notificationFireStore.AddNotificationForUser(shop, "Bạn vừa đăng sản phẩm", 0);
         return "";
     }
 
-    public List<ProductDto> GetProductsNew(GetNewProductDto getNewProductDto)
+    public List<ProductDto> GetProductsNew(GetNewProductDto getNewProductDto, string username)
     {
         var productDb = base.GetSnapshots(_collectionProducts);
         var userDb = base.GetSnapshots(UserFireStore._collectionUser);
@@ -211,7 +207,8 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
                     productResult.Add(products[i]);
                 }
             }
-            else{
+            else
+            {
                 break;
             }
         }
@@ -226,13 +223,16 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 
             }
             dto.Classifies = GetProductClassifiesByProduct(item.Id!);
+            dto.Likes = GetLikeOfProduct(item.Id!);
+            dto.IsLiked = CheckIsLike(username, item.Id!);
             dto.Images = GetProductImage(item.Id!);
             productsDto.Add(dto);
         }
         return productsDto;
     }
 
-    public List<ProductDto> GetProductsLike(GetProductLikeDto getProductLikeDto){
+    public List<ProductDto> GetProductsLike(GetProductLikeDto getProductLikeDto)
+    {
         var productDb = base.GetSnapshots(_collectionProducts);
         var productlikeDb = base.GetSnapshots(_collectionProduct_Like);
         var userDb = base.GetSnapshots(UserFireStore._collectionUser);
@@ -241,7 +241,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         var lastIndex = startIndex + getProductLikeDto.ProductInPage;
 
         var productResult = new List<Product>();
-        
+
         //find user
         User user = null!;
         if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == getProductLikeDto.Username) == null)
@@ -253,13 +253,14 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
             user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == getProductLikeDto.Username)!;
         }
 
-        if(user == null){
+        if (user == null)
+        {
             return null!;
         }
 
         //find product like by user
         var productLikes = productlikeDb.Documents.Select(r => r.ConvertTo<Like>()).ToList().FindAll(r => r.UserId == user.Id);
-        var productLikeResult = productLikes[startIndex..(lastIndex-1)];
+        var productLikeResult = productLikes[startIndex..(lastIndex - 1)];
 
         foreach (var item in productResult)
         {
@@ -272,12 +273,14 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
             }
             dto.Classifies = GetProductClassifiesByProduct(item.Id!);
             dto.Images = GetProductImage(item.Id!);
+            dto.Likes = GetLikeOfProduct(item.Id!);
+            dto.IsLiked = CheckIsLike(getProductLikeDto.Username, item.Id!);
             productsDto.Add(dto);
         }
         return productsDto;
     }
 
-    public List<ProductDto> GetProductsHot(GetProductHot getProductHot)
+    public List<ProductDto> GetProductsHot(GetProductHot getProductHot, string username)
     {
         var productDb = base.GetSnapshots(_collectionProducts);
         var userDb = base.GetSnapshots(UserFireStore._collectionUser);
@@ -296,7 +299,8 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
                     productResult.Add(products[i]);
                 }
             }
-            else{
+            else
+            {
                 break;
             }
         }
@@ -312,10 +316,14 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
             }
             dto.Classifies = GetProductClassifiesByProduct(item.Id!);
             dto.Images = GetProductImage(item.Id!);
+            dto.Likes = GetLikeOfProduct(item.Id!);
+            dto.IsLiked = CheckIsLike(username, item.Id!);
             productsDto.Add(dto);
         }
         return productsDto;
     }
+
+
     //method ho tro
     private async Task<CreateProductClassifyDto[]> AddProductClassify(CreateProductClassifyDto[] productClassifies, string productCode)
     {
@@ -350,7 +358,8 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 
         foreach (var pImage in productImages)
         {
-            var productImage = new ProductImage{
+            var productImage = new ProductImage
+            {
                 Image = pImage,
                 Product = product,
                 ProductId = product!.Id
@@ -414,7 +423,8 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         return productsDto;
     }
 
-    public List<string> GetProductImage(string productId){
+    public List<string> GetProductImage(string productId)
+    {
         var productDb = base.GetSnapshots(_collectionProducts);
         var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == productId);
         var productImagesDb = base.GetSnapshots(_collectionProductImage);
@@ -478,5 +488,38 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 
         return result;
 
+    }
+
+    private int GetLikeOfProduct(string productId)
+    {
+        var productLikeDb = base.GetSnapshots(_collectionProduct_Like);
+        var productLikes = productLikeDb.Documents.Select(r => r.ConvertTo<Like>()).ToList().FindAll(r => r.ProductId == productId);
+        return productLikes.Count;
+    }
+
+    private bool CheckIsLike(string username, string productId)
+    {
+        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
+
+        User user = null!;
+        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username) == null)
+        {
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == username)!;
+        }
+        else
+        {
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username)!;
+        }
+
+        if (user != null)
+        {
+            var productLikeDb = base.GetSnapshots(_collectionProduct_Like);
+            var productLike = productLikeDb.Documents.Select(r => r.ConvertTo<Like>()).ToList().Find(r => r.UserId == user.Id && r.ProductId == productId);
+            return productLike != null;
+        }
+        else
+        {
+            return false;
+        }
     }
 }

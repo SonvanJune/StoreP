@@ -22,7 +22,9 @@ public static class ProductEndpoint
       {
          if (authService.GetResult(authorization) == 1)
          {
-            return ProductService.GetProductsByCategory(code);
+            string[] str= authorization.Split(' ');
+            var username = authService.GetFirstByToken(str[1]);
+            return ProductService.GetProductsByCategory(code , username);
          }
          else
          {
@@ -40,7 +42,9 @@ public static class ProductEndpoint
       {
          if (authService.GetResult(authorization) == 1)
          {
-            return ProductService.GetProductByCode(pCode);
+            string[] str= authorization.Split(' ');
+            var username = authService.GetFirstByToken(str[1]);
+            return ProductService.GetProductByCode(pCode , username);
          }
          else
          {
@@ -57,7 +61,9 @@ public static class ProductEndpoint
       {
          if (authService.GetResult(authorization) == 1)
          {
-            return ProductService.GetProductsBySearch(name);
+            string[] str= authorization.Split(' ');
+            var username = authService.GetFirstByToken(str[1]);
+            return ProductService.GetProductsBySearch(name , username);
          }
          else
          {
@@ -74,7 +80,9 @@ public static class ProductEndpoint
       {
          if (authService.GetResult(authorization) == 1)
          {
-            return ProductService.GetProductsNew(dto);
+            string[] str= authorization.Split(' ');
+            var username = authService.GetFirstByToken(str[1]);
+            return ProductService.GetProductsNew(dto , username);
          }
          else
          {
@@ -108,7 +116,9 @@ public static class ProductEndpoint
       {
          if (authService.GetResult(authorization) == 1)
          {
-            return ProductService.GetProductsHot(dto);
+            string[] str= authorization.Split(' ');
+            var username = authService.GetFirstByToken(str[1]);
+            return ProductService.GetProductsHot(dto , username);
          }
          else
          {
