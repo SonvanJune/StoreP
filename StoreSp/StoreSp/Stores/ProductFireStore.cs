@@ -139,7 +139,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         return null!;
     }
 
-    public async Task LikeProduct(LikeProductDto likeProductDto)
+    public async Task<string> LikeProduct(LikeProductDto likeProductDto)
     {
         var db = _firestoreDb.Collection(_collectionProduct_Like);
         var productDb = base.GetSnapshots(_collectionProducts);
@@ -187,6 +187,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         var shop = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == product.AuthorId)!;
         await logFireStore.AddLogForUser(shop, "dang-san-pham");
         await notificationFireStore.AddNotificationForUser(shop, "Bạn vừa đăng sản phẩm", 0);
+        return "";
     }
 
     public List<ProductDto> GetProductsNew(GetNewProductDto getNewProductDto)

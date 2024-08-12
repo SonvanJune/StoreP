@@ -112,7 +112,7 @@ public class ProductServiceImpl : IProductService
         {
             status = HttpStatusCode.Created,
             message = "Success",
-            data = ProductFireStore!.LikeProduct(likeProductDto)
+            data = ProductFireStore!.LikeProduct(likeProductDto).Result
         });
     }
 }
