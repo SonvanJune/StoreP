@@ -38,6 +38,7 @@ app.MapBillEndpoints();
 app.MapLogEndpoints();
 app.MapShippingMehodEndpoints();
 app.MapBannerEndpoints();
+app.MapBoxchatEndpoints();
 
 app.MapCartSocketEndpoint();
 app.MapPaymentEndpoints();

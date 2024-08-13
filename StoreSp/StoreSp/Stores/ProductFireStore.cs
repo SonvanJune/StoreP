@@ -178,11 +178,9 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
                 CreatedAt = Timestamp.FromDateTime(DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc))
             };
             await db.AddAsync(like);
+            var shop = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == product!.AuthorId)!;
+            await notificationFireStore.AddNotificationForUser(shop, likeProductDto.Username + "vừa like sản phẩm của bạn", 0);
         }
-
-        var shop = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == product!.AuthorId)!;
-        await logFireStore.AddLogForUser(shop, "dang-san-pham");
-        await notificationFireStore.AddNotificationForUser(shop, "Bạn vừa đăng sản phẩm", 0);
         return "";
     }
 
