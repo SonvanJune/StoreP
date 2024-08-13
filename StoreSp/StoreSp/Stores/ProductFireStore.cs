@@ -260,7 +260,25 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 
         //find product like by user
         var productLikes = productlikeDb.Documents.Select(r => r.ConvertTo<Like>()).ToList().FindAll(r => r.UserId == user.Id);
-        var productLikeResult = productLikes[startIndex..(lastIndex - 1)];
+
+        for (int i = startIndex; i < lastIndex; i++)
+        {
+            if (i < productLikes.Count)
+            {
+                if (productLikes[i] != null)
+                {
+                    var p = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == productLikes[i].ProductId);
+                    if(p != null){
+                        productResult.Add(p);
+                    }
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+
 
         foreach (var item in productResult)
         {
@@ -322,7 +340,6 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         }
         return productsDto;
     }
-
 
     //method ho tro
     private async Task<CreateProductClassifyDto[]> AddProductClassify(CreateProductClassifyDto[] productClassifies, string productCode)
