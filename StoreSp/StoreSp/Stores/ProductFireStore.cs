@@ -237,8 +237,6 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         var productlikeDb = base.GetSnapshots(_collectionProduct_Like);
         var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         List<ProductDto> productsDto = new List<ProductDto>();
-        var startIndex = getProductLikeDto.ProductInPage * (getProductLikeDto.Page - 1);
-        var lastIndex = startIndex + getProductLikeDto.ProductInPage;
 
         var productResult = new List<Product>();
 
@@ -261,22 +259,10 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         //find product like by user
         var productLikes = productlikeDb.Documents.Select(r => r.ConvertTo<Like>()).ToList().FindAll(r => r.UserId == user.Id);
 
-        for (int i = startIndex; i < lastIndex; i++)
+        foreach (var item in productLikes)
         {
-            if (i < productLikes.Count)
-            {
-                if (productLikes[i] != null)
-                {
-                    var p = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == productLikes[i].ProductId);
-                    if(p != null){
-                        productResult.Add(p);
-                    }
-                }
-            }
-            else
-            {
-                break;
-            }
+            var p = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == item.ProductId);
+            productResult.Add(p!);
         }
 
 
