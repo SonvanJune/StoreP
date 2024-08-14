@@ -46,7 +46,7 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
 
         //neu boxchat da ton tai
         Boxchat? boxChatExist = boxChatDbExist.Documents.Select(r => r.ConvertTo<Boxchat>()).ToList().Find(r => (r.SenderId == userSender.Id && r.ReceiverId == userReceiver.Id) || (r.SenderId == userReceiver.Id && r.ReceiverId == userSender.Id));
-        if (boxChatExist!= null)
+        if (boxChatExist != null)
         {
             return null!;
         }
@@ -117,10 +117,16 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
                 Avatar = sender!.Avatar,
                 Username = sender!.Email ?? sender!.Phone,
             };
-
+            
+            string LastMessage = "";
+            int countMessNotRead = 0;
             var countMessNotReadList = messages.Documents.Select(r => r.ConvertTo<Message>()).ToList().FindAll(r => r.BoxchatId == item.Id && r.Status == 0);
-            var countMessNotRead = countMessNotReadList.Count();
-            var LastMessage = countMessNotReadList[0].Text;
+            if (countMessNotReadList.Count > 0 && countMessNotReadList != null)
+            {
+                countMessNotRead = countMessNotReadList.Count();
+                LastMessage = countMessNotReadList[0].Text;
+            }
+
             var boxchatDto = new BoxchatDto
             {
                 Code = item.Code!,
@@ -228,7 +234,8 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
                 Username = receiver!.Email ?? sender!.Phone,
             };
 
-            var dto = new MessageDto{
+            var dto = new MessageDto
+            {
                 Id = item.Id!,
                 Text = item.Text,
                 Sender = senderInBoxChatDto,
@@ -236,7 +243,7 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
                 CreatedAt = item.CreatedAt.ToDateTime().AddHours(7).ToString(),
                 Status = item.Status
             };
-            
+
             result.Add(dto);
 
             //update status message
