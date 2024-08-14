@@ -1,6 +1,8 @@
 using Google.Cloud.Firestore;
+using StoreSp.Dtos.request;
 using StoreSp.Dtos.response;
 using StoreSp.Entities;
+using Vonage.Conversations.CreateMember;
 
 namespace StoreSp.Stores;
 
@@ -103,6 +105,7 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
             var userInBoxChatDto = new UserInBoxChatDto{
                 Name = sender!.Name,
                 Avatar = sender!.Avatar,
+                Username = sender!.Email ?? sender!.Phone,
             };
 
             var boxchatDto = new BoxchatDto{
@@ -116,6 +119,65 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
         }
 
         return boxchatDtos;
+    }
+    
+    public async Task<string> CreateMessage(CreateMessageDto createMessageDto , string receiver){
+        var messageDb = _firestoreDb.Collection(_collectionMessage);
+        var boxChatDb = GetSnapshots(_collectionBoxchat);
+        var userDb = GetSnapshots(UserFireStore._collectionUser);
+
+        //find user
+        User userSender = null!;
+        User userReceiver = null!;
+        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == receiver) == null)
+        {
+            userSender = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == receiver)!;
+        }
+        else
+        {
+            userSender = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == receiver)!;
+        }
+
+        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == createMessageDto.Sender) == null)
+        {
+            userReceiver = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == createMessageDto.Sender)!;
+        }
+        else
+        {
+            userReceiver = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == createMessageDto.Sender)!;
+        }
+
+        if (userSender == null || userReceiver == null)
+        {
+            return null!;
+        }
+
+        var boxchatReceiver = boxChatDb.Documents.Select(r => r.ConvertTo<Boxchat>()).ToList().Find(r => r.ReceiverId == userReceiver.Id && r.SenderId == userSender.Id);
+        var boxchatSender = boxChatDb.Documents.Select(r => r.ConvertTo<Boxchat>()).ToList().Find(r => r.ReceiverId == userSender.Id && r.SenderId == userReceiver.Id);
+        if(boxchatReceiver != null && boxchatSender != null){
+            var MessageReceiver =  new Message{
+                Text = createMessageDto.Message,
+                SenderId = userSender.Id,
+                ReceiverId = userReceiver.Id,
+                CreatedAt = Timestamp.FromDateTime(DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc)),
+                BoxchatId = boxchatReceiver.Id,
+                Status = 0
+            };
+
+            var MessageSender = new Message{
+                Text = createMessageDto.Message,
+                SenderId = userReceiver.Id,
+                ReceiverId = userSender.Id,
+                CreatedAt = Timestamp.FromDateTime(DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc)),
+                BoxchatId = boxchatSender.Id,
+                Status = 0
+            };
+
+            await messageDb.AddAsync(MessageReceiver);
+            await messageDb.AddAsync(MessageSender);
+        }
+
+        return "";
     }
     
     

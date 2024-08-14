@@ -36,6 +36,12 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
         //tao bill
         var bill = AddBillConverter.ToEntity(createBillDto);
 
+        if(createBillDto.PaymentMethod.ToLower().Contains("Tha")){
+            bill.Status = 1;
+        }else{
+            bill.Status = 0;
+        }
+
         //set user cho bill
         User user = null!;
         if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == createBillDto.Username) == null)
@@ -59,10 +65,10 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
         var shippingCost = shippingMethod!.Price + (createBillDto.Kilometers * VariableConfig<double>.Application["price-of-kilometer"]);
         bill.TotalPrice = Convert.ToInt32(cart!.TotalPrice + shippingCost);
 
-        if (user.Account < bill.TotalPrice)
-        {
-            return -1;
-        }
+        // if (user.Account < bill.TotalPrice)
+        // {
+        //     return -1;
+        // }
 
         //get product cua cart cua user co status la 1
         var cartItemDb = base.GetSnapshots(CartFireStore._collectionCartItem);
@@ -280,16 +286,16 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
         var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == c.UserId);
 
         //update lai tai khoan user
-        int account = user!.Account - bill!.TotalPrice;
-        DocumentReference docref = _firestoreDb.Collection(UserFireStore._collectionUser).Document(user.Id);
-        Dictionary<string, object> data = new Dictionary<string, object>{
-            {"Account" , account}
-        };
-        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-        if (snapshot.Exists)
-        {
-            await docref.UpdateAsync(data);
-        }
+        // int account = user!.Account - bill!.TotalPrice;
+        // DocumentReference docref = _firestoreDb.Collection(UserFireStore._collectionUser).Document(user.Id);
+        // Dictionary<string, object> data = new Dictionary<string, object>{
+        //     {"Account" , account}
+        // };
+        // DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
+        // if (snapshot.Exists)
+        // {
+        //     await docref.UpdateAsync(data);
+        // }
 
         //xoa gio hang
         foreach (var item in cartItems)
