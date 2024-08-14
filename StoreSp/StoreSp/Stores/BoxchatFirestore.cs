@@ -44,6 +44,13 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
             return null!;
         }
 
+        //neu boxchat da ton tai
+        Boxchat? boxChatExist = boxChatDbExist.Documents.Select(r => r.ConvertTo<Boxchat>()).ToList().Find(r => (r.SenderId == userSender.Id && r.ReceiverId == userReceiver.Id) || (r.SenderId == userReceiver.Id && r.ReceiverId == userSender.Id));
+        if (boxChatExist!= null)
+        {
+            return null!;
+        }
+
         //create boxchat
         //box chat of 
         Random rnd = new Random();
@@ -85,6 +92,8 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
     {
         var boxChatDb = GetSnapshots(_collectionBoxchat);
         var userDb = GetSnapshots(UserFireStore._collectionUser);
+        var messages = GetSnapshots(_collectionMessage);
+
         List<BoxchatDto> boxchatDtos = new List<BoxchatDto>();
 
         User user;
@@ -109,11 +118,14 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
                 Username = sender!.Email ?? sender!.Phone,
             };
 
+            var countMessNotReadList = messages.Documents.Select(r => r.ConvertTo<Message>()).ToList().FindAll(r => r.BoxchatId == item.Id && r.Status == 0);
+            var countMessNotRead = countMessNotReadList.Count();
+            var LastMessage = countMessNotReadList[0].Text;
             var boxchatDto = new BoxchatDto
             {
                 Code = item.Code!,
-                LastMessage = "",
-                CountMessNotRead = 0,
+                LastMessage = LastMessage,
+                CountMessNotRead = countMessNotRead,
                 Sender = userInBoxChatDto
             };
 
@@ -186,7 +198,7 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
         return "";
     }
 
-    public List<MessageDto> GetMessages(string boxchatCode)
+    public async Task<List<MessageDto>> GetMessages(string boxchatCode)
     {
         var userDb = GetSnapshots(UserFireStore._collectionUser);
         var messageDb = GetSnapshots(_collectionMessage);
@@ -224,8 +236,19 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
                 CreatedAt = item.CreatedAt.ToDateTime().AddHours(7).ToString(),
                 Status = item.Status
             };
-
+            
             result.Add(dto);
+
+            //update status message
+            DocumentReference docref = _firestoreDb.Collection(_collectionMessage).Document(item.Id);
+            Dictionary<string, object> data = new Dictionary<string, object>{
+               {"Status" , 1}
+            };
+            DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
+            if (snapshot.Exists)
+            {
+                await docref.UpdateAsync(data);
+            }
         }
         return result;
     }

@@ -17,7 +17,7 @@ public class BoxchatServiceImpl : IBoxchatService
             return Results.BadRequest(new HttpStatusConfig
             {
                 status = HttpStatusCode.BadRequest,
-                message = "Không tìm thấy người dùng để tạo hội thoại",
+                message = "Không tìm thấy người dùng để tạo hội thoại hoặc hội thoại đã tồn tại",
                 data = null
             });
         }
@@ -74,7 +74,7 @@ public class BoxchatServiceImpl : IBoxchatService
 
     IResult IBoxchatService.GetMessages(string boxchatCode)
     {
-        var data = BoxchatFirestore!.GetMessages(boxchatCode);
+        var data = BoxchatFirestore!.GetMessages(boxchatCode).Result;
         if (data == null)
         {
             return Results.BadRequest(new HttpStatusConfig

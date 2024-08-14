@@ -21,7 +21,7 @@ public class ChatSocketService
             while (ws.State == WebSocketState.Open)
             {
                 bool canSend = true;
-                var boxchatDtos = BoxchatFirestore!.GetMessages(boxchatCode!);
+                var boxchatDtos = BoxchatFirestore!.GetMessages(boxchatCode!).Result;
                 var result = new HttpStatusConfig
                 {
                     status = HttpStatusCode.OK,
