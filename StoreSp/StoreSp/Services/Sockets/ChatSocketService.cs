@@ -10,7 +10,7 @@ namespace StoreSp.Services.Sockets;
 public class ChatSocketService
 {
     public static BoxchatFirestore? BoxchatFirestore { get; set; }
-    
+
     public async Task GetMessageByUserNameSocket(HttpContext context)
     {
         if (context.WebSockets.IsWebSocketRequest)
@@ -57,6 +57,22 @@ public class ChatSocketService
         else
         {
             context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+        }
+    }
+
+    public async Task HandleWebSocket(HttpContext context)
+    {
+        if (context.WebSockets.IsWebSocketRequest)
+        {
+            using var ws = await context.WebSockets.AcceptWebSocketAsync();
+            // Handle communication here...
+
+            // When you want to close the connection:
+            await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
+        }
+        else
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
         }
     }
 }
