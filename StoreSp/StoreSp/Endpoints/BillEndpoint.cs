@@ -67,7 +67,7 @@ public static class BillEndpoint
                     data = null
                 });
             }
-        }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
+        }).WithParameterValidation().RequireAuthorization();
 
         group.MapGet("/" , ([FromHeader] string authorization) => 
         {
