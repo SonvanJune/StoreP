@@ -28,4 +28,25 @@ public class BoxchatServiceImpl : IBoxchatService
             data = null
         });
     }
+
+    IResult IBoxchatService.GetBoxchats(string username)
+    {
+        var data = BoxchatFirestore!.GetBoxchats(username);
+        if (data == null)
+        {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+                status = HttpStatusCode.BadRequest,
+                message = "Không tìm thấy người dùng để lấy hội thoại",
+                data = null
+            });
+        }
+
+        return Results.Ok(new HttpStatusConfig
+        {
+            status = HttpStatusCode.Created,
+            message = "Lấy thành công",
+            data = data
+        });
+    }
 }

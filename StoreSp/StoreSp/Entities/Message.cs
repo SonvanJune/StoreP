@@ -25,6 +25,9 @@ public class Message
     public required string Text { get; set; }
 
     [FirestoreProperty]
+    public required int Status { get; set; }
+
+    [FirestoreProperty]
     public string? BoxchatId { get; set; }
 
     public Boxchat? Boxchat { get; set; }

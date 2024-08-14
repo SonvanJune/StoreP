@@ -1,4 +1,5 @@
 using Google.Cloud.Firestore;
+using StoreSp.Dtos.response;
 using StoreSp.Entities;
 
 namespace StoreSp.Stores;
@@ -6,9 +7,10 @@ namespace StoreSp.Stores;
 public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firestoreDb)
 {
     public static string _collectionBoxchat = "Boxchats";
-    public static string _collectionBoxchat_User = "Boxchat_User";
     public static string _collectionMessage = "Messages";
 
+
+    //method chinh
     public async Task<string> CreateBoxchat(string usernameSender, string usernameReceiver)
     {
         var boxChatDb = _firestoreDb.Collection(_collectionBoxchat);
@@ -44,41 +46,77 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
         //create boxchat
         //box chat of 
         Random rnd = new Random();
-        string randomCode = rnd.Next(1, 100000).ToString();
-        while (boxChatDbExist.Documents.Select(r => r.ConvertTo<Boxchat>()).ToList().Find(r => r.Code == randomCode) != null)
+        string randomCode1 = rnd.Next(1, 100000).ToString();
+        string randomCode2 = rnd.Next(1, 100000).ToString();
+        while (boxChatDbExist.Documents.Select(r => r.ConvertTo<Boxchat>()).ToList().Find(r => r.Code == randomCode1) != null)
         {
-            randomCode = rnd.Next(1, 100000).ToString();
+            randomCode1 = rnd.Next(1, 100000).ToString();
+        }
+        while (boxChatDbExist.Documents.Select(r => r.ConvertTo<Boxchat>()).ToList().Find(r => r.Code == randomCode2) != null)
+        {
+            randomCode2 = rnd.Next(1, 100000).ToString();
         }
 
-        var boxchat = new Boxchat
+        var boxchatSender = new Boxchat
         {
             CreatedAt = Timestamp.FromDateTime(DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc)),
-            Code = randomCode,
+            Code = randomCode1,
             Status = 1,
+            SenderId = userReceiver.Id,
+            ReceiverId = userSender.Id
         };
 
-        await boxChatDb.AddAsync(boxchat);
-        await CreateBoxchatUser(randomCode, userSender.Id!, userReceiver.Id!);
+        var boxchatReceiver = new Boxchat
+        {
+            CreatedAt = Timestamp.FromDateTime(DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc)),
+            Code = randomCode1,
+            Status = 1,
+            SenderId = userSender.Id,
+            ReceiverId = userReceiver.Id
+        };
+
+        await boxChatDb.AddAsync(boxchatSender);
+        await boxChatDb.AddAsync(boxchatReceiver);
         return "";
     }
+    
+    public List<BoxchatDto> GetBoxchats(string username){
+        var boxChatDb = GetSnapshots(_collectionBoxchat);
+        var userDb = GetSnapshots(UserFireStore._collectionUser);
+        List<BoxchatDto> boxchatDtos = new List<BoxchatDto>();
 
-    private async Task CreateBoxchatUser(string code, string senderId, string receiveId)
-    {
-        var boxChatUserDb = _firestoreDb.Collection(_collectionBoxchat_User);
-        var boxChatDbExist = base.GetSnapshots(_collectionBoxchat);
-        var boxchat = boxChatDbExist.Documents.Select(r => r.ConvertTo<Boxchat>()).ToList().Find(r => r.Code == code);
-        var boxchatUser1 = new Boxchat_User
+        User user;
+        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username) == null)
         {
-            BoxchatId = boxchat!.Id,
-            UserId = senderId,
-        };
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == username)!;
+        }
+        else
+        {
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username)!;
+        }
 
-        var boxchatUser2 = new Boxchat_User
+        var boxchats = boxChatDb.Documents.Select(r => r.ConvertTo<Boxchat>()).ToList().Where(r => r.ReceiverId == user.Id);
+
+        foreach (var item in boxchats)
         {
-            BoxchatId = boxchat!.Id,
-            UserId = receiveId,
-        };
-        await boxChatUserDb.AddAsync(boxchatUser1);
-        await boxChatUserDb.AddAsync(boxchatUser2);
+            var sender = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == item.SenderId);
+            var userInBoxChatDto = new UserInBoxChatDto{
+                Name = sender!.Name,
+                Avatar = sender!.Avatar,
+            };
+
+            var boxchatDto = new BoxchatDto{
+                Code = item.Code!,
+                LastMessage = "",
+                CountMessNotRead = 0,
+                Sender = userInBoxChatDto
+            };
+
+            boxchatDtos.Add(boxchatDto);
+        }
+
+        return boxchatDtos;
     }
+    
+    
 }

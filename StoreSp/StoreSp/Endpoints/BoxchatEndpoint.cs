@@ -24,7 +24,26 @@ public static class BoxchatEndpoint
             {
                 string[] str = authorization.Split(' ');
                 var username = authService.GetFirstByToken(str[1]);
-                return BoxchatService!.CreateBoxChat( createBoxchatDto.Username , username);
+                return BoxchatService!.CreateBoxChat( createBoxchatDto.SenderUsername , username);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
+        }).WithParameterValidation().RequireAuthorization();
+
+        group.MapGet("/get", ([FromHeader] string authorization) =>
+        {
+            if (authService.GetResult(authorization) == 1)
+            {
+                string[] str = authorization.Split(' ');
+                var username = authService.GetFirstByToken(str[1]);
+                return BoxchatService!.GetBoxchats(username);
             }
             else
             {

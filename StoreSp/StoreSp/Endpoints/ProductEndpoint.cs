@@ -95,6 +95,25 @@ public static class ProductEndpoint
          }
       }).RequireAuthorization();
 
+      group.MapPost("/shop", ([FromHeader] string authorization) =>
+      {
+         if (authService.GetResult(authorization) == 1)
+         {
+            string[] str= authorization.Split(' ');
+            var username = authService.GetFirstByToken(str[1]);
+            return ProductService.GetProductsByShop(username);
+         }
+         else
+         {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+               status = HttpStatusCode.BadRequest,
+               message = "Token has expired",
+               data = null
+            });
+         }
+      }).RequireAuthorization("nguoi-ban");
+
       group.MapPost("/like/get", (GetProductLikeDto dto, [FromHeader] string authorization) =>
       {
          if (authService.GetResult(authorization) == 1)

@@ -69,6 +69,16 @@ public class ProductServiceImpl : IProductService
         });
     }
 
+    IResult IProductService.GetProductsByShop(string username)
+    {
+        return Results.Ok(new HttpStatusConfig
+        {
+            status = HttpStatusCode.Created,
+            message = "Success",
+            data = ProductFireStore!.GetProductsByShop(username)
+        });
+    }
+
     IResult IProductService.GetProductsHot(GetProductHot getProductHot , string username)
     {
         return Results.Ok(new HttpStatusConfig

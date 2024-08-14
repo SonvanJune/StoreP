@@ -324,7 +324,39 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         }
         return productsDto;
     }
+    
+    public List<ProductDto> GetProductsByShop(string username){
+        var productDb = base.GetSnapshots(_collectionProducts);
+        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
+        List<ProductDto> productsDto = new List<ProductDto>();
 
+        User shop = null!;
+        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username) == null)
+        {
+            shop = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == username)!;
+        }
+        else
+        {
+            shop = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username)!;
+        }
+
+        if (shop == null)
+        {
+            return null!;
+        }
+
+        var products = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().FindAll(r => r.AuthorId == shop.Id);
+
+        foreach (var item in products)
+        {
+            ProductDto dto = productConverter.ToDto(item!);
+            dto.Classifies = GetProductClassifiesByProduct(item.Id!);
+            dto.Images = GetProductImage(item.Id!);
+            dto.Likes = GetLikeOfProduct(item.Id!);
+            productsDto.Add(dto);
+        }
+        return productsDto;
+    }
     //method ho tro
     private async Task<CreateProductClassifyDto[]> AddProductClassify(CreateProductClassifyDto[] productClassifies, string productCode)
     {
