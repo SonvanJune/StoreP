@@ -42,6 +42,7 @@ app.MapBoxchatEndpoints();
 app.MapMessageEndpoints();
 
 app.MapCartSocketEndpoint();
+app.MapChatSocketEndpoint();
 app.MapPaymentEndpoints();
 app.MapUploadEndpoints();
 

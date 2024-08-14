@@ -26,4 +26,6 @@ public class Boxchat
 
     [FirestoreProperty]
     public required int Status { get; set; }
+
+    public List<Message>? Messages  { get; set; }
 }

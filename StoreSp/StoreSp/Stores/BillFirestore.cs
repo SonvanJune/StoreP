@@ -368,6 +368,7 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
             billItemDto.Product = productDto;
             billItemDto.Product.Images = productFireStore.GetProductImage(product!.Id!);
             billItemDto.ProductClassifies = item.ProductClassifies;
+            billItemDto.Quantity = item.Quantity;
             billItemDtos.Add(billItemDto);
         }
         return billItemDtos;

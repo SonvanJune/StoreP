@@ -37,6 +37,23 @@ public static class MessageEndpoint
             }
         }).WithParameterValidation().RequireAuthorization();
 
+        group.MapGet("/get/{boxchatCode}", (string boxchatCode ,[FromHeader] string authorization) =>
+        {
+            if (authService.GetResult(authorization) == 1)
+            {
+                return BoxchatService!.GetMessages(boxchatCode);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
+        }).WithParameterValidation().RequireAuthorization();
+
         return group;
     }
 }

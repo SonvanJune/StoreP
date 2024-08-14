@@ -51,6 +51,7 @@ public abstract class FirestoreService(FirestoreDb firestoreDb)
             BannerServiceImpl.BannerFirestore = new BannerFirestore(db);
             ShippingMethodServiceImpl.ShippingMethodFirestore = new ShippingMethodFirestore(db);
             BoxchatServiceImpl.BoxchatFirestore = new BoxchatFirestore(db);
+            ChatSocketService.BoxchatFirestore = new BoxchatFirestore(db);
         }
     }
 

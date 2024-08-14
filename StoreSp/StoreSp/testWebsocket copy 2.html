@@ -6,12 +6,13 @@
     <title>Document</title>
 </head>
 <script>
-    const socket = new WebSocket('ws://localhost:5181/ws/chat?boxchatCode=78701');
+    const socket = new WebSocket('ws://localhost:5181/ws/chat?boxchatCode=78700');
     socket.onopen = () => {
         console.log('Connect to the via WebSocket server');
     };
 
     socket.onmessage = (event) => {
+        console.log(event.data);
         document.getElementById('x-value').textContent = `X: ${event.data}`;
     };
 </script>

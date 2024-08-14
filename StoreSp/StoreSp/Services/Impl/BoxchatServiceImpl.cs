@@ -71,4 +71,25 @@ public class BoxchatServiceImpl : IBoxchatService
             data = data
         });
     }
+
+    IResult IBoxchatService.GetMessages(string boxchatCode)
+    {
+        var data = BoxchatFirestore!.GetMessages(boxchatCode);
+        if (data == null)
+        {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+                status = HttpStatusCode.BadRequest,
+                message = "Không tìm thấy người dùng để lấy tin nhắn",
+                data = null
+            });
+        }
+
+        return Results.Ok(new HttpStatusConfig
+        {
+            status = HttpStatusCode.Created,
+            message = "Lấy thành công",
+            data = data
+        });
+    }
 }
