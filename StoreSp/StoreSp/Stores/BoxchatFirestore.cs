@@ -117,7 +117,7 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
                 Avatar = sender!.Avatar,
                 Username = sender!.Email ?? sender!.Phone,
             };
-            
+
             string LastMessage = "";
             int countMessNotRead = 0;
             var countMessNotReadList = messages.Documents.Select(r => r.ConvertTo<Message>()).ToList().FindAll(r => r.BoxchatId == item.Id && r.Status == 0);
@@ -213,7 +213,7 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
         var boxchat = boxChatDb.Documents.Select(r => r.ConvertTo<Boxchat>()).ToList().Find(r => r.Code == boxchatCode);
         var result = new List<MessageDto>();
 
-        var messages = messageDb.Documents.Select(r => r.ConvertTo<Message>()).ToList().FindAll(r => r.BoxchatId == boxchat!.Id);
+        var messages = messageDb.Documents.Select(r => r.ConvertTo<Message>()).ToList().FindAll(r => r.BoxchatId == boxchat!.Id && r.ReceiverId == boxchat.ReceiverId && r.SenderId == boxchat.SenderId);
         var messagesDecending = messages.OrderByDescending(item => item.CreatedAt).ToList();
 
         foreach (var item in messagesDecending)
