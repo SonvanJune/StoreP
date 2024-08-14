@@ -2,7 +2,6 @@ using Google.Cloud.Firestore;
 using StoreSp.Dtos.request;
 using StoreSp.Dtos.response;
 using StoreSp.Entities;
-using Vonage.Conversations.CreateMember;
 
 namespace StoreSp.Stores;
 
@@ -165,7 +164,7 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
                 Text = createMessageDto.Message,
                 SenderId = userSender.Id,
                 ReceiverId = userReceiver.Id,
-                CreatedAt = Timestamp.FromDateTime(DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc)),
+                CreatedAt = Timestamp.FromDateTime(DateTime.UtcNow),
                 BoxchatId = boxchatSender.Id,
                 Status = 0
             };
@@ -175,7 +174,7 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
                 Text = createMessageDto.Message,
                 SenderId = userReceiver.Id,
                 ReceiverId = userSender.Id,
-                CreatedAt = Timestamp.FromDateTime(DateTime.SpecifyKind(DateTime.Today, DateTimeKind.Utc)),
+                CreatedAt = Timestamp.FromDateTime(DateTime.UtcNow),
                 BoxchatId = boxchatReceiver.Id,
                 Status = 0
             };
@@ -222,7 +221,7 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
                 Text = item.Text,
                 Sender = senderInBoxChatDto,
                 Receiver = receiverInBoxChatDto,
-                CreatedAt = item.CreatedAt.ToDateTime().ToString(),
+                CreatedAt = item.CreatedAt.ToDateTime().AddHours(7).ToString(),
                 Status = item.Status
             };
 
