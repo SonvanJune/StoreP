@@ -219,7 +219,7 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
         foreach (var item in messagesDecending)
         {
             var sender = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == item.SenderId);
-            var senderInBoxChatDto = new UserInBoxChatDto
+            var receiverInBoxChatDto = new UserInBoxChatDto
             {
                 Name = sender!.Name,
                 Avatar = sender!.Avatar,
@@ -227,7 +227,7 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
             };
 
             var receiver = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == item.ReceiverId);
-            var receiverInBoxChatDto = new UserInBoxChatDto
+            var  senderInBoxChatDto = new UserInBoxChatDto
             {
                 Name = receiver!.Name,
                 Avatar = receiver!.Avatar,
