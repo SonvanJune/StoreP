@@ -67,7 +67,7 @@ public static class BannerEndpoint
                     data = null
                 });
             }
-        }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
+        }).WithParameterValidation().RequireAuthorization();
 
         return group;
     }
