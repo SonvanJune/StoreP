@@ -213,7 +213,7 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
         var boxchat = boxChatDb.Documents.Select(r => r.ConvertTo<Boxchat>()).ToList().Find(r => r.Code == boxchatCode);
         var result = new List<MessageDto>();
 
-        var messages = messageDb.Documents.Select(r => r.ConvertTo<Message>()).ToList().FindAll(r => r.BoxchatId == boxchat!.Id && r.ReceiverId == boxchat.ReceiverId && r.SenderId == boxchat.SenderId);
+        var messages = messageDb.Documents.Select(r => r.ConvertTo<Message>()).ToList().FindAll(r => r.BoxchatId == boxchat!.Id);
         var messagesDecending = messages.OrderByDescending(item => item.CreatedAt).ToList();
 
         foreach (var item in messagesDecending)
