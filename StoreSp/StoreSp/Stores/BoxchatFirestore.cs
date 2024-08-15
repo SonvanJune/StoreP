@@ -183,7 +183,7 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
                 SenderId = userSender.Id,
                 ReceiverId = userReceiver.Id,
                 CreatedAt = Timestamp.FromDateTime(DateTime.UtcNow),
-                BoxchatId = boxchatSender.Id,
+                BoxchatId = boxchatReceiver.Id,
                 Status = 0
             };
 
@@ -193,7 +193,7 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
                 SenderId = userReceiver.Id,
                 ReceiverId = userSender.Id,
                 CreatedAt = Timestamp.FromDateTime(DateTime.UtcNow),
-                BoxchatId = boxchatReceiver.Id,
+                BoxchatId = boxchatSender.Id,
                 Status = 0
             };
 
