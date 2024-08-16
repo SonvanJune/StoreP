@@ -74,14 +74,6 @@ public static class BuiderConfig
         });
         builder.Services.AddCors(options =>
         {
-            options.AddPolicy("AllowSpecificOrigins", builder =>
-            {
-                builder.WithOrigins("http://192.168.1.12" , "http://192.168.1.9") // Cấp quyền cho các nguồn gốc cụ thể
-                       .AllowAnyMethod() // Cấp quyền cho các phương thức HTTP
-                       .AllowAnyHeader() // Cấp quyền cho các tiêu đề HTTP
-                       .AllowCredentials(); // Cấp quyền cho các yêu cầu với thông tin xác thực
-            });
-
             options.AddDefaultPolicy(policy =>
             {
                 policy.AllowAnyHeader()
@@ -90,11 +82,17 @@ public static class BuiderConfig
             });
 
         });
-        builder.Services.AddTransient<IEmailService , EmailServiceImpl>();
+        builder.Services.AddTransient<IEmailService, EmailServiceImpl>();
+        builder.WebHost.ConfigureKestrel(serverOptions =>
+        {
+            // Cấu hình Kestrel để lắng nghe trên địa chỉ IP cụ thể
+            serverOptions.Listen(System.Net.IPAddress.Parse("127.0.0.1"), 5181); // IP và cổng
+        });
         return builder;
     }
 
-    public static void ConfigVariables(){
+    public static void ConfigVariables()
+    {
         //example
         VariableConfig<double>.Application["price-of-kilometer"] = 500;
     }
