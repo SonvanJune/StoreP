@@ -74,12 +74,21 @@ public static class BuiderConfig
         });
         builder.Services.AddCors(options =>
         {
+            options.AddPolicy("AllowSpecificOrigins", builder =>
+            {
+                builder.WithOrigins("https://192.168.1.12") // Cấp quyền cho các nguồn gốc cụ thể
+                       .AllowAnyMethod() // Cấp quyền cho các phương thức HTTP
+                       .AllowAnyHeader() // Cấp quyền cho các tiêu đề HTTP
+                       .AllowCredentials(); // Cấp quyền cho các yêu cầu với thông tin xác thực
+            });
+
             options.AddDefaultPolicy(policy =>
             {
                 policy.AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowAnyOrigin();
             });
+
         });
         builder.Services.AddTransient<IEmailService , EmailServiceImpl>();
         return builder;

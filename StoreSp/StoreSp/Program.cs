@@ -30,6 +30,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseWebSockets();
 app.UseCors();
+app.UseCors("AllowSpecificOrigins");
 
 app.MapUserEndpoints();
 app.MapRoleEndpoints();
