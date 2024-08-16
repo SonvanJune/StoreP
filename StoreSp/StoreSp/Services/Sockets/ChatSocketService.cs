@@ -27,7 +27,7 @@ public class ChatSocketService
                     var webSocket = await context.WebSockets.AcceptWebSocketAsync();
                     _connectedSockets.Add(webSocket);
 
-                    await HandleWebSocketAsync(webSocket , boxchatCode!);
+                    await HandleWebSocketAsync(webSocket, boxchatCode!);
 
                     // Xóa kết nối khỏi danh sách khi kết thúc
                     _connectedSockets.TryTake(out _);
@@ -45,7 +45,7 @@ public class ChatSocketService
 
     }
 
-    private async Task HandleWebSocketAsync(WebSocket webSocket , string boxchatCode)
+    private async Task HandleWebSocketAsync(WebSocket webSocket, string boxchatCode)
     {
         //parse tu jso sang mang gia tri
         var buffer = new byte[1024 * 4];
@@ -73,14 +73,18 @@ public class ChatSocketService
             // Gửi dữ liệu đến tất cả các kết nối
             for (int i = 0; i < listClient.Count; i++)
             {
-                var boxchatDtos = BoxchatFirestore!.GetMessages(boxchatCode,username).Result;
+                var boxchatDtos = BoxchatFirestore!.GetMessages(boxchatCode, username).Result;
                 var re = new HttpStatusConfig
                 {
                     status = HttpStatusCode.OK,
                     message = "success",
                     data = boxchatDtos
                 };
-                var jsonString = JsonSerializer.Serialize(re);
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase // hoặc null để giữ nguyên kiểu chữ
+                };
+                var jsonString = JsonSerializer.Serialize(re,options);
                 var buff = Encoding.UTF8.GetBytes(jsonString);
                 if (listClient[i].State == WebSocketState.Open)
                 {

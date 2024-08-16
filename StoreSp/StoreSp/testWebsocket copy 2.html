@@ -24,7 +24,7 @@
   </head>
   <script>
     const socket = new WebSocket(
-      "ws://localhost:5181/ws/chat/6624"
+      "ws://localhost:5181/ws/chat/35469"
     );
     socket.onopen = function () {
       console.log("WebSocket connection established");
@@ -39,21 +39,21 @@
 
         messageElement.innerHTML = `
                 <div>
-                    <img src="${item.Sender.Avatar}" alt="${item.Sender.Name}'s Avatar" class="sender-avatar">
-                    <span class="sender">${item.Sender.Name} (${item.Sender.Username})</span>
+                    <img src="${item.sender.avatar}" alt="${item.sender.name}'s Avatar" class="sender-avatar">
+                    <span class="sender">${item.sender.name} (${item.sender.username})</span>
                 </div>
                 <div>
-                    <img src="${item.Receiver.Avatar}" alt="${item.Receiver.Name}'s Avatar" class="receiver-avatar">
-                    <span class="receiver">${item.Receiver.Name} (${item.Receiver.Username})</span>
+                    <img src="${item.receiver.avatar}" alt="${item.receiver.name}'s Avatar" class="receiver-avatar">
+                    <span class="receiver">${item.receiver.name} (${item.receiver.username})</span>
                 </div>
                 <div>
-                    <strong>Message:</strong> ${item.Text}
+                    <strong>Message:</strong> ${item.text}
                 </div>
                 <div>
-                    <strong>Created At:</strong> ${item.CreatedAt}
+                    <strong>Created At:</strong> ${item.createdAt}
                 </div>
                 <div>
-                    <strong>Status:</strong> ${item.Status}
+                    <strong>Status:</strong> ${item.status}
                 </div>
             `;
 
