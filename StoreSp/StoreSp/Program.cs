@@ -9,6 +9,12 @@ using StoreSp.Stores;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.RunConfig();
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    // Cấu hình Kestrel để lắng nghe trên địa chỉ IP cụ thể
+    serverOptions.Listen(System.Net.IPAddress.Parse("192.168.1.9"), 5000); // IP và cổng
+    serverOptions.Listen(System.Net.IPAddress.Parse("127.0.0.1"), 5181); // IP và cổng
+});
 
 Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", @"D:\speed-5046d-firebase-adminsdk-i9v5v-a8e81bb926.json");
 FirestoreDb db = FirestoreDb.Create(builder.Configuration.GetConnectionString("ProjectId"));
