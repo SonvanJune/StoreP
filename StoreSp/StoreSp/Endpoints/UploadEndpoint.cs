@@ -42,13 +42,13 @@ public static class UploadEndpoint
         {
             
             return UploadService.GetImage(imageName).Result;
-        }).RequireAuthorization();
+        });
 
         group.MapGet("/get/image/phone/{imageName}", (string imageName) =>
         {
             
             return UploadService.GetImagePhone(imageName).Result;
-        }).RequireAuthorization();
+        });
         return group;
     }
 }
