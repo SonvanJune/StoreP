@@ -72,9 +72,9 @@ public class BoxchatServiceImpl : IBoxchatService
         });
     }
 
-    IResult IBoxchatService.GetMessages(string boxchatCode)
+    IResult IBoxchatService.GetMessages(string boxchatCode , string username)
     {
-        var data = BoxchatFirestore!.GetMessages(boxchatCode).Result;
+        var data = BoxchatFirestore!.GetMessages(boxchatCode , username).Result;
         if (data == null)
         {
             return Results.BadRequest(new HttpStatusConfig

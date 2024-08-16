@@ -24,7 +24,7 @@
   </head>
   <script>
     const socket = new WebSocket(
-      "ws://localhost:5181/ws/chat/21211tt2356@mail.tdc.edu.vn/sonthu3333@gmail.com"
+      "ws://localhost:5181/ws/chat/6624"
     );
     socket.onopen = function () {
       console.log("WebSocket connection established");
@@ -32,10 +32,10 @@
 
     socket.onmessage = function (event) {
       const data = JSON.parse(event.data).data;
+      messagesContainer.innerHTML = ''
       data.forEach((item) => {
         const messageElement = document.createElement("div");
         messageElement.className = "message";
-
         messageElement.innerHTML = `
                 <div>
                     <img src="${item.Sender.Avatar}" alt="${item.Sender.Name}'s Avatar" class="sender-avatar">
@@ -55,7 +55,7 @@
                     <strong>Status:</strong> ${item.Status}
                 </div>
             `;
-
+        
         // Thêm HTML vào phần tử chứa
         messagesContainer.appendChild(messageElement);
       });
@@ -68,7 +68,7 @@
     function sendMessage() {
       // const message = document.getElementById("message").value;
       const data = {
-        sender: "21211tt2356@mail.tdc.edu.vn",
+        receiver: "21211tt2356@mail.tdc.edu.vn",
         message: "Hello 21211tt2356@mail.tdc.edu.vn",
         username: "sonthu3333@gmail.com",
       };
@@ -77,6 +77,7 @@
   </script>
   <body>
     <title>Document</title>
+    <div id="log"></div>
     <div id="messagesContainer"></div>
     <button onclick="sendMessage()">Send</button>
   </body>

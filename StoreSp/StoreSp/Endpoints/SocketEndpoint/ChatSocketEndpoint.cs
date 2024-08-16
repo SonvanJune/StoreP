@@ -14,7 +14,7 @@ public static class ChatSocketEndpoint
     {
         ChatSocketService = new ChatSocketService();
 
-        app.Map("/ws/chat/{sender}/{receiver}", ChatSocketService.GetMessageByUserNameSocket);
+        app.Map("/ws/chat/{boxchatCode}", ChatSocketService.GetMessageByUserNameSocket);
         return app;
     }
 }

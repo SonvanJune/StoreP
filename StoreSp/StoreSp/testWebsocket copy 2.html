@@ -24,7 +24,7 @@
   </head>
   <script>
     const socket = new WebSocket(
-      "ws://localhost:5181/ws/chat/sonthu3333@gmail.com/21211tt2356@mail.tdc.edu.vn"
+      "ws://localhost:5181/ws/chat/6624"
     );
     socket.onopen = function () {
       console.log("WebSocket connection established");
@@ -32,6 +32,7 @@
 
     socket.onmessage = function (event) {
       const data = JSON.parse(event.data).data;
+      messagesContainer.innerHTML = ''
       data.forEach((item) => {
         const messageElement = document.createElement("div");
         messageElement.className = "message";
@@ -68,7 +69,7 @@
     function sendMessage() {
       // const message = document.getElementById("message").value;
       const data = {
-        sender: "sonthu3333@gmail.com",
+        receiver: "sonthu3333@gmail.com",
         message: "Hello sonthu3333@gmail.com",
         username: "21211tt2356@mail.tdc.edu.vn",
       };
@@ -77,6 +78,7 @@
   </script>
   <body>
     <title>Document</title>
+    <div id="log"></div>
     <div id="messagesContainer"></div>
     <button onclick="sendMessage()">Send</button>
   </body>

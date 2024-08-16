@@ -12,16 +12,6 @@ public class Boxchat
     public Timestamp CreatedAt { get; set; }
 
     [FirestoreProperty]
-    public string? SenderId { get; set; }
-
-    public User? Sender { get; set; }
-
-    [FirestoreProperty]
-    public string? ReceiverId { get; set; }
-
-    public User? Receiver { get; set; }
-
-    [FirestoreProperty]
     public string? Code { get; set; }
 
     [FirestoreProperty]

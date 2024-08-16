@@ -41,7 +41,9 @@ public static class MessageEndpoint
         {
             if (authService.GetResult(authorization) == 1)
             {
-                return BoxchatService!.GetMessages(boxchatCode);
+                string[] str = authorization.Split(' ');
+                var username = authService.GetFirstByToken(str[1]);
+                return BoxchatService!.GetMessages(boxchatCode , username);
             }
             else
             {

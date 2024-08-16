@@ -14,36 +14,22 @@ public class ChatSocketService
 {
     public static BoxchatFirestore? BoxchatFirestore { get; set; }
     private static readonly ConcurrentBag<WebSocket> _connectedSockets = new ConcurrentBag<WebSocket>();
-    private static readonly List<StringValues> _boxchatCodes = new List<StringValues>();
 
     public async Task GetMessageByUserNameSocket(HttpContext context)
     {
-        var sender = context.Request.RouteValues["sender"]!.ToString();
-        var receiver = context.Request.RouteValues["receiver"]!.ToString();
         if (context.Request.Headers["Upgrade"] == "websocket")
         {
-            if (context.Request.Path == $"/ws/chat/{sender}/{receiver}" || context.Request.Path == $"/ws/chat/{receiver}/{sender}")
+            var boxchatCode = context.Request.RouteValues["boxchatCode"]!.ToString();
+            if (context.Request.Path == $"/ws/chat/{boxchatCode}")
             {
                 if (context.WebSockets.IsWebSocketRequest)
                 {
                     var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-                    var requestParams = context.Request.Query;
                     _connectedSockets.Add(webSocket);
 
-                    var boxchatCode1 = BoxchatFirestore!.GetBoxchat(sender!, receiver!);
-                    var boxchatCode2 = BoxchatFirestore!.GetBoxchat(receiver!, sender!);
-
-                    if (boxchatCode1 != null && boxchatCode2 != null)
-                    {
-                        // Thêm kết nối vào danh sách
-                        _boxchatCodes.Add(boxchatCode1);
-                        _boxchatCodes.Add(boxchatCode2);
-                    }
-                    await HandleWebSocketAsync(webSocket);
+                    await HandleWebSocketAsync(webSocket , boxchatCode!);
 
                     // Xóa kết nối khỏi danh sách khi kết thúc
-                    _boxchatCodes.RemoveAll(r => r == boxchatCode1);
-                    _boxchatCodes.RemoveAll(r => r == boxchatCode2);
                     _connectedSockets.TryTake(out _);
                 }
                 else
@@ -59,7 +45,7 @@ public class ChatSocketService
 
     }
 
-    private async Task HandleWebSocketAsync(WebSocket webSocket)
+    private async Task HandleWebSocketAsync(WebSocket webSocket , string boxchatCode)
     {
         //parse tu jso sang mang gia tri
         var buffer = new byte[1024 * 4];
@@ -70,15 +56,16 @@ public class ChatSocketService
             JsonDocument doc = JsonDocument.Parse(jsons);
             JsonElement root = doc.RootElement;
             //lay cac gia tri gui ve
-            string sender = root.GetProperty("sender").GetString()!;
+            string receiver = root.GetProperty("receiver").GetString()!;
             string message = root.GetProperty("message").GetString()!;
             string username = root.GetProperty("username").GetString()!;
-            if (sender != "" && message != "" && username != "")
+            if (receiver != "" && message != "" && username != "")
             {
                 var dto = new CreateMessageDto
                 {
-                    Sender = sender,
-                    Message = message
+                    Receiver = receiver,
+                    Message = message,
+                    BoxchatCode = boxchatCode
                 };
                 await BoxchatFirestore!.CreateMessage(dto, username);
             }
@@ -86,7 +73,7 @@ public class ChatSocketService
             // Gửi dữ liệu đến tất cả các kết nối
             for (int i = 0; i < listClient.Count; i++)
             {
-                var boxchatDtos = BoxchatFirestore!.GetMessages(_boxchatCodes[i]!).Result;
+                var boxchatDtos = BoxchatFirestore!.GetMessages(boxchatCode,username).Result;
                 var re = new HttpStatusConfig
                 {
                     status = HttpStatusCode.OK,
