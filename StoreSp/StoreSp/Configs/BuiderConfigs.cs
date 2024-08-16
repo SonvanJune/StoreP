@@ -76,7 +76,7 @@ public static class BuiderConfig
         {
             options.AddPolicy("AllowSpecificOrigins", builder =>
             {
-                builder.WithOrigins("https://192.168.1.12") // Cấp quyền cho các nguồn gốc cụ thể
+                builder.WithOrigins("http://192.168.1.12" , "http://192.168.1.9") // Cấp quyền cho các nguồn gốc cụ thể
                        .AllowAnyMethod() // Cấp quyền cho các phương thức HTTP
                        .AllowAnyHeader() // Cấp quyền cho các tiêu đề HTTP
                        .AllowCredentials(); // Cấp quyền cho các yêu cầu với thông tin xác thực
