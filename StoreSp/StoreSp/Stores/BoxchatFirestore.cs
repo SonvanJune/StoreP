@@ -140,7 +140,38 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
 
         return boxchatDtos;
     }
+    
+    public string GetBoxchat(string senderName , string receiverName){
+        var boxChatDb = GetSnapshots(_collectionBoxchat);
+        var userDb = GetSnapshots(UserFireStore._collectionUser);
 
+        User sender;
+        User receiver;
+        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == senderName) == null)
+        {
+            sender = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == senderName)!;
+        }
+        else
+        {
+            sender = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == senderName)!;
+        }
+        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == receiverName) == null)
+        {
+            receiver = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == receiverName)!;
+        }
+        else
+        {
+            receiver = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == receiverName)!;
+        }
+
+        if(receiver == null || sender == null){
+            return null!;
+        }
+
+        var boxchat = boxChatDb.Documents.Select(r => r.ConvertTo<Boxchat>()).ToList().Find(r => r.ReceiverId == receiver.Id && r.SenderId == sender.Id);
+        return boxchat!.Code!;
+    }
+    
     public async Task<string> CreateMessage(CreateMessageDto createMessageDto, string receiver)
     {
         var messageDb = _firestoreDb.Collection(_collectionMessage);

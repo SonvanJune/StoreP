@@ -3,12 +3,10 @@ using System.Net;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Primitives;
 using StoreSp.Commonds;
 using StoreSp.Dtos.request;
 using StoreSp.Stores;
-using Vonage.ProactiveConnect.Lists;
 
 namespace StoreSp.Services.Sockets;
 
@@ -20,33 +18,45 @@ public class ChatSocketService
 
     public async Task GetMessageByUserNameSocket(HttpContext context)
     {
-        if (context.Request.Path == "/ws/chat" && context.Request.Headers["Upgrade"] == "websocket")
+        var sender = context.Request.RouteValues["sender"]!.ToString();
+        var receiver = context.Request.RouteValues["receiver"]!.ToString();
+        if (context.Request.Headers["Upgrade"] == "websocket")
         {
-            if (context.WebSockets.IsWebSocketRequest)
+            if (context.Request.Path == $"/ws/chat/{sender}/{receiver}" || context.Request.Path == $"/ws/chat/{receiver}/{sender}")
             {
-                var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-                var requestParams = context.Request.Query;
-                var boxchatCode = requestParams["boxchatCode"];
+                if (context.WebSockets.IsWebSocketRequest)
+                {
+                    var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+                    var requestParams = context.Request.Query;
+                    _connectedSockets.Add(webSocket);
 
-                // Thêm kết nối vào danh sách
-                _connectedSockets.Add(webSocket);
-                _boxchatCodes.Add(boxchatCode);
+                    var boxchatCode1 = BoxchatFirestore!.GetBoxchat(sender!, receiver!);
+                    var boxchatCode2 = BoxchatFirestore!.GetBoxchat(receiver!, sender!);
 
-                await HandleWebSocketAsync(webSocket);
+                    if (boxchatCode1 != null && boxchatCode2 != null)
+                    {
+                        // Thêm kết nối vào danh sách
+                        _boxchatCodes.Add(boxchatCode1);
+                        _boxchatCodes.Add(boxchatCode2);
+                    }
+                    await HandleWebSocketAsync(webSocket);
 
-                // Xóa kết nối khỏi danh sách khi kết thúc
-                _connectedSockets.TryTake(out _);
-                _boxchatCodes.Remove(boxchatCode);
+                    // Xóa kết nối khỏi danh sách khi kết thúc
+                    _boxchatCodes.RemoveAll(r => r == boxchatCode1);
+                    _boxchatCodes.RemoveAll(r => r == boxchatCode2);
+                    _connectedSockets.TryTake(out _);
+                }
+                else
+                {
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                }
             }
             else
             {
-                context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                await context.Response.WriteAsync("WebSocket endpoint");
             }
         }
-        else
-        {
-            await context.Response.WriteAsync("WebSocket endpoint");
-        }
+
     }
 
     private async Task HandleWebSocketAsync(WebSocket webSocket)
