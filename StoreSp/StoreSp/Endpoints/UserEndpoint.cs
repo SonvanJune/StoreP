@@ -34,9 +34,25 @@ public static class UserEndpoint
         {
             return userService.GetUserById(id);
         });
+
         group.MapGet("/users/notifications/{username}", (string username) =>
         {
             return notificationService!.GetNotifications(username);
+        });
+
+        group.MapPost("/users/notifications/read/{notificationId}", (string notificationId) =>
+        {
+            return notificationService!.ReadNotification(notificationId);
+        });
+
+        group.MapDelete("/users/notifications/delete/{notificationId}", (string notificationId) =>
+        {
+            return notificationService!.DeleteNotification(notificationId);
+        });
+
+        group.MapDelete("/users/notifications/delete/all/{username}", (string username) =>
+        {
+            return notificationService!.DeleteAllNotifications(username);
         });
 
         group.MapPost("/register", (RegisterUserDto dto) =>
