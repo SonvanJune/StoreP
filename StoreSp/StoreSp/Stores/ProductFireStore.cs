@@ -82,19 +82,22 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         foreach (var cp in category_product_list)
         {
             var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == cp.ProductId);
-            var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == product!.AuthorId);
-            ProductDto dto = productConverter.ToDto(product!);
-            if (user != null)
+            if (product != null)
             {
-                dto.Author = userConverter.ToDto(user!);
+                var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == product!.AuthorId);
+                ProductDto dto = productConverter.ToDto(product!);
+                if (user != null)
+                {
+                    dto.Author = userConverter.ToDto(user!);
 
+                }
+                dto.Classifies = GetProductClassifiesByProduct(cp.ProductId);
+                dto.Images = GetProductImage(cp.ProductId);
+                dto.Categories = GetCategoriesByProduct(cp.ProductId);
+                dto.Likes = GetLikeOfProduct(cp.ProductId);
+                dto.IsLiked = CheckIsLike(username, cp.ProductId);
+                productsDto.Add(dto);
             }
-            dto.Classifies = GetProductClassifiesByProduct(cp.ProductId);
-            dto.Images = GetProductImage(cp.ProductId);
-            dto.Categories = GetCategoriesByProduct(cp.ProductId);
-            dto.Likes = GetLikeOfProduct(cp.ProductId);
-            dto.IsLiked = CheckIsLike(username, cp.ProductId);
-            productsDto.Add(dto);
         }
 
         return productsDto;
@@ -324,8 +327,9 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         }
         return productsDto;
     }
-    
-    public List<ProductDto> GetProductsByShop(string username){
+
+    public List<ProductDto> GetProductsByShop(string username)
+    {
         var productDb = base.GetSnapshots(_collectionProducts);
         var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         List<ProductDto> productsDto = new List<ProductDto>();
