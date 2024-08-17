@@ -12,6 +12,7 @@ bin-release/
 *.air
 *.ipa
 *.apk
+storep-d7a1c-firebase-adminsdk-2a02r-bfa325ae0a.json
 
 # Project files, i.e. `.project`, `.actionScriptProperties` and `.flexProperties`
 # should NOT be excluded as they contain compiler settings and other important

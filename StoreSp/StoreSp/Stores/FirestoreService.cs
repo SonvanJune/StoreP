@@ -29,14 +29,16 @@ public abstract class FirestoreService(FirestoreDb firestoreDb)
         }
     }
 
-    public static void Run(FirestoreDb db, string credentialPath, string projectId)
+    public static void Run(FirestoreDb db, string projectId)
     {
-        FirebaseApp.Create(new AppOptions()
-        {
-            Credential = GoogleCredential.FromFile(credentialPath),
-        });
-        FirebaseStorageHelper(credentialPath);
+        // FirebaseApp.Create(new AppOptions()
+        // {
+        //     Credential = GoogleCredential.FromFile(credentialPath),
+        // });
+
+        // FirebaseStorageHelper(credentialPath);
         FmcSendNotificaton();
+
         if (db != null)
         {
             UserServiceImpl.userFireStore = new UserFireStore(db);
