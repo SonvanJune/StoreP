@@ -10,9 +10,9 @@ using StoreSp.Stores;
 var builder = WebApplication.CreateBuilder(args);
 builder.RunConfig();
 
-Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", @"D:\store-ab1b8-firebase-adminsdk-5smhi-bc8b33283b.json");
+Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", @"D:\storep-d7a1c-firebase-adminsdk-2a02r-bfa325ae0a.json");
 FirestoreDb db = FirestoreDb.Create(builder.Configuration.GetConnectionString("ProjectId"));
-FirestoreService.Run(db, @"D:\store-ab1b8-firebase-adminsdk-5smhi-bc8b33283b.json", builder.Configuration.GetConnectionString("ProjectId")!);
+FirestoreService.Run(db, @"D:\storep-d7a1c-firebase-adminsdk-2a02r-bfa325ae0a.json", builder.Configuration.GetConnectionString("ProjectId")!);
 
 
 var app = builder.Build();

@@ -24,7 +24,7 @@
   </head>
   <script>
     const socket = new WebSocket(
-      "ws://localhost:5181/ws/chat/35469"
+      "ws://localhost:5181/ws/chat/6624"
     );
     socket.onopen = function () {
       console.log("WebSocket connection established");
@@ -69,9 +69,9 @@
     function sendMessage() {
       // const message = document.getElementById("message").value;
       const data = {
-        receiver: "sonthu3333@gmail.com",
+        receiver: "21211tt2356@mail.tdc.edu.vn",
         message: "Hello sonthu3333@gmail.com",
-        username: "21211tt2356@mail.tdc.edu.vn",
+        username: "sonthu3333@gmail.com",
       };
       socket.send(JSON.stringify(data));
     }

@@ -113,7 +113,7 @@ public class UserServiceImpl : IUserService
         var user = userFireStore.Login(loginUserDto).Result;
         if (user != null)
         {
-            if (user.IsGoogleAccount)
+            if (user.IsGoogleAccount == true)
             {
                 return Results.BadRequest(new HttpStatusConfig
                 {

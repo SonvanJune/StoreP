@@ -10,7 +10,7 @@ public class ProductServiceImpl : IProductService
     public static ProductFireStore? ProductFireStore { get; set; }
     IResult IProductService.AddProduct(CreateProductDto createProductDto)
     {
-        var product = ProductFireStore!.AddProduct(createProductDto);
+        var product = ProductFireStore!.AddProduct(createProductDto).Result;
         return Results.Created("", new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
