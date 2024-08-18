@@ -17,17 +17,29 @@ public class BoxchatServiceImpl : IBoxchatService
             return Results.BadRequest(new HttpStatusConfig
             {
                 status = HttpStatusCode.BadRequest,
-                message = "Không tìm thấy người dùng để tạo hội thoại hoặc hội thoại đã tồn tại",
+                message = "Không tìm thấy người dùng để tạo hội thoại",
                 data = null
             });
         }
 
-        return Results.Created("", new HttpStatusConfig
+        if (item != "")
         {
-            status = HttpStatusCode.Created,
-            message = "Thêm hội thoại thành công",
-            data = null
-        });
+            return Results.Ok(new HttpStatusConfig
+            {
+                status = HttpStatusCode.Created,
+                message = "Đoạn hội thọai đã tồn tại",
+                data = item
+            });
+        }
+        else
+        {
+            return Results.Created("", new HttpStatusConfig
+            {
+                status = HttpStatusCode.Created,
+                message = "Thêm hội thoại thành công",
+                data = null
+            });
+        }
     }
 
     IResult IBoxchatService.CreateMessage(CreateMessageDto createMessageDto, string username)
@@ -72,9 +84,9 @@ public class BoxchatServiceImpl : IBoxchatService
         });
     }
 
-    IResult IBoxchatService.GetMessages(string boxchatCode , string username)
+    IResult IBoxchatService.GetMessages(string boxchatCode, string username)
     {
-        var data = BoxchatFirestore!.GetMessages(boxchatCode , username).Result;
+        var data = BoxchatFirestore!.GetMessages(boxchatCode, username).Result;
         if (data == null)
         {
             return Results.BadRequest(new HttpStatusConfig

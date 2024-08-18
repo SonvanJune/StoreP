@@ -17,6 +17,7 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
     {
         var boxChatDb = _firestoreDb.Collection(_collectionBoxchat);
         var boxChatDbExist = base.GetSnapshots(_collectionBoxchat);
+        var boxChatUserDbExist = base.GetSnapshots(_collectionBoxchat_User);
         var userDb = base.GetSnapshots(UserFireStore._collectionUser);
 
         //find user
@@ -46,24 +47,39 @@ public class BoxchatFirestore(FirestoreDb firestoreDb) : FirestoreService(firest
         }
 
         //create boxchat
-        //box chat of 
-        Random rnd = new Random();
-        string randomCode = rnd.Next(1, 100000).ToString();
-        while (boxChatDbExist.Documents.Select(r => r.ConvertTo<Boxchat>()).ToList().Find(r => r.Code == randomCode) != null)
+        var listBoxchatOfUserSender = boxChatUserDbExist.Documents.Select(r => r.ConvertTo<Boxchat_User>()).ToList().FindAll(r => r.UserId == userSender.Id)!;
+        string boxchatCodeExist = "";
+
+        foreach (var item in listBoxchatOfUserSender)
         {
-            randomCode = rnd.Next(1, 100000).ToString();
+            if (item.UserId == userReceiver.Id)
+            {
+                var boxchatExist = boxChatDbExist.Documents.Select(r => r.ConvertTo<Boxchat>()).ToList().Find(r => r.Id == item.BoxchatId);
+                boxchatCodeExist = boxchatExist!.Code!;
+            }
         }
 
-        var boxchat = new Boxchat
+        if (boxchatCodeExist == "")
         {
-            CreatedAt = Timestamp.FromDateTime(DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc)),
-            Code = randomCode,
-            Status = 1
-        };
+            Random rnd = new Random();
+            string randomCode = rnd.Next(1, 100000).ToString();
+            while (boxChatDbExist.Documents.Select(r => r.ConvertTo<Boxchat>()).ToList().Find(r => r.Code == randomCode) != null)
+            {
+                randomCode = rnd.Next(1, 100000).ToString();
+            }
 
-        await boxChatDb.AddAsync(boxchat);
-        await AddBoxchatUserAsync(randomCode, userSender, userReceiver);
-        return "";
+            var boxchat = new Boxchat
+            {
+                CreatedAt = Timestamp.FromDateTime(DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc)),
+                Code = randomCode,
+                Status = 1
+            };
+
+            await boxChatDb.AddAsync(boxchat);
+            await AddBoxchatUserAsync(randomCode, userSender, userReceiver);
+        }
+
+        return boxchatCodeExist;
     }
 
     private async Task AddBoxchatUserAsync(string code, User userSender, User userReceiver)
