@@ -42,7 +42,7 @@ public class NotificationFireStore(FirestoreDb firestoreDb) : FirestoreService(f
         return notification;
     }
 
-    public List<NotificationDto> GetNotifications(string username)
+    public List<NotificationDto> GetNotifications(string username, int status)
     {
         var notificationDb = base.GetSnapshots(_collectionNotification);
         List<NotificationDto> notificationDtos = new List<NotificationDto>();
@@ -61,7 +61,15 @@ public class NotificationFireStore(FirestoreDb firestoreDb) : FirestoreService(f
             return null!;
         }
 
-        var notifications = notificationDb.Documents.Select(r => r.ConvertTo<Notification>()).ToList().FindAll(r => r.UserId == user.Id);
+        List<Notification> notifications = new List<Notification>();
+        if (status == -1)
+        {
+            notifications = notificationDb.Documents.Select(r => r.ConvertTo<Notification>()).ToList().FindAll(r => r.UserId == user.Id);
+        }
+        else{
+            notifications = notificationDb.Documents.Select(r => r.ConvertTo<Notification>()).ToList().FindAll(r => r.UserId == user.Id && r.Status == status);
+        }
+
         foreach (var notification in notifications)
         {
             var notificationDto = new NotificationDto
@@ -109,7 +117,8 @@ public class NotificationFireStore(FirestoreDb firestoreDb) : FirestoreService(f
         return "";
     }
 
-    public async Task<string> DeleteAllNotifications(string username){
+    public async Task<string> DeleteAllNotifications(string username , int status)
+    {
         var notificationDb = base.GetSnapshots(_collectionNotification);
         var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         User user;
@@ -125,8 +134,18 @@ public class NotificationFireStore(FirestoreDb firestoreDb) : FirestoreService(f
         {
             return null!;
         }
-        var notifications = notificationDb.Documents.Select(r => r.ConvertTo<Notification>()).ToList().FindAll(r => r.UserId == user.Id);
-        foreach (var notification in notifications){
+
+        List<Notification> notifications = new List<Notification>();
+        if (status == -1)
+        {
+            notifications = notificationDb.Documents.Select(r => r.ConvertTo<Notification>()).ToList().FindAll(r => r.UserId == user.Id);
+        }
+        else{
+            notifications = notificationDb.Documents.Select(r => r.ConvertTo<Notification>()).ToList().FindAll(r => r.UserId == user.Id && r.Status == status);
+        }
+        
+        foreach (var notification in notifications)
+        {
             await _firestoreDb.Collection(_collectionNotification).Document(notification.Id).DeleteAsync();
         }
         return "";

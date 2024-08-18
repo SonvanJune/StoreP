@@ -35,9 +35,9 @@ public static class UserEndpoint
             return userService.GetUserById(id);
         });
 
-        group.MapGet("/users/notifications/{username}", (string username) =>
+        group.MapGet("/users/notifications/{username}", (string username , [FromQuery] int status) =>
         {
-            return notificationService!.GetNotifications(username);
+            return notificationService!.GetNotifications(username , status);
         });
 
         group.MapPost("/users/notifications/read/{notificationId}", (string notificationId) =>
@@ -50,9 +50,9 @@ public static class UserEndpoint
             return notificationService!.DeleteNotification(notificationId);
         });
 
-        group.MapDelete("/users/notifications/delete/all/{username}", (string username) =>
+        group.MapDelete("/users/notifications/delete/all/{username}", (string username , [FromQuery] int status) =>
         {
-            return notificationService!.DeleteAllNotifications(username);
+            return notificationService!.DeleteAllNotifications(username , status);
         });
 
         group.MapPost("/register", (RegisterUserDto dto) =>

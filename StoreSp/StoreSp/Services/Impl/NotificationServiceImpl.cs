@@ -10,9 +10,9 @@ public class NotificationServiceImpl : INotificationService
 {
     public static NotificationFireStore? NotificationFireStore { get; set; }
 
-    IResult INotificationService.DeleteAllNotifications(string username)
+    IResult INotificationService.DeleteAllNotifications(string username , int status)
     {
-        var data = NotificationFireStore!.DeleteAllNotifications(username);
+        var data = NotificationFireStore!.DeleteAllNotifications(username , status);
         if(data != null){
             return Results.Ok(new HttpStatusConfig
             {
@@ -52,13 +52,13 @@ public class NotificationServiceImpl : INotificationService
         }
     }
 
-    IResult INotificationService.GetNotifications(string username)
+    IResult INotificationService.GetNotifications(string username , int status)
     {
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
             message = "success",
-            data = NotificationFireStore!.GetNotifications(username)
+            data = NotificationFireStore!.GetNotifications(username , status)
         });
     }
 

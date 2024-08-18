@@ -10,7 +10,7 @@ using StoreSp.Stores;
 var builder = WebApplication.CreateBuilder(args);
 builder.RunConfig();
 
-Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", @"D:\speed-5046d-firebase-adminsdk-i9v5v-a8e81bb926.json");
+Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", @"D:\speed1-37b90-firebase-adminsdk-ei37y-b28dc3efda.json");
 FirestoreDb db = FirestoreDb.Create(builder.Configuration.GetConnectionString("ProjectId"));
 FirestoreService.Run(db, builder.Configuration.GetConnectionString("ProjectId")!);
 
