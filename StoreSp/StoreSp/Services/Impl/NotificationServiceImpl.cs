@@ -57,9 +57,51 @@ public class NotificationServiceImpl : INotificationService
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
-            message = "success",
+            message = "Thành công",
             data = NotificationFireStore!.GetNotifications(username , status)
         });
+    }
+
+    IResult INotificationService.MakeNotReadNotification(string notificationId)
+    {
+        var data = NotificationFireStore!.MakeNotReadNotification(notificationId);
+        if(data != null){
+            return Results.Ok(new HttpStatusConfig
+            {
+                status = HttpStatusCode.OK,
+                message = "Chưa đọc thông báo thành công",
+                data = null
+            });
+        }
+        else{
+            return Results.NotFound(new HttpStatusConfig
+            {
+                status = HttpStatusCode.NotFound,
+                message = "Không tìm thấy thông báo",
+                data = null
+            });
+        }
+    }
+
+    IResult INotificationService.ReadALLNotification(string username)
+    {
+        var data = NotificationFireStore!.ReadALLNotification(username);
+        if(data != null){
+            return Results.Ok(new HttpStatusConfig
+            {
+                status = HttpStatusCode.OK,
+                message = "Đọc thông báo thành công",
+                data = null
+            });
+        }
+        else{
+            return Results.NotFound(new HttpStatusConfig
+            {
+                status = HttpStatusCode.NotFound,
+                message = "Không tìm thấy người dùng",
+                data = null
+            });
+        }
     }
 
     IResult INotificationService.ReadNotification(string notificationId)
@@ -69,7 +111,7 @@ public class NotificationServiceImpl : INotificationService
             return Results.Ok(new HttpStatusConfig
             {
                 status = HttpStatusCode.OK,
-                message = "Xóa thông báo thành công",
+                message = "Đọc thông báo thành công",
                 data = null
             });
         }

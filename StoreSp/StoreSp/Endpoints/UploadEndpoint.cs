@@ -18,35 +18,25 @@ public static class UploadEndpoint
         UploadService = new UploadServiceImpl();
         authService = new AuthServiceImpl();
 
-        group.MapPost("/uploads", (HttpRequest request , [FromHeader] string authorization) =>
+        group.MapPost("/uploads", (HttpRequest request) =>
         {
-            UploadFilesDto uploadFiles = new UploadFilesDto{
+            UploadFilesDto uploadFiles = new UploadFilesDto
+            {
                 Files = request.Form.Files
             };
-            if (authService.GetResult(authorization) == 1)
-            {
-                return UploadService.UploadFiles(uploadFiles);
-            }
-            else
-            {
-                return Results.BadRequest(new HttpStatusConfig
-                {
-                    status = HttpStatusCode.BadRequest,
-                    message = "Token has expired",
-                    data = null
-                });
-            }
+            return UploadService.UploadFiles(uploadFiles);
+
         });
 
         group.MapGet("/get/image/{imageName}", (string imageName) =>
         {
-            
+
             return UploadService.GetImage(imageName).Result;
         });
 
         group.MapGet("/get/image/phone/{imageName}", (string imageName) =>
         {
-            
+
             return UploadService.GetImagePhone(imageName).Result;
         });
         return group;

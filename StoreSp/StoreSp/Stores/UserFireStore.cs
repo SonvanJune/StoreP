@@ -600,4 +600,34 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         }
         return null!;
     }
+    
+    public async Task<string> UpdateUser(UpdateUserDto updateUserDto , string username){
+        var userDb = base.GetSnapshots(_collectionUser);
+        User user = null!;
+        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username) == null)
+        {
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == username)!;
+        }
+        else
+        {
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username)!;
+        }
+
+        if (user == null)
+        {
+            return null!;
+        }
+
+        DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
+        Dictionary<string, object> data = new Dictionary<string, object>{
+               {"Name" , updateUserDto.Name},
+               {"Avatar" , updateUserDto.Image},
+            };
+        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
+        if (snapshot.Exists)
+        {
+            await docref.UpdateAsync(data);
+        }
+        return "";
+    }
 }

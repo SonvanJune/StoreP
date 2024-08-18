@@ -16,7 +16,7 @@ public class UploadServiceImpl : IUploadService
             return Results.Ok(new HttpStatusConfig
             {
                 status = HttpStatusCode.OK,
-                message = "Upload Sucess",
+                message = "Tải thành công",
                 data = Upload(dto.Files).Result
             });
         }
@@ -25,7 +25,7 @@ public class UploadServiceImpl : IUploadService
             return Results.BadRequest(new HttpStatusConfig
             {
                 status = HttpStatusCode.BadRequest,
-                message = "Upload failed",
+                message = "Tải thất bại",
                 data = null
             });
         }
@@ -45,7 +45,7 @@ public class UploadServiceImpl : IUploadService
         }
         else
         {
-            return Results.NotFound("File not found.");
+            return Results.NotFound("Không tìm thấy file.");
         }
     }
 
@@ -63,7 +63,7 @@ public class UploadServiceImpl : IUploadService
         }
         else
         {
-            return Results.NotFound("File not found.");
+            return Results.NotFound("Không tìm thấy file.");
         }
     }
 

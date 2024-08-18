@@ -14,7 +14,7 @@ public class BannerServiceImpl : IBannerService
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
-            message = "success",
+            message = "Thành công",
             data = banners
         });
     }
@@ -25,7 +25,7 @@ public class BannerServiceImpl : IBannerService
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
-            message = "success",
+            message = "Thành công",
             data = banners
         });
     }
@@ -35,7 +35,7 @@ public class BannerServiceImpl : IBannerService
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
-            message = "success",
+            message = "Thành công",
             data = BannerFirestore!.GetBanners()
         });
     }

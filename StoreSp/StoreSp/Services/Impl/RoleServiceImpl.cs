@@ -21,7 +21,7 @@ public class RoleServiceImpl : IRoleService
         return Results.Created("", new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
-            message = "Created Success",
+            message = "Tạo thành công",
             data = null
         });
     }
@@ -31,7 +31,7 @@ public class RoleServiceImpl : IRoleService
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
-            message = "Success",
+            message = "Thành công",
             data = roleFireStore!.GetAllRoles().Result
         });
     }

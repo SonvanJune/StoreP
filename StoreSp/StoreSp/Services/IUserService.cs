@@ -22,4 +22,5 @@ public interface IUserService
    public IResult UpdateStatusUser(UpdateStatusUserDto dto);
    public IResult AddAdress(CreateAddressDto dto);
    public IResult GetAddress(string username);
+   public IResult UpdateUser(UpdateUserDto dto , string username);
 }

@@ -15,7 +15,7 @@ public class ShippingMethodServiceImpl : IShippingMethodService
         return Results.Created("", new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
-            message = "Created Success",
+            message = "Tạo thành công",
             data = null
         });
     }
@@ -25,7 +25,7 @@ public class ShippingMethodServiceImpl : IShippingMethodService
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
-            message = "Success",
+            message = "Thành công",
             data = ShippingMethodFirestore!.GetAllShippingMethods().Result
         });
     }

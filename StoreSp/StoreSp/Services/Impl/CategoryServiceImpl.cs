@@ -21,7 +21,7 @@ public class CategoryServiceImpl : ICategoryService
             return Results.BadRequest(new HttpStatusConfig
             {
                 status = HttpStatusCode.BadRequest,
-                message = "Khong tim thay danh muc cha",
+                message = "Không tìm thấy danh mục cha",
                 data = null
             });
         }
@@ -31,7 +31,7 @@ public class CategoryServiceImpl : ICategoryService
             return Results.BadRequest(new HttpStatusConfig
             {
                 status = HttpStatusCode.BadRequest,
-                message = "Ten danh muc nay da ton tai",
+                message = "Tên danh mục này đã tồn tại",
                 data = null
             });
         }
@@ -39,7 +39,7 @@ public class CategoryServiceImpl : ICategoryService
         return Results.Created("", new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
-            message = "Created Success",
+            message = "Tạo thành công",
             data = null
         });
     }
@@ -49,7 +49,7 @@ public class CategoryServiceImpl : ICategoryService
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
-            message = "Success",
+            message = "Thành công",
             data = CategoryFireStore!.GetAllCategories(isMobile)
         });
     }
@@ -59,7 +59,7 @@ public class CategoryServiceImpl : ICategoryService
         return Results.Created("" , new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
-            message = "Updated Sucess",
+            message = "Cập nhật thành công",
             data = CategoryFireStore!.UpdateCategory(updateCategoryDto)
         });
     }

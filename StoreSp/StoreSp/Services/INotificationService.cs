@@ -7,4 +7,6 @@ public interface INotificationService
     public IResult DeleteNotification(string notificationId);
     public IResult DeleteAllNotifications(string username, int status);
     public IResult ReadNotification(string notificationId);
+    public IResult ReadALLNotification(string username);
+    public IResult MakeNotReadNotification(string notificationId);
 }

@@ -14,7 +14,7 @@ public class ProductServiceImpl : IProductService
         return Results.Created("", new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
-            message = "Created Success",
+            message = "Tạo thành công",
             data = null
         });
     }
@@ -26,7 +26,7 @@ public class ProductServiceImpl : IProductService
             return Results.NotFound(new HttpStatusConfig
             {
                 status = HttpStatusCode.NotFound,
-                message = "Khong tim thay san pham",
+                message = "Không tìm thấy sản phẩm",
                 data = null
             });
         }
@@ -34,7 +34,7 @@ public class ProductServiceImpl : IProductService
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
-            message = "Success",
+            message = "Thành công",
             data = data
         });
     }
@@ -46,7 +46,7 @@ public class ProductServiceImpl : IProductService
             return Results.NotFound(new HttpStatusConfig
             {
                 status = HttpStatusCode.NotFound,
-                message = "Khong tim thay danh muc",
+                message = "Khongo tìm thấy danh mục",
                 data = null
             });
         }
@@ -54,7 +54,7 @@ public class ProductServiceImpl : IProductService
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
-            message = "Success",
+            message = "Thành công",
             data = data
         });
     }
@@ -64,7 +64,7 @@ public class ProductServiceImpl : IProductService
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
-            message = "Success",
+            message = "Thành công",
             data = ProductFireStore!.GetProductsBySearch(name , username)
         });
     }
@@ -74,7 +74,7 @@ public class ProductServiceImpl : IProductService
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
-            message = "Success",
+            message = "Thành công",
             data = ProductFireStore!.GetProductsByShop(username)
         });
     }
@@ -84,7 +84,7 @@ public class ProductServiceImpl : IProductService
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
-            message = "Success",
+            message = "Thành công",
             data = ProductFireStore!.GetProductsHot(getProductHot , username)
         });
     }
@@ -96,14 +96,14 @@ public class ProductServiceImpl : IProductService
             return Results.NotFound(new HttpStatusConfig
             {
                 status = HttpStatusCode.NotFound,
-                message = "Khong tim thay user",
+                message = "Không tìm thấy người dùng",
                 data = null
             });
         }
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
-            message = "Success",
+            message = "Thành công",
             data = data
         });
     }
@@ -113,7 +113,7 @@ public class ProductServiceImpl : IProductService
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
-            message = "Success",
+            message = "Thành công",
             data = ProductFireStore!.GetProductsNew(getNewProductDto, username)
         });
     }
@@ -123,7 +123,7 @@ public class ProductServiceImpl : IProductService
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
-            message = "Success",
+            message = "Thành công",
             data = ProductFireStore!.LikeProduct(likeProductDto).Result
         });
     }

@@ -32,7 +32,7 @@ public class UserServiceImpl : IUserService
         return Results.Created("", new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
-            message = "Created Success",
+            message = "Tạo thành công",
             data = null
         });
     }
@@ -42,7 +42,7 @@ public class UserServiceImpl : IUserService
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
-            message = "Success",
+            message = "Thành công",
             data = userFireStore!.GetAllUser().Result
         });
     }
@@ -52,7 +52,7 @@ public class UserServiceImpl : IUserService
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
-            message = "Success",
+            message = "Thành công",
             data = userFireStore!.GetUser(id).Result
         });
     }
@@ -64,7 +64,7 @@ public class UserServiceImpl : IUserService
             return Results.NotFound(new HttpStatusConfig
             {
                 status = HttpStatusCode.Created,
-                message = "Database not found",
+                message = "Không tìm thấy cơ sở dữ liệu",
                 data = null
             });
         }
@@ -75,7 +75,7 @@ public class UserServiceImpl : IUserService
             return Results.BadRequest(new HttpStatusConfig
             {
                 status = HttpStatusCode.BadRequest,
-                message = "Email or Phone already exists",
+                message = "Email hoặc số điện thoại đã tồn tại!!",
                 data = null
             });
         }
@@ -85,7 +85,7 @@ public class UserServiceImpl : IUserService
             emailService!.SendEmail(new EmailDto
             {
                 Email = user.Email,
-                Subject = "Xac thuc email",
+                Subject = "Xác thực email",
                 Message = EmailFormConfig.EMAIL_VERIFY($"http://localhost:5181/api/users/email/verify/{user.VerificationToken}", user.Email, "http://localhost:5181")
             });
         }
@@ -93,7 +93,7 @@ public class UserServiceImpl : IUserService
         return Results.Created("", new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
-            message = "Register Success",
+            message = "Đăng ký thành công",
             data = authService!.GenerateToken(user)
         });
     }
@@ -105,7 +105,7 @@ public class UserServiceImpl : IUserService
             return Results.NotFound(new HttpStatusConfig
             {
                 status = HttpStatusCode.UnprocessableEntity,
-                message = "Database not found",
+                message = "Không tìm thấy cơ sở dữ liệu",
                 data = null
             });
         }
@@ -118,7 +118,7 @@ public class UserServiceImpl : IUserService
                 return Results.BadRequest(new HttpStatusConfig
                 {
                     status = HttpStatusCode.UnprocessableEntity,
-                    message = "User is not a System account",
+                    message = "Tài khoản này không phải tài khoản hệ thống",
                     data = null
                 });
             }
@@ -128,14 +128,14 @@ public class UserServiceImpl : IUserService
                 return Results.BadRequest(new HttpStatusConfig
                 {
                     status = HttpStatusCode.UnprocessableEntity,
-                    message = "User not verified yet",
+                    message = "Người dùng vânx chưa xác thực",
                     data = null
                 });
             }
             return Results.Ok(new HttpStatusConfig
             {
                 status = HttpStatusCode.OK,
-                message = "Login success",
+                message = "Đăng nhập thành công",
                 data = new UserTokenDto
                 {
                     Token = authService!.GenerateToken(user),
@@ -149,7 +149,7 @@ public class UserServiceImpl : IUserService
             return Results.BadRequest(new HttpStatusConfig
             {
                 status = HttpStatusCode.UnprocessableEntity,
-                message = "Email , Phone or password incorrect",
+                message = "Email , số điện thoại hoặc mật khẩu không đúng",
                 data = null
             });
         }
@@ -168,7 +168,7 @@ public class UserServiceImpl : IUserService
                     return Results.Ok(new HttpStatusConfig
                     {
                         status = HttpStatusCode.OK,
-                        message = "Success",
+                        message = "Thành công",
                         data = null
                     });
                 }
@@ -177,7 +177,7 @@ public class UserServiceImpl : IUserService
                     return Results.BadRequest(new HttpStatusConfig
                     {
                         status = HttpStatusCode.BadRequest,
-                        message = "User not found",
+                        message = "Không tìm thấy user",
                         data = null
                     });
                 }
@@ -185,7 +185,7 @@ public class UserServiceImpl : IUserService
             return Results.BadRequest(new HttpStatusConfig
             {
                 status = HttpStatusCode.BadRequest,
-                message = "Token is Expired",
+                message = "Token hết hạn",
                 data = null
             });
         }
@@ -226,7 +226,7 @@ public class UserServiceImpl : IUserService
                 return Results.BadRequest(new HttpStatusConfig
                 {
                     status = HttpStatusCode.BadRequest,
-                    message = "Token invalid",
+                    message = "Token không hợp lệ",
                     data = null
                 });
             }
@@ -236,7 +236,7 @@ public class UserServiceImpl : IUserService
                 return Results.BadRequest(new HttpStatusConfig
                 {
                     status = HttpStatusCode.BadRequest,
-                    message = "Token has expired",
+                    message = "Token hết hạn",
                     data = null
                 });
             }
@@ -246,7 +246,7 @@ public class UserServiceImpl : IUserService
                 return Results.Ok(new HttpStatusConfig
                 {
                     status = HttpStatusCode.OK,
-                    message = "USer verified successfully",
+                    message = "Ngươif dùng xác thực thành công",
                     data = null
                 });
             }
@@ -255,7 +255,7 @@ public class UserServiceImpl : IUserService
                 return Results.BadRequest(new HttpStatusConfig
                 {
                     status = HttpStatusCode.BadRequest,
-                    message = "Can not find user",
+                    message = "Không tìm thấy người dùng",
                     data = null
                 });
             }
@@ -265,7 +265,7 @@ public class UserServiceImpl : IUserService
             return Results.BadRequest(new HttpStatusConfig
             {
                 status = HttpStatusCode.BadRequest,
-                message = "Token has expired",
+                message = "Token hết hạn",
                 data = null
             });
         }
@@ -285,7 +285,7 @@ public class UserServiceImpl : IUserService
             return Results.Ok(new HttpStatusConfig
             {
                 status = HttpStatusCode.OK,
-                message = "Request has accepted",
+                message = "Yêu cầu đã được chấp nhận",
                 data = null
             });
         }
@@ -294,7 +294,7 @@ public class UserServiceImpl : IUserService
             return Results.BadRequest(new HttpStatusConfig
             {
                 status = HttpStatusCode.BadRequest,
-                message = "Can not find user or may be you registered with google account",
+                message = "Không thể tìm thấy tài khoản, có thể bạn đăng nhập bằng google",
                 data = null
             });
         }
@@ -307,7 +307,7 @@ public class UserServiceImpl : IUserService
             return Results.Ok(new HttpStatusConfig
             {
                 status = HttpStatusCode.OK,
-                message = "Password has been changed successfully",
+                message = "Mật khẩu đã được thay đổi thành công",
                 data = null
             });
         }
@@ -316,7 +316,7 @@ public class UserServiceImpl : IUserService
             return Results.BadRequest(new HttpStatusConfig
             {
                 status = HttpStatusCode.BadRequest,
-                message = "This code is not valid",
+                message = "Mã không hợp lệ",
                 data = null
             });
         }
@@ -335,7 +335,7 @@ public class UserServiceImpl : IUserService
                     return Results.Ok(new HttpStatusConfig
                     {
                         status = HttpStatusCode.OK,
-                        message = "User has been verified",
+                        message = "Người dùng đã xác thực thành công",
                         data = new UserTokenDto
                         {
                             Token = authService!.GenerateToken(user),
@@ -349,7 +349,7 @@ public class UserServiceImpl : IUserService
                     return Results.BadRequest(new HttpStatusConfig
                     {
                         status = HttpStatusCode.BadRequest,
-                        message = "User has not been verified yet",
+                        message = "Người dùng vẫn chưa xác thực",
                         data = null
                     });
                 }
@@ -359,7 +359,7 @@ public class UserServiceImpl : IUserService
                 return Results.BadRequest(new HttpStatusConfig
                 {
                     status = HttpStatusCode.BadRequest,
-                    message = "Can not find user",
+                    message = "Không thể tìm thấy người dùng",
                     data = null
                 });
             }
@@ -369,7 +369,7 @@ public class UserServiceImpl : IUserService
             return Results.BadRequest(new HttpStatusConfig
             {
                 status = HttpStatusCode.BadRequest,
-                message = "Token has expired",
+                message = "Token hết hạn",
                 data = null
             });
         }
@@ -382,7 +382,7 @@ public class UserServiceImpl : IUserService
             return Results.BadRequest(new HttpStatusConfig
             {
                 status = HttpStatusCode.BadRequest,
-                message = "Tai khoan google nay chua duoc kich hoat",
+                message = "Taif khoản google này chưa đươcj kích hoạt",
                 data = null
             });
         }
@@ -393,14 +393,14 @@ public class UserServiceImpl : IUserService
             return Results.BadRequest(new HttpStatusConfig
             {
                 status = HttpStatusCode.BadRequest,
-                message = "Tai khoan nay da ton tai, moi ban dang nhap",
+                message = "Tài khoản này đã tồn tại, mời bạn đăng nhập",
                 data = null
             });
         }
         return Results.Created("", new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
-            message = "Register Success",
+            message = "Đăng ký thành công",
             data = new UserTokenDto
             {
                 Token = authService!.GenerateToken(user),
@@ -418,7 +418,7 @@ public class UserServiceImpl : IUserService
             return Results.BadRequest(new HttpStatusConfig
             {
                 status = HttpStatusCode.BadRequest,
-                message = "Tai khoan google nay chua duoc kich hoat",
+                message = "Tài khoản google này chưa được kích hoạt",
                 data = null
             });
         }
@@ -443,14 +443,14 @@ public class UserServiceImpl : IUserService
                 return Results.BadRequest(new HttpStatusConfig
                 {
                     status = HttpStatusCode.UnprocessableEntity,
-                    message = "User not verified yet",
+                    message = "Người dùng chưa xác thực",
                     data = null
                 });
             }
             return Results.Ok(new HttpStatusConfig
             {
                 status = HttpStatusCode.OK,
-                message = "Login success",
+                message = "Đăng nhập thành công",
                 data = new UserTokenDto
                 {
                     Token = authService!.GenerateToken(user),
@@ -477,7 +477,7 @@ public class UserServiceImpl : IUserService
             return Results.NotFound(new HttpStatusConfig
             {
                 status = HttpStatusCode.NotFound,
-                message = "Not found",
+                message = "Không tìm thấy",
                 data = null
             });
         }
@@ -485,7 +485,7 @@ public class UserServiceImpl : IUserService
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
-            message = "Success",
+            message = "Thành công",
             data = userFireStore!.GetUserByRole(roleCode).Result
         });
     }
@@ -497,7 +497,7 @@ public class UserServiceImpl : IUserService
             return Results.BadRequest(new HttpStatusConfig
             {
                 status = HttpStatusCode.BadRequest,
-                message = "Can not find user",
+                message = "Không tìm thấy người dùng",
                 data = null
             });
         }
@@ -506,7 +506,7 @@ public class UserServiceImpl : IUserService
             return Results.Ok(new HttpStatusConfig
             {
                 status = HttpStatusCode.Created,
-                message = "USer updated successfully",
+                message = "Cập nhật người dùng thành công",
                 data = null
             });
         }
@@ -519,7 +519,7 @@ public class UserServiceImpl : IUserService
             return Results.Ok(new HttpStatusConfig
             {
                 status = HttpStatusCode.OK,
-                message = "Correct reset code",
+                message = "Mã chính xác",
                 data = null
             });
         }
@@ -528,7 +528,7 @@ public class UserServiceImpl : IUserService
             return Results.BadRequest(new HttpStatusConfig
             {
                 status = HttpStatusCode.BadRequest,
-                message = "This code is not valid",
+                message = "Mã này không hợp lệ",
                 data = null
             });
         }
@@ -545,7 +545,7 @@ public class UserServiceImpl : IUserService
                 return Results.BadRequest(new HttpStatusConfig
                 {
                     status = HttpStatusCode.BadRequest,
-                    message = "Token has expired",
+                    message = "Token hết hạn",
                     data = null
                 });
             }
@@ -556,7 +556,7 @@ public class UserServiceImpl : IUserService
                 return Results.Ok(new HttpStatusConfig
                 {
                     status = HttpStatusCode.OK,
-                    message = "USer verified successfully",
+                    message = "người dùng xác thực thành công",
                     data = new UserTokenDto
                     {
                         Token = authService!.GenerateToken(user),
@@ -570,7 +570,7 @@ public class UserServiceImpl : IUserService
                 return Results.BadRequest(new HttpStatusConfig
                 {
                     status = HttpStatusCode.BadRequest,
-                    message = "Can not find user",
+                    message = "Không thể tìm thấy người dùng",
                     data = null
                 });
             }
@@ -593,7 +593,7 @@ public class UserServiceImpl : IUserService
             return Results.BadRequest(new HttpStatusConfig
             {
                 status = HttpStatusCode.NotFound,
-                message = "User not found",
+                message = "Không tìm thấy người dùng",
                 data = null
             });
         }
@@ -602,7 +602,7 @@ public class UserServiceImpl : IUserService
         return Results.Created("", new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
-            message = "Created Success",
+            message = "Tạo thành công",
             data = null
         });
     }
@@ -612,8 +612,29 @@ public class UserServiceImpl : IUserService
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
-            message = "Success",
+            message = "Thành công",
             data = userFireStore!.GetAddress(username).Result
+        });
+    }
+
+    IResult IUserService.UpdateUser(UpdateUserDto dto, string username)
+    {
+        if (userFireStore!.UpdateUser(dto , username).Result is null)
+        {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+                status = HttpStatusCode.NotFound,
+                message = "Không tìm thấy user",
+                data = null
+            });
+        }
+
+
+        return Results.Created("", new HttpStatusConfig
+        {
+            status = HttpStatusCode.Created,
+            message = "Cập nhật thành công",
+            data = null
         });
     }
 }

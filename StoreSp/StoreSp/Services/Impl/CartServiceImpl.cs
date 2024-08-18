@@ -16,7 +16,7 @@ public class CartServiceImpl : ICartService
             return Results.BadRequest(new HttpStatusConfig
             {
                 status = HttpStatusCode.BadRequest,
-                message = "Khong tim thay san pham",
+                message = "Không tìm thấy sản phẩm",
                 data = null
             });
         }
@@ -24,7 +24,7 @@ public class CartServiceImpl : ICartService
         return Results.Created("", new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
-            message = "Them vao gio hang thanh cong",
+            message = "Thêm vào giỏ hàng thành công",
             data = null
         });
     }
@@ -38,7 +38,7 @@ public class CartServiceImpl : ICartService
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
-            message = "success",
+            message = "Thành công",
             data = null
         });
     }
@@ -48,7 +48,7 @@ public class CartServiceImpl : ICartService
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
-            message = "success",
+            message = "Thành công",
             data = CartFireStore!.GetCartByUser(username).Result
         });
     }
@@ -59,7 +59,7 @@ public class CartServiceImpl : ICartService
         return Results.Created("", new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
-            message = "success",
+            message = "Thành công",
             data = null
         });
     }

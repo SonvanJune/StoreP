@@ -16,7 +16,7 @@ public class BillServiceImpl : IBillService
             return Results.BadRequest(new HttpStatusConfig
             {
                 status = HttpStatusCode.BadRequest,
-                message = "Gio hang rong khong the thanh toan",
+                message = "Giỏ hàng rỗng không thể thanh toán",
                 data = null
             });
         }
@@ -26,7 +26,7 @@ public class BillServiceImpl : IBillService
             return Results.BadRequest(new HttpStatusConfig
             {
                 status = HttpStatusCode.BadRequest,
-                message = "So du tai khoan khong du",
+                message = "Số dư tài khoản không đủ",
                 data = null
             });
         }
@@ -34,7 +34,7 @@ public class BillServiceImpl : IBillService
         return Results.Created("", new HttpStatusConfig
         {
             status = HttpStatusCode.Created,
-            message = "Thanh toan thanh cong",
+            message = "Thanh toán thành công",
             data = null
         });
     }
@@ -46,14 +46,14 @@ public class BillServiceImpl : IBillService
             return Results.NotFound(new HttpStatusConfig
             {
                 status = HttpStatusCode.NotFound,
-                message = "Khong tim thay nguoi dung",
+                message = "Không tìm thấy người dùng",
                 data = null
             });
         }
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
-            message = "success",
+            message = "Thành công",
             data = data
         });
     }
@@ -63,7 +63,7 @@ public class BillServiceImpl : IBillService
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
-            message = "success",
+            message = "Thành công",
             data = BillFirestore!.GetBills()
         });
     }
@@ -73,7 +73,7 @@ public class BillServiceImpl : IBillService
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
-            message = "success",
+            message = "Thành công",
             data = BillFirestore!.ReOrderProducts(code)
         });
     }
@@ -85,14 +85,14 @@ public class BillServiceImpl : IBillService
             return Results.NotFound(new HttpStatusConfig
             {
                 status = HttpStatusCode.NotFound,
-                message = "Khong tim thay hoa don",
+                message = "Không tìm thấy hóa đơn",
                 data = null
             });
         }
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
-            message = "success",
+            message = "Thành công",
             data = data
         });
     }

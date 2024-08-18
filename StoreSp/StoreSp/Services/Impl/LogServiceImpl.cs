@@ -13,7 +13,7 @@ public class LogServiceImpl : ILogService
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
-            message = "success",
+            message = "Thành công",
             data = LogFireStore!.GetLogs()
         });
     }

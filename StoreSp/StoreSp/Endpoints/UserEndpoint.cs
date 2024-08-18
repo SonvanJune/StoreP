@@ -35,9 +35,9 @@ public static class UserEndpoint
             return userService.GetUserById(id);
         });
 
-        group.MapGet("/users/notifications/{username}", (string username , [FromQuery] int status) =>
+        group.MapGet("/users/notifications/{username}", (string username, [FromQuery] int status) =>
         {
-            return notificationService!.GetNotifications(username , status);
+            return notificationService!.GetNotifications(username, status);
         });
 
         group.MapPost("/users/notifications/read/{notificationId}", (string notificationId) =>
@@ -45,14 +45,24 @@ public static class UserEndpoint
             return notificationService!.ReadNotification(notificationId);
         });
 
+        group.MapPost("/users/notifications/makeNotRead/{notificationId}", (string notificationId) =>
+        {
+            return notificationService!.MakeNotReadNotification(notificationId);
+        });
+
+        group.MapDelete("/users/notifications/read/all/{username}", (string username) =>
+        {
+            return notificationService!.ReadALLNotification(username);
+        });
+
         group.MapDelete("/users/notifications/delete/{notificationId}", (string notificationId) =>
         {
             return notificationService!.DeleteNotification(notificationId);
         });
 
-        group.MapDelete("/users/notifications/delete/all/{username}", (string username , [FromQuery] int status) =>
+        group.MapDelete("/users/notifications/delete/all/{username}", (string username, [FromQuery] int status) =>
         {
-            return notificationService!.DeleteAllNotifications(username , status);
+            return notificationService!.DeleteAllNotifications(username, status);
         });
 
         group.MapPost("/register", (RegisterUserDto dto) =>
@@ -150,7 +160,7 @@ public static class UserEndpoint
             }
         });
 
-        group.MapGet("/users/role", ([FromQuery] string code , [FromHeader] string authorization) =>
+        group.MapGet("/users/role", ([FromQuery] string code, [FromHeader] string authorization) =>
         {
             if (authService.GetResult(authorization) == 1)
             {
@@ -172,7 +182,7 @@ public static class UserEndpoint
             return "";
         });
 
-        group.MapPost("/users/update-status", (UpdateStatusUserDto dto , [FromHeader] string authorization) =>
+        group.MapPost("/users/update-status", (UpdateStatusUserDto dto, [FromHeader] string authorization) =>
         {
             if (authService.GetResult(authorization) == 1)
             {
@@ -188,6 +198,25 @@ public static class UserEndpoint
                 });
             }
         }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
+
+        group.MapPost("/users/update-profile", (UpdateUserDto dto, [FromHeader] string authorization) =>
+        {
+            if (authService.GetResult(authorization) == 1)
+            {
+                string[] str = authorization.Split(' ');
+                var username = authService.GetFirstByToken(str[1]);
+                return userService.UpdateUser(dto , username);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
+        }).WithParameterValidation().RequireAuthorization();
         return group;
     }
 }

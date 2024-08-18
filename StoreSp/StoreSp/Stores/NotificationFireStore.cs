@@ -66,7 +66,8 @@ public class NotificationFireStore(FirestoreDb firestoreDb) : FirestoreService(f
         {
             notifications = notificationDb.Documents.Select(r => r.ConvertTo<Notification>()).ToList().FindAll(r => r.UserId == user.Id);
         }
-        else{
+        else
+        {
             notifications = notificationDb.Documents.Select(r => r.ConvertTo<Notification>()).ToList().FindAll(r => r.UserId == user.Id && r.Status == status);
         }
 
@@ -117,7 +118,7 @@ public class NotificationFireStore(FirestoreDb firestoreDb) : FirestoreService(f
         return "";
     }
 
-    public async Task<string> DeleteAllNotifications(string username , int status)
+    public async Task<string> DeleteAllNotifications(string username, int status)
     {
         var notificationDb = base.GetSnapshots(_collectionNotification);
         var userDb = base.GetSnapshots(UserFireStore._collectionUser);
@@ -140,13 +141,69 @@ public class NotificationFireStore(FirestoreDb firestoreDb) : FirestoreService(f
         {
             notifications = notificationDb.Documents.Select(r => r.ConvertTo<Notification>()).ToList().FindAll(r => r.UserId == user.Id);
         }
-        else{
+        else
+        {
             notifications = notificationDb.Documents.Select(r => r.ConvertTo<Notification>()).ToList().FindAll(r => r.UserId == user.Id && r.Status == status);
         }
-        
+
         foreach (var notification in notifications)
         {
             await _firestoreDb.Collection(_collectionNotification).Document(notification.Id).DeleteAsync();
+        }
+        return "";
+    }
+
+    public async Task<string> ReadALLNotification(string username)
+    {
+        var notificationDb = base.GetSnapshots(_collectionNotification);
+        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
+        User user;
+        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username) != null)
+        {
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username)!;
+        }
+        else
+        {
+            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == username)!;
+        }
+        if (user == null)
+        {
+            return null!;
+        }
+
+        var notifications = notificationDb.Documents.Select(r => r.ConvertTo<Notification>()).ToList().FindAll(r => r.UserId == user.Id);
+
+        foreach (var notification in notifications)
+        {
+            DocumentReference docref = _firestoreDb.Collection(_collectionNotification).Document(notification.Id);
+            Dictionary<string, object> data = new Dictionary<string, object>{
+               {"Status" , 1}
+            };
+            DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
+            if (snapshot.Exists)
+            {
+                await docref.UpdateAsync(data);
+            }
+        }
+        return "";
+    }
+
+    public async Task<string> MakeNotReadNotification(string notificationId)
+    {
+        var notificationDb = base.GetSnapshots(_collectionNotification);
+        var notification = notificationDb.Documents.Select(r => r.ConvertTo<Notification>()).ToList().Find(r => r.Id == notificationId);
+        if (notification == null)
+        {
+            return null!;
+        }
+        DocumentReference docref = _firestoreDb.Collection(_collectionNotification).Document(notificationId);
+        Dictionary<string, object> data = new Dictionary<string, object>{
+               {"Status" , 0}
+            };
+        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
+        if (snapshot.Exists)
+        {
+            await docref.UpdateAsync(data);
         }
         return "";
     }
