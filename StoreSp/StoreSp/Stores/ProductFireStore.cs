@@ -93,7 +93,7 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
                 }
                 dto.Classifies = GetProductClassifiesByProduct(cp.ProductId);
                 dto.Images = GetProductImage(cp.ProductId);
-                dto.Categories = GetCategoriesByProduct(cp.ProductId);
+                dto.Categories = new List<CategoryDto>();
                 dto.Likes = GetLikeOfProduct(cp.ProductId);
                 dto.IsLiked = CheckIsLike(username, cp.ProductId);
                 productsDto.Add(dto);
