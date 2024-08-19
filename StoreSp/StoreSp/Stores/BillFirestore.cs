@@ -36,9 +36,12 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
         //tao bill
         var bill = AddBillConverter.ToEntity(createBillDto);
 
-        if(createBillDto.PaymentMethod.ToLower().Contains("Tha")){
+        if (createBillDto.PaymentMethod.ToLower().Contains("Tha"))
+        {
             bill.Status = 1;
-        }else{
+        }
+        else
+        {
             bill.Status = 0;
         }
 
@@ -95,7 +98,19 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
         await AddBill_Product(cartItems, randomCode);
         await AfterCheckout(cart, cartItems, randomCode);
         await logFireStore.AddLogForUser(user, "thanh-toan");
-        await notificationFireStore.AddNotificationForUser(user , "Bạn vừa than toán đơn hàng" , 0);
+        await notificationFireStore.AddNotificationForUser(user, "Bạn vừa than toán đơn hàng", 0);
+        if (user.DeviceToken != null && user.DeviceToken != "")
+        {
+            try
+            {
+                await FirestoreService._fmcService.SendNotificationAsync(user.DeviceToken!, "Thanh toán thành công", "This is a test notification");
+
+            }
+            catch
+            {
+                Console.WriteLine("Send notification fail");
+            }
+        }
         return 1;
     }
     public List<BillDto> GetBillByUser(GetBillOfUserDto request)
@@ -177,7 +192,8 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
 
         return billDtos;
     }
-    public async Task<string> ReOrderProducts(string code){
+    public async Task<string> ReOrderProducts(string code)
+    {
         var billDb = base.GetSnapshots(_collectionBill);
         var bill_ProductDb = base.GetSnapshots(_collectionBill_Product);
         var userDb = base.GetSnapshots(UserFireStore._collectionUser);
@@ -198,22 +214,25 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
                 productClassifyCodes.Add(productClassify!.Code!);
             }
 
-            var addCartDto = new AddCartItemDto{
+            var addCartDto = new AddCartItemDto
+            {
                 Status = "1",
                 ProductCode = product!.Code!,
                 Quantity = billProduct.Quantity,
                 Username = user!.Email != null ? user!.Email : user!.Phone,
-                ProductClassifyCodes = productClassifyCodes 
+                ProductClassifyCodes = productClassifyCodes
             };
 
             await cartFirestore.AddToCart(addCartDto);
         }
         return "success";
     }
-    public async Task<string> UpdateStatusBill(UpdateBillDto updateBillDto){
+    public async Task<string> UpdateStatusBill(UpdateBillDto updateBillDto)
+    {
         var billDb = base.GetSnapshots(_collectionBill);
         var bill = billDb.Documents.Select(r => r.ConvertTo<Bill>()).ToList().Find(r => r.Code == updateBillDto.Code);
-        if(bill == null){
+        if (bill == null)
+        {
             return null!;
         }
         DocumentReference docref = _firestoreDb.Collection(_collectionBill).Document(bill!.Id);

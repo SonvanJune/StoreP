@@ -86,7 +86,7 @@ public class UserServiceImpl : IUserService
             {
                 Email = user.Email,
                 Subject = "Xác thực email",
-                Message = EmailFormConfig.EMAIL_VERIFY($"http://localhost:5181/api/users/email/verify/{user.VerificationToken}", user.Email, "http://localhost:5181")
+                Message = EmailFormConfig.EMAIL_VERIFY($"http://192.168.1.9:8000/api/users/email/verify/{user.VerificationToken}", user.Email, "http://localhost:5181")
             });
         }
 
