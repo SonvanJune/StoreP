@@ -7,7 +7,7 @@ namespace StoreSp.Services.Impl;
 
 public class BannerServiceImpl : IBannerService
 {
-    public static BannerFirestore? BannerFirestore { get; set; }
+    public static BannerFirestore BannerFirestore = new BannerFirestore();
     IResult IBannerService.AddBanners(AddBannerDto addBannerDto)
     {
         var banners = BannerFirestore!.AddBanner(addBannerDto).Result;
@@ -19,9 +19,9 @@ public class BannerServiceImpl : IBannerService
         });
     }
 
-    IResult IBannerService.DeleteBanners(AddBannerDto addBannerDto)
+    IResult IBannerService.DeleteBanners(DeleteBannerDto deleteBannerDto)
     {
-        var banners = BannerFirestore!.DeleteBanner(addBannerDto).Result;
+        var banners = BannerFirestore!.DeleteBanner(deleteBannerDto).Result;
         return Results.Ok(new HttpStatusConfig
         {
             status = HttpStatusCode.OK,
@@ -36,7 +36,7 @@ public class BannerServiceImpl : IBannerService
         {
             status = HttpStatusCode.OK,
             message = "Thành công",
-            data = BannerFirestore!.GetBanners()
+            data = BannerFirestore!.GetBanners().Result
         });
     }
 }

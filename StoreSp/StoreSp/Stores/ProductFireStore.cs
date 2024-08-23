@@ -1,62 +1,63 @@
 ﻿using Google.Cloud.Firestore;
+using Microsoft.EntityFrameworkCore;
+using StoreSp.Context;
 using StoreSp.Converters;
 using StoreSp.Converters.request;
 using StoreSp.Converters.response;
 using StoreSp.Dtos.request;
 using StoreSp.Dtos.response;
-using StoreSp.Entities;
+using StoreSp.Models;
 
 namespace StoreSp.Stores;
 
-public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firestoreDb)
+public class ProductFireStore
 {
     //properties
-    public static string _collectionProducts = "Products";
-    public static string _collectionProduct_Like = "Product_Like";
-    public static string _collectionProductClassify = "Product_Classifies";
-    public static string _collectionProductImage = "Product_Images";
+    private readonly AppDbContext? _appDbContext = null;
+
+    public ProductFireStore()
+    {
+        _appDbContext = AppDbContext.GetInstance();
+    }
+    
     private readonly IBaseConverter<User, UserDto> userConverter = new UserConverter();
     private readonly IBaseConverter<Product, CreateProductDto> createProductConverter = new CreateProductConverter();
     private readonly IBaseConverter<ProductClassify, CreateProductClassifyDto> createProductClassifyConverter = new CreateProductClassifyConverter();
     private readonly IBaseConverter<Product, ProductDto> productConverter = new ProductConverter();
     private readonly IBaseConverter<ProductClassify, ProductClassifyDto> productClassifyConverter = new ProductClassifyConverter();
-    public readonly LogFireStore logFireStore = new LogFireStore(firestoreDb);
-    public readonly NotificationFireStore notificationFireStore = new NotificationFireStore(firestoreDb);
+    public readonly LogFireStore logFireStore = new LogFireStore();
+    public readonly NotificationFireStore notificationFireStore = new NotificationFireStore();
 
     //method chinh
     public async Task<Product> AddProduct(CreateProductDto createProductDto)
     {
-        var db = _firestoreDb.Collection(_collectionProducts);
-        var categoryDb = base.GetSnapshots(CategoryFireStore._collectionCategory);
-        var productDb = base.GetSnapshots(_collectionProducts);
-        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
-
         var product = createProductConverter.ToEntity(createProductDto);
         Random rnd = new Random();
         string randomCode = rnd.Next(1, 100000).ToString();
-        while (productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Code == randomCode) != null)
+        while (_appDbContext!.Products.SingleOrDefault(r => r.Code == randomCode) != null)
         {
             randomCode = rnd.Next(1, 100000).ToString();
         }
         product.Code = randomCode;
 
         User user = null!;
-        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == createProductDto.Auth) == null)
+        if (_appDbContext!.Users.SingleOrDefault(r => r.Email == createProductDto.Auth) == null)
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == createProductDto.Auth)!;
+            user = _appDbContext!.Users.SingleOrDefault(r => r.Phone == createProductDto.Auth)!;
         }
         else
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == createProductDto.Auth)!;
+            user = _appDbContext!.Users.SingleOrDefault(r => r.Email == createProductDto.Auth)!;
         }
         product.Author = user;
         product.AuthorId = user!.Id;
 
+        product.Categories = FindCategoryProduct(createProductDto.CategoryCode);
+        product.ProductClassifies = FindProductClassify(createProductDto.ClassiFies!, product);
+        product.ProductImages = FindProductImage(createProductDto.Images!, product);
 
-        await db.AddAsync(product);
-        await AddCategoryProduct(createProductDto.CategoryCode, randomCode);
-        await AddProductClassify(createProductDto.ClassiFies!, randomCode);
-        await AddImage(createProductDto.Images!, randomCode);
+        await _appDbContext!.Products.AddAsync(product);
+        await _appDbContext!.SaveChangesAsync();
         await logFireStore.AddLogForUser(user, "dang-san-pham");
         await notificationFireStore.AddNotificationForUser(user, "Bạn vừa đăng sản phẩm", 0);
         return product;
@@ -64,38 +65,38 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 
     public List<ProductDto> GetProductsByCategory(string categoryCode, string username)
     {
-        var productDb = base.GetSnapshots(_collectionProducts);
-        var categoryProductDb = base.GetSnapshots(Category_ProductFireStore._collectionCategoryProduct);
-        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
-        var categoryDb = base.GetSnapshots(CategoryFireStore._collectionCategory);
         List<ProductDto> productsDto = new List<ProductDto>();
 
-        //tim category bang category code 
-        var category = categoryDb.Documents.Select(r => r.ConvertTo<Category>()).ToList().Find(r => r.Code == categoryCode);
+        // tim category bang category code 
+        var category = _appDbContext!.Categories.Include(u => u.Products).SingleOrDefault(r => r.Code == categoryCode);
         if (category == null)
         {
             return null!;
         }
 
         //lay danh sach product id trong bang category_product
-        var category_product_list = categoryProductDb.Documents.Select(r => r.ConvertTo<Category_Product>()).ToList().FindAll(r => r.CategoryId == category!.Id);
-        foreach (var cp in category_product_list)
+        var product_list = category.Products;
+        foreach (var cp in product_list!)
         {
-            var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == cp.ProductId);
+            var product = _appDbContext.Products
+            .Include(u => u.ProductClassifies)
+            .Include(u => u.ProductImages)
+            .Include(u => u.Likes)
+            .Include(u => u.Author)
+            .SingleOrDefault(r => r.Id == cp.Id);
             if (product != null)
             {
-                var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == product!.AuthorId);
+                var user = product.Author;
                 ProductDto dto = productConverter.ToDto(product!);
                 if (user != null)
                 {
                     dto.Author = userConverter.ToDto(user!);
-
                 }
-                dto.Classifies = GetProductClassifiesByProduct(cp.ProductId);
-                dto.Images = GetProductImage(cp.ProductId);
+                dto.Classifies = GetProductClassifiesByProduct(product.ProductClassifies!);
+                dto.Images = GetProductImage(product.ProductImages!);
                 dto.Categories = new List<CategoryDto>();
-                dto.Likes = GetLikeOfProduct(cp.ProductId);
-                dto.IsLiked = CheckIsLike(username, cp.ProductId);
+                dto.Likes = GetLikeOfProduct(product.Likes!);
+                dto.IsLiked = CheckIsLike(username, cp.Id);
                 productsDto.Add(dto);
             }
         }
@@ -105,24 +106,26 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 
     public List<ProductDto> GetProductsBySearch(string name, string username)
     {
-        var productDb = base.GetSnapshots(_collectionProducts);
-        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         List<ProductDto> productsDto = new List<ProductDto>();
-
-        var products = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().FindAll(r => r.Name.Contains(name));
-        foreach (var item in products)
+        string searchName = $"%{name}%";
+        var products = _appDbContext!.Products
+            .Include(u => u.ProductClassifies)
+            .Include(u => u.ProductImages)
+            .Include(u => u.Likes)
+            .Include(u => u.Author).Where(r => EF.Functions.Like(r.Name, searchName)).ToList();
+        foreach (var product in products)
         {
-            var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == item!.AuthorId);
-            ProductDto dto = productConverter.ToDto(item!);
+            var user = product.Author;
+            ProductDto dto = productConverter.ToDto(product!);
             if (user != null)
             {
                 dto.Author = userConverter.ToDto(user!);
-
             }
-            dto.Classifies = GetProductClassifiesByProduct(item.Id!);
-            dto.Likes = GetLikeOfProduct(item.Id!);
-            dto.IsLiked = CheckIsLike(username, item.Id!);
-            dto.Images = GetProductImage(item.Id!);
+            dto.Classifies = GetProductClassifiesByProduct(product.ProductClassifies!);
+            dto.Images = GetProductImage(product.ProductImages!);
+            dto.Categories = new List<CategoryDto>();
+            dto.Likes = GetLikeOfProduct(product.Likes!);
+            dto.IsLiked = CheckIsLike(username, product.Id);
             productsDto.Add(dto);
         }
         return productsDto;
@@ -130,19 +133,20 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 
     public ProductDto GetProductByProductCode(string productCode, string username)
     {
-        var productDb = base.GetSnapshots(_collectionProducts);
-        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
-        var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Code == productCode);
+        var product = _appDbContext!.Products.SingleOrDefault(r => r.Code == productCode);
         if (product != null)
         {
-            var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == product!.AuthorId);
+            var user = product.Author;
             ProductDto dto = productConverter.ToDto(product!);
-            dto.Author = userConverter.ToDto(user!);
-            dto.Classifies = GetProductClassifiesByProduct(product.Id!);
-            dto.Likes = GetLikeOfProduct(product.Id!);
-            dto.IsLiked = CheckIsLike(username, product.Id!);
-            dto.Images = GetProductImage(product.Id!);
+            if (user != null)
+            {
+                dto.Author = userConverter.ToDto(user!);
+            }
+            dto.Classifies = GetProductClassifiesByProduct(product.ProductClassifies!);
+            dto.Images = GetProductImage(product.ProductImages!);
             dto.Categories = new List<CategoryDto>();
+            dto.Likes = GetLikeOfProduct(product.Likes!);
+            dto.IsLiked = CheckIsLike(username, product.Id);
             return dto;
         }
         return null!;
@@ -150,27 +154,32 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 
     public async Task<string> LikeProduct(LikeProductDto likeProductDto)
     {
-        var db = _firestoreDb.Collection(_collectionProduct_Like);
-        var productDb = base.GetSnapshots(_collectionProducts);
-        var likeDb = base.GetSnapshots(_collectionProduct_Like);
-        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         //check user
         User user = null!;
-        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == likeProductDto.Username) == null)
+        if (_appDbContext!.Users.SingleOrDefault(r => r.Email == likeProductDto.Username) == null)
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == likeProductDto.Username)!;
+            user = _appDbContext!.Users.Include(r => r.Likes).SingleOrDefault(r => r.Phone == likeProductDto.Username)!;
         }
         else
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == likeProductDto.Username)!;
+            user = _appDbContext!.Users.Include(r => r.Likes).SingleOrDefault(r => r.Email == likeProductDto.Username)!;
         }
-        var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Code == likeProductDto.ProductCode);
-        //neu like da ton tai
-        if (likeDb.Documents.Select(r => r.ConvertTo<Like>()).ToList().Find(r => r.UserId == user.Id && r.ProductId == product!.Id) != null)
+
+        if (user == null)
         {
-            var like = likeDb.Documents.Select(r => r.ConvertTo<Like>()).ToList().Find(r => r.UserId == user.Id && r.ProductId == product!.Id);
-            DocumentReference docref = _firestoreDb.Collection(_collectionProduct_Like).Document(like!.Id);
-            await docref.DeleteAsync();
+            return null!;
+        }
+
+        var product = _appDbContext.Products.SingleOrDefault(r => r.Code == likeProductDto.ProductCode);
+        //neu like da ton tai
+        var list = user.Likes!.ToList();
+        if (list.Find(r => r.UserId == user.Id && r.ProductId == product!.Id) != null)
+        {
+            var like = list.Find(r => r.UserId == user.Id && r.ProductId == product!.Id);
+            list.Remove(like!);
+            user.Likes = list;
+            _appDbContext.Users.Update(user);
+            await _appDbContext.SaveChangesAsync();
         }
         else
         {
@@ -178,10 +187,12 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
             {
                 UserId = user.Id,
                 ProductId = product!.Id,
-                CreatedAt = Timestamp.FromDateTime(DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc))
+                CreatedAt = DateTime.Now
             };
-            await db.AddAsync(like);
-            var shop = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == product!.AuthorId)!;
+            user.Likes!.Add(like);
+            _appDbContext.Users.Update(user);
+            await _appDbContext.SaveChangesAsync();
+            var shop = _appDbContext.Users.SingleOrDefault(r => r.Id == product!.AuthorId)!;
             await notificationFireStore.AddNotificationForUser(shop, likeProductDto.Username + "vừa like sản phẩm của bạn", 0);
         }
         return "";
@@ -189,44 +200,33 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 
     public List<ProductDto> GetProductsNew(GetNewProductDto getNewProductDto, string username)
     {
-        var productDb = base.GetSnapshots(_collectionProducts);
-        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         List<ProductDto> productsDto = new List<ProductDto>();
         DateTime dateLimit = DateTime.Now.AddDays(-getNewProductDto.Day);
-        var startIndex = getNewProductDto.ProductInPage * (getNewProductDto.Page - 1);
-        var lastIndex = startIndex + getNewProductDto.ProductInPage;
 
-        var productResult = new List<Product>();
+        var products = _appDbContext!.Products
+                                   .Include(u => u.ProductClassifies)
+                                   .Include(u => u.ProductImages)
+                                   .Include(u => u.Likes)
+                                   .Include(u => u.Author)
+                                   .Where(p => p.CreatedAt >= dateLimit)
+                                   .OrderBy(p => p.CreatedAt)
+                                   .Skip((getNewProductDto.Page - 1) * getNewProductDto.ProductInPage)
+                                   .Take(getNewProductDto.ProductInPage)
+                                   .ToList();
 
-        var products = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().FindAll(r => r.CreatedAt.ToDateTime() >= dateLimit);
-        for (int i = startIndex; i < lastIndex; i++)
+        foreach (var product in products)
         {
-            if (i < products.Count)
-            {
-                if (products[i] != null)
-                {
-                    productResult.Add(products[i]);
-                }
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        foreach (var item in productResult)
-        {
-            var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == item!.AuthorId);
-            ProductDto dto = productConverter.ToDto(item!);
+            var user = product.Author;
+            ProductDto dto = productConverter.ToDto(product!);
             if (user != null)
             {
                 dto.Author = userConverter.ToDto(user!);
-
             }
-            dto.Classifies = GetProductClassifiesByProduct(item.Id!);
-            dto.Likes = GetLikeOfProduct(item.Id!);
-            dto.IsLiked = CheckIsLike(username, item.Id!);
-            dto.Images = GetProductImage(item.Id!);
+            dto.Classifies = GetProductClassifiesByProduct(product.ProductClassifies!);
+            dto.Images = GetProductImage(product.ProductImages!);
+            dto.Categories = new List<CategoryDto>();
+            dto.Likes = GetLikeOfProduct(product.Likes!);
+            dto.IsLiked = CheckIsLike(username, product.Id);
             productsDto.Add(dto);
         }
         return productsDto;
@@ -234,22 +234,17 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 
     public List<ProductDto> GetProductsLike(GetProductLikeDto getProductLikeDto)
     {
-        var productDb = base.GetSnapshots(_collectionProducts);
-        var productlikeDb = base.GetSnapshots(_collectionProduct_Like);
-        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         List<ProductDto> productsDto = new List<ProductDto>();
-
-        var productResult = new List<Product>();
 
         //find user
         User user = null!;
-        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == getProductLikeDto.Username) == null)
+        if (_appDbContext!.Users.SingleOrDefault(r => r.Email == getProductLikeDto.Username) == null)
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == getProductLikeDto.Username)!;
+            user = _appDbContext!.Users.Include(r => r.Likes).SingleOrDefault(r => r.Phone == getProductLikeDto.Username)!;
         }
         else
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == getProductLikeDto.Username)!;
+            user = _appDbContext!.Users.Include(r => r.Likes).SingleOrDefault(r => r.Email == getProductLikeDto.Username)!;
         }
 
         if (user == null)
@@ -258,71 +253,72 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         }
 
         //find product like by user
-        var productLikes = productlikeDb.Documents.Select(r => r.ConvertTo<Like>()).ToList().FindAll(r => r.UserId == user.Id);
-
-        foreach (var item in productLikes)
+        foreach (var item in user.Likes!)
         {
-            var p = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == item.ProductId);
-            productResult.Add(p!);
-        }
-
-
-        foreach (var item in productResult)
-        {
-            var shop = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == item!.AuthorId);
-            ProductDto dto = productConverter.ToDto(item!);
-            if (shop != null)
+            var product = _appDbContext!.Products.SingleOrDefault(r => r.Id == item.ProductId);
+            if (product != null)
             {
-                dto.Author = userConverter.ToDto(shop!);
-
+                var shop = product.Author;
+                ProductDto dto = productConverter.ToDto(product!);
+                if (user != null)
+                {
+                    dto.Author = userConverter.ToDto(shop!);
+                }
+                dto.Classifies = GetProductClassifiesByProduct(product.ProductClassifies!);
+                dto.Images = GetProductImage(product.ProductImages!);
+                dto.Categories = new List<CategoryDto>();
+                dto.Likes = GetLikeOfProduct(product.Likes!);
+                dto.IsLiked = CheckIsLike(getProductLikeDto.Username, product.Id);
+                productsDto.Add(dto);
             }
-            dto.Classifies = GetProductClassifiesByProduct(item.Id!);
-            dto.Images = GetProductImage(item.Id!);
-            dto.Likes = GetLikeOfProduct(item.Id!);
-            dto.IsLiked = CheckIsLike(getProductLikeDto.Username, item.Id!);
-            productsDto.Add(dto);
         }
+
+
+        // foreach (var item in productResult)
+        // {
+        //     var shop = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == item!.AuthorId);
+        //     ProductDto dto = productConverter.ToDto(item!);
+        //     if (shop != null)
+        //     {
+        //         // dto.Author = userConverter.ToDto(shop!);
+
+        //     }
+        //     dto.Classifies = GetProductClassifiesByProduct(item.Id!);
+        //     dto.Images = GetProductImage(item.Id!);
+        //     dto.Likes = GetLikeOfProduct(item.Id!);
+        //     dto.IsLiked = CheckIsLike(getProductLikeDto.Username, item.Id!);
+        //     productsDto.Add(dto);
+        // }
         return productsDto;
     }
 
     public List<ProductDto> GetProductsHot(GetProductHot getProductHot, string username)
     {
-        var productDb = base.GetSnapshots(_collectionProducts);
-        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         List<ProductDto> productsDto = new List<ProductDto>();
-        var startIndex = getProductHot.ProductInPage * (getProductHot.Page - 1);
-        var lastIndex = startIndex + getProductHot.ProductInPage;
 
-        var productResult = new List<Product>();
-        var products = productDb.Documents.Select(r => r.ConvertTo<Product>()).OrderByDescending(p => p.QuantitySelled).ToList();
-        for (int i = startIndex; i < lastIndex; i++)
-        {
-            if (i < products.Count)
-            {
-                if (products[i] != null)
-                {
-                    productResult.Add(products[i]);
-                }
-            }
-            else
-            {
-                break;
-            }
-        }
+        var products = _appDbContext!.Products
+                                   .Include(u => u.ProductClassifies)
+                                   .Include(u => u.ProductImages)
+                                   .Include(u => u.Likes)
+                                   .Include(u => u.Author)
+                                   .OrderByDescending(p => p.QuantitySelled)
+                                   .Skip((getProductHot.Page - 1) * getProductHot.ProductInPage)
+                                   .Take(getProductHot.ProductInPage)
+                                   .ToList();
 
-        foreach (var item in productResult)
+        foreach (var product in products)
         {
-            var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == item!.AuthorId);
-            ProductDto dto = productConverter.ToDto(item!);
+            var user = product.Author;
+            ProductDto dto = productConverter.ToDto(product!);
             if (user != null)
             {
                 dto.Author = userConverter.ToDto(user!);
-
             }
-            dto.Classifies = GetProductClassifiesByProduct(item.Id!);
-            dto.Images = GetProductImage(item.Id!);
-            dto.Likes = GetLikeOfProduct(item.Id!);
-            dto.IsLiked = CheckIsLike(username, item.Id!);
+            dto.Classifies = GetProductClassifiesByProduct(product.ProductClassifies!);
+            dto.Images = GetProductImage(product.ProductImages!);
+            dto.Categories = new List<CategoryDto>();
+            dto.Likes = GetLikeOfProduct(product.Likes!);
+            dto.IsLiked = CheckIsLike(username, product.Id);
             productsDto.Add(dto);
         }
         return productsDto;
@@ -330,18 +326,16 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 
     public List<ProductDto> GetProductsByShop(string username)
     {
-        var productDb = base.GetSnapshots(_collectionProducts);
-        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         List<ProductDto> productsDto = new List<ProductDto>();
 
         User shop = null!;
-        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username) == null)
+        if (_appDbContext!.Users.SingleOrDefault(r => r.Email == username) == null)
         {
-            shop = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == username)!;
+            shop = _appDbContext!.Users.Include(r => r.ProductSells).SingleOrDefault(r => r.Phone == username)!;
         }
         else
         {
-            shop = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username)!;
+            shop = _appDbContext!.Users.Include(r => r.ProductSells).SingleOrDefault(r => r.Email == username)!;
         }
 
         if (shop == null)
@@ -349,26 +343,22 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
             return null!;
         }
 
-        var products = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().FindAll(r => r.AuthorId == shop.Id);
-
-        foreach (var item in products)
+        foreach (var product in shop.ProductSells!)
         {
-            ProductDto dto = productConverter.ToDto(item!);
-            dto.Classifies = GetProductClassifiesByProduct(item.Id!);
-            dto.Images = GetProductImage(item.Id!);
-            dto.Likes = GetLikeOfProduct(item.Id!);
+            ProductDto dto = productConverter.ToDto(product!);
+            dto.Classifies = GetProductClassifiesByProduct(product.ProductClassifies!);
+            dto.Images = GetProductImage(product.ProductImages!);
+            dto.Categories = new List<CategoryDto>();
+            dto.Likes = GetLikeOfProduct(product.Likes!);
+            dto.IsLiked = CheckIsLike(username, product.Id);
             productsDto.Add(dto);
         }
         return productsDto;
     }
     //method ho tro
-    private async Task<CreateProductClassifyDto[]> AddProductClassify(CreateProductClassifyDto[] productClassifies, string productCode)
+    private List<ProductClassify> FindProductClassify(CreateProductClassifyDto[] productClassifies, Product product)
     {
-        var db = _firestoreDb.Collection(_collectionProductClassify);
-        var productDb = base.GetSnapshots(_collectionProducts);
-        var productClassifyDb = base.GetSnapshots(_collectionProductClassify);
-        var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Code == productCode);
-
+        List<ProductClassify> result = new List<ProductClassify>();
         foreach (var pClassify in productClassifies)
         {
             var productClassify = createProductClassifyConverter.ToEntity(pClassify);
@@ -376,23 +366,20 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
             productClassify.ProductId = product!.Id;
             Random rnd = new Random();
             string randomCode = rnd.Next(1, 100000).ToString();
-            while (productClassifyDb.Documents.Select(r => r.ConvertTo<ProductClassify>()).ToList().Find(r => r.Code == randomCode) != null)
+            while (_appDbContext!.ProductClassifies.SingleOrDefault(r => r.Code == randomCode) != null)
             {
                 randomCode = rnd.Next(1, 100000).ToString();
             }
             productClassify.Code = randomCode;
-            await db.AddAsync(productClassify);
+            result.Add(productClassify);
         }
 
-        return productClassifies;
+        return result;
     }
 
-    private async Task<List<string>> AddImage(List<string> productImages, string productCode)
+    private List<ProductImage> FindProductImage(List<string> productImages, Product product)
     {
-        var db = _firestoreDb.Collection(_collectionProductImage);
-        var productDb = base.GetSnapshots(_collectionProducts);
-        var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Code == productCode);
-
+        List<ProductImage> result = new List<ProductImage>();
         foreach (var pImage in productImages)
         {
             var productImage = new ProductImage
@@ -401,31 +388,26 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
                 Product = product,
                 ProductId = product!.Id
             };
-            await db.AddAsync(productImage);
+            result.Add(productImage);
         }
-
-        return productImages;
+        return result;
     }
 
-    private async Task AddCategoryProduct(string categoryCode, string productCode)
+    private List<Category> FindCategoryProduct(string categoryCode)
     {
-        var db = _firestoreDb.Collection(Category_ProductFireStore._collectionCategoryProduct);
-        var productDb = base.GetSnapshots(_collectionProducts);
-        var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Code == productCode);
+        var categories = _appDbContext!.Categories.ToList();
+        List<int> categoryIds = new List<int>();
+        List<Category> result = new List<Category>();
 
-        var categoryDb = base.GetSnapshots(CategoryFireStore._collectionCategory);
-        var categories = categoryDb.Documents.Select(s => s.ConvertTo<Category>()).ToList();
-        List<string> categoryIds = new List<string>();
-
-        var category = categoryDb.Documents.Select(r => r.ConvertTo<Category>()).ToList().Find(r => r.Code == categoryCode);
+        var category = _appDbContext.Categories.SingleOrDefault(r => r.Code == categoryCode);
         categoryIds.Add(category!.Id!);
-        string temp = category.ParentCategoryId;
+        int temp = category.ParentCategoryId;
 
         for (int i = category!.Level - 1; i >= 0; i--)
         {
             for (int j = 0; j < categories.Count; j++)
             {
-                if (temp == categories[j].Id && categories[j].Level == i && categories[j].ParentCategoryId == null)
+                if (temp == categories[j].Id && categories[j].Level == i && categories[j].ParentCategoryId == -1)
                 {
                     categoryIds.Add(categories[j].Id!);
                     temp = categories[j].ParentCategoryId!;
@@ -440,17 +422,17 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 
         foreach (var categoryId in categoryIds)
         {
-            await db.AddAsync(new Category_Product { CategoryId = categoryId, ProductId = product!.Id! });
+            var cate = _appDbContext.Categories.SingleOrDefault(c => c.Id == categoryId);
+            result.Add(cate!);
         }
+        return result;
     }
 
-    private List<ProductClassifyDto> GetProductClassifiesByProduct(string productId)
+    private List<ProductClassifyDto> GetProductClassifiesByProduct(ICollection<ProductClassify> productClassifies)
     {
-        var productDb = base.GetSnapshots(_collectionProducts);
-        var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == productId);
-        var productClassifyDb = base.GetSnapshots(_collectionProductClassify);
+        var list = productClassifies.ToList();
+        var product = _appDbContext!.Products.SingleOrDefault(p => p.Id == list[0].ProductId);
         List<ProductClassifyDto> productsDto = new List<ProductClassifyDto>();
-        List<ProductClassify> productClassifies = productClassifyDb.Documents.Select(r => r.ConvertTo<ProductClassify>()).ToList().FindAll(r => r.ProductId == productId);
         foreach (var pc in productClassifies)
         {
             ProductClassifyDto dto = productClassifyConverter.ToDto(pc);
@@ -460,13 +442,9 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
         return productsDto;
     }
 
-    public List<string> GetProductImage(string productId)
+    public List<string> GetProductImage(ICollection<ProductImage> productImages)
     {
-        var productDb = base.GetSnapshots(_collectionProducts);
-        var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == productId);
-        var productImagesDb = base.GetSnapshots(_collectionProductImage);
         List<string> images = new List<string>();
-        List<ProductImage> productImages = productImagesDb.Documents.Select(r => r.ConvertTo<ProductImage>()).ToList().FindAll(r => r.ProductId == productId);
         foreach (var pc in productImages)
         {
             images.Add(pc.Image);
@@ -476,83 +454,77 @@ public class ProductFireStore(FirestoreDb firestoreDb) : FirestoreService(firest
 
     private List<CategoryDto> GetCategoriesByProduct(string productId)
     {
-        var productDb = base.GetSnapshots(_collectionProducts);
-        var categoryDb = base.GetSnapshots(CategoryFireStore._collectionCategory);
-        var categoryProductDb = base.GetSnapshots(Category_ProductFireStore._collectionCategoryProduct);
-        var categoryDtos = new List<CategoryDto>();
-        var result = new List<CategoryDto>();
+        // var productDb = base.GetSnapshots(_collectionProducts);
+        // var categoryDb = base.GetSnapshots(CategoryFireStore._collectionCategory);
+        // var categoryProductDb = base.GetSnapshots(Category_ProductFireStore._collectionCategoryProduct);
+        // var categoryDtos = new List<CategoryDto>();
+        // var result = new List<CategoryDto>();
 
-        var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == productId);
-        List<Category_Product> category_product_list = categoryProductDb.Documents.Select(r => r.ConvertTo<Category_Product>()).ToList().FindAll(r => r.ProductId == productId);
+        // var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == productId);
+        // List<Category_Product> category_product_list = categoryProductDb.Documents.Select(r => r.ConvertTo<Category_Product>()).ToList().FindAll(r => r.ProductId == productId);
 
-        var categories = new List<Category>();
-        foreach (var pc in category_product_list)
-        {
-            var category = categoryDb.Documents.Select(r => r.ConvertTo<Category>()).ToList().Find(r => r.Id == pc.CategoryId);
-            categories.Add(category!);
-        }
+        // var categories = new List<Category>();
+        // foreach (var pc in category_product_list)
+        // {
+        //     var category = categoryDb.Documents.Select(r => r.ConvertTo<Category>()).ToList().Find(r => r.Id == pc.CategoryId);
+        //     categories.Add(category!);
+        // }
 
-        int high = 0;
+        // int high = 0;
 
-        foreach (var category in categories)
-        {
-            if (high <= category.Level)
-            {
-                high = category.Level;
-            }
-            categoryDtos.Add(CategoryFireStore.categoryConverter.ToDto(category));
-        }
+        // foreach (var category in categories)
+        // {
+        //     if (high <= category.Level)
+        //     {
+        //         high = category.Level;
+        //     }
+        //     categoryDtos.Add(CategoryFireStore.categoryConverter.ToDto(category));
+        // }
 
-        for (int i = 0; i < high; i++)
-        {
-            for (int j = 0; j < categoryDtos.Count; j++)
-            {
-                if (categoryDtos[j].ParentCategoryId == null && categoryDtos[j].Level == i)
-                {
-                    result.Add(categoryDtos[j]);
-                    List<CategoryDto> arr = categoryDtos.FindAll(c => c.ParentCategoryId == categoryDtos[j].Id);
-                    categoryDtos[j].Children = arr;
-                    break;
-                }
+        // for (int i = 0; i < high; i++)
+        // {
+        //     for (int j = 0; j < categoryDtos.Count; j++)
+        //     {
+        //         if (categoryDtos[j].ParentCategoryId == null && categoryDtos[j].Level == i)
+        //         {
+        //             result.Add(categoryDtos[j]);
+        //             List<CategoryDto> arr = categoryDtos.FindAll(c => c.ParentCategoryId == categoryDtos[j].Id);
+        //             categoryDtos[j].Children = arr;
+        //             break;
+        //         }
 
-                if (categoryDtos[j].ParentCategoryId != null && categoryDtos[j].Level == i)
-                {
-                    List<CategoryDto> arr = categoryDtos.FindAll(c => c.ParentCategoryId == categoryDtos[j].Id);
-                    categoryDtos[j].Children = arr;
-                }
-            }
-        }
+        //         if (categoryDtos[j].ParentCategoryId != null && categoryDtos[j].Level == i)
+        //         {
+        //             List<CategoryDto> arr = categoryDtos.FindAll(c => c.ParentCategoryId == categoryDtos[j].Id);
+        //             categoryDtos[j].Children = arr;
+        //         }
+        //     }
+        // }
 
-        return result;
-
+        // return result;
+        return null!;
     }
 
-    private int GetLikeOfProduct(string productId)
+    private int GetLikeOfProduct(ICollection<Like> productLikes)
     {
-        var productLikeDb = base.GetSnapshots(_collectionProduct_Like);
-        var productLikes = productLikeDb.Documents.Select(r => r.ConvertTo<Like>()).ToList().FindAll(r => r.ProductId == productId);
         return productLikes.Count;
     }
 
-    private bool CheckIsLike(string username, string productId)
+    private bool CheckIsLike(string username, int productId)
     {
-        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
-
         User user = null!;
-        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username) == null)
+        if (_appDbContext!.Users.SingleOrDefault(r => r.Email == username) == null)
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == username)!;
+            user = _appDbContext!.Users.SingleOrDefault(r => r.Phone == username)!;
         }
         else
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username)!;
+            user = _appDbContext!.Users.SingleOrDefault(r => r.Email == username)!;
         }
 
         if (user != null)
         {
-            var productLikeDb = base.GetSnapshots(_collectionProduct_Like);
-            var productLike = productLikeDb.Documents.Select(r => r.ConvertTo<Like>()).ToList().Find(r => r.UserId == user.Id && r.ProductId == productId);
-            return productLike != null;
+            return _appDbContext.Likes.SingleOrDefault(r => r.UserId == user.Id && r.ProductId == productId) != null;
         }
         else
         {

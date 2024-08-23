@@ -1,7 +1,7 @@
 ﻿namespace StoreSp.Converters.response;
 
 using StoreSp.Dtos.response;
-using StoreSp.Entities;
+using StoreSp.Models;
 public class UserConverter : IBaseConverter<User, UserDto>
 {
     UserDto IBaseConverter<User, UserDto>.ToDto(User entity)
@@ -9,13 +9,13 @@ public class UserConverter : IBaseConverter<User, UserDto>
         return new UserDto
         {
             Name = entity.Name,
-            CreatedAt = entity.CreateAt.ToDateTime().ToShortDateString(),
-            Email = entity.Email,
-            Phone = entity.Phone,
-            Avatar = entity.Avatar,
+            CreatedAt = entity.CreateAt.ToString(),
+            Email = entity.Email!,
+            Phone = entity.Phone!,
+            Avatar = entity.Avatar!,
             Status = entity.Status,
             RefreshToken = entity.RefreshToken ?? null,
-            VerifiedAt = entity.VerifiedAt.ToDateTime().ToShortDateString(),
+            VerifiedAt = entity.VerifiedAt.ToString()
         };
     }
 

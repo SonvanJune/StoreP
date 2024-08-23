@@ -7,7 +7,7 @@ namespace StoreSp.Services.Impl;
 
 public class LogServiceImpl : ILogService
 {
-    public static LogFireStore? LogFireStore { get; set; }
+    public static LogFireStore LogFireStore  = new LogFireStore();
     IResult ILogService.GetLogs()
     {
         return Results.Ok(new HttpStatusConfig

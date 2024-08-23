@@ -18,7 +18,7 @@ public static class BannerEndpoint
         BannerService = new BannerServiceImpl();
         authService = new AuthServiceImpl();
 
-        group.MapPost("/", (AddBannerDto addBannerDto, [FromHeader] string authorization) =>
+        group.MapPost("/", (AddBannerDto addBannerDto , [FromHeader] string authorization) =>
         {
             if (authService.GetResult(authorization) == 1)
             {
@@ -35,11 +35,11 @@ public static class BannerEndpoint
             }
         }).WithParameterValidation().RequireAuthorization("quan-tri-vien");
 
-        group.MapPost("/delete", (AddBannerDto addBannerDto, [FromHeader] string authorization) =>
+        group.MapPost("/delete", (DeleteBannerDto deleteBannerDto, [FromHeader] string authorization) =>
         {
             if (authService.GetResult(authorization) == 1)
             {
-                return BannerService!.DeleteBanners(addBannerDto);
+                return BannerService!.DeleteBanners(deleteBannerDto);
             }
             else
             {

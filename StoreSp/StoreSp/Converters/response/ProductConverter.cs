@@ -1,5 +1,5 @@
 ﻿using StoreSp.Dtos.response;
-using StoreSp.Entities;
+using StoreSp.Models;
 
 namespace StoreSp.Converters.response;
 
@@ -14,10 +14,9 @@ public class ProductConverter : IBaseConverter<Product, ProductDto>
             Price = entity.Price,
             PriceSaleOff = entity.PriceSaleOff,
             SaleOff = entity.SaleOff,
-            ShippingUnit = entity.ShippingUnit,
             Code = entity.Code!,
             QuantitySelled = entity.QuantitySelled,
-            CreatedAt = entity.CreatedAt.ToDateTime().ToShortDateString()
+            CreatedAt = entity.CreatedAt.ToString()
         };
     }
 

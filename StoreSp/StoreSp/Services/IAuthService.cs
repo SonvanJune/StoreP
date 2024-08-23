@@ -1,4 +1,4 @@
-﻿using StoreSp.Entities;
+﻿using StoreSp.Models;
 
 namespace StoreSp.Services;
 

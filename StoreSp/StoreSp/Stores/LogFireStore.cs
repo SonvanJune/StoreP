@@ -1,29 +1,34 @@
 ﻿using Google.Cloud.Firestore;
+using StoreSp.Context;
 using StoreSp.Converters;
 using StoreSp.Converters.response;
 using StoreSp.Dtos.request;
 using StoreSp.Dtos.response;
-using StoreSp.Entities;
+using StoreSp.Models;
 
 namespace StoreSp.Stores;
 
-public class LogFireStore(FirestoreDb firestoreDb) : FirestoreService(firestoreDb)
+public class LogFireStore
 {
-    public static string _collectionLog = "logs";
     public readonly IBaseConverter<User, UserDto> userConverter = new UserConverter();
+
+    private readonly AppDbContext? _appDbContext = null;
+
+    public LogFireStore()
+    {
+        _appDbContext = AppDbContext.GetInstance();
+    }
 
     public async Task<Log> AddLogForUser(User user, string code)
     {
-        var db = _firestoreDb.Collection(_collectionLog);
-        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         User u = null!;
         if (user.Email == null)
         {
-            u = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == user.Phone)!;
+            u = _appDbContext!.Users.SingleOrDefault(r => r.Phone == user.Phone)!;
         }
         else
         {
-            u = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == user.Email)!;
+            u = _appDbContext!.Users.SingleOrDefault(r => r.Email == user.Email)!;
         }
 
         var request = new CreateLogDto
@@ -38,30 +43,29 @@ public class LogFireStore(FirestoreDb firestoreDb) : FirestoreService(firestoreD
             Code = request.Code,
             Message = request.Message,
             Status = 0,
-            CreatedAt = Timestamp.FromDateTime(DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc))
+            CreatedAt = DateTime.Now,
         };
 
-        await db.AddAsync(log);
+        _appDbContext.Logs.Add(log);
+        await _appDbContext.SaveChangesAsync();
         return log;
     }
 
     public List<LogDto> GetLogs()
     {
-        var logDb = base.GetSnapshots(_collectionLog);
-        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         List<LogDto> logDtos = new List<LogDto>();
-        var logs = logDb.Documents.Select(r => r.ConvertTo<Log>()).ToList();
+        var logs = _appDbContext!.Logs.ToList();
         foreach (var log in logs)
         {
             var logdto = new LogDto
             {
-                Id = log.Id!,
+                Id = log.Id,
                 Code = log.Code!,
-                CreatedAt = log.CreatedAt.ToDateTime().ToString(),
+                CreatedAt = log.CreatedAt.ToString(),
                 Message = log.Message!,
                 Status = log.Status
             };
-            var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == log.UserId);
+            var user = _appDbContext.Users.SingleOrDefault(r => r.Id == log.UserId);
             var userDto = userConverter.ToDto(user!);
             logdto.User = userDto;
             logDtos.Add(logdto);

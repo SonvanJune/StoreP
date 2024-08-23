@@ -1,7 +1,7 @@
 ﻿using Google.Cloud.Firestore;
 using StoreSp.Commonds;
 using StoreSp.Dtos.request;
-using StoreSp.Entities;
+using StoreSp.Models;
 
 namespace StoreSp.Converters.request;
 
@@ -19,7 +19,7 @@ public class CreateCategoryConverter : IBaseConverter<Category, CreateCategoryDt
             Code = StringHelper.CreateCodeFromName(dto.Name),
             Name = dto.Name,
             Avatar = dto.Avatar ?? null!,
-            CreatedAt = Timestamp.FromDateTime(DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc))
+            CreatedAt = DateTime.Now
         };
     }
 }

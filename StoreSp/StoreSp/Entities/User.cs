@@ -53,10 +53,10 @@ public class User
     public string Avatar { get; set; } = null!;
 
     [FirestoreProperty]
-    public bool IsGoogleAccount { get; set; } = false;
+    public int IsGoogleAccount { get; set; } = 0;
 
     [FirestoreProperty]
-    public bool IsUpdated { get; set; } = false;
+    public int IsUpdated { get; set; } = 0;
 
     public Role? Role { get; set; }
 

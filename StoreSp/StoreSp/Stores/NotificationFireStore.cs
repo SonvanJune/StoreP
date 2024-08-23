@@ -1,26 +1,30 @@
 using Google.Cloud.Firestore;
+using StoreSp.Context;
 using StoreSp.Dtos.request;
 using StoreSp.Dtos.response;
-using StoreSp.Entities;
+using StoreSp.Models;
 
 namespace StoreSp.Stores;
 
-public class NotificationFireStore(FirestoreDb firestoreDb) : FirestoreService(firestoreDb)
+public class NotificationFireStore
 {
-    public static string _collectionNotification = "notifications";
+    private readonly AppDbContext? _appDbContext = null;
+
+    public NotificationFireStore()
+    {
+        _appDbContext = AppDbContext.GetInstance();
+    }
 
     public async Task<Notification> AddNotificationForUser(User user, string message, int type)
     {
-        var db = _firestoreDb.Collection(_collectionNotification);
-        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         User u = null!;
         if (user.Email == null)
         {
-            u = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == user.Phone)!;
+            u = _appDbContext!.Users.SingleOrDefault(r => r.Phone == user.Phone)!;
         }
         else
         {
-            u = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == user.Email)!;
+            u = _appDbContext!.Users.SingleOrDefault(r => r.Email == user.Email)!;
         }
 
         var request = new CreateNotificationDto
@@ -35,26 +39,25 @@ public class NotificationFireStore(FirestoreDb firestoreDb) : FirestoreService(f
             Type = request.Type,
             Message = request.Message,
             Status = 0,
-            CreatedAt = Timestamp.FromDateTime(DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc))
+            CreatedAt = DateTime.Now,
         };
 
-        await db.AddAsync(notification);
+        _appDbContext.Notifications.Add(notification);
+        await _appDbContext.SaveChangesAsync();
         return notification;
     }
 
     public List<NotificationDto> GetNotifications(string username, int status)
     {
-        var notificationDb = base.GetSnapshots(_collectionNotification);
         List<NotificationDto> notificationDtos = new List<NotificationDto>();
-        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         User user;
-        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username) != null)
+        if (_appDbContext!.Users.SingleOrDefault(r => r.Email == username) != null)
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username)!;
+            user = _appDbContext!.Users.SingleOrDefault(r => r.Email == username)!;
         }
         else
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == username)!;
+            user = _appDbContext!.Users.SingleOrDefault(r => r.Phone == username)!;
         }
         if (user == null)
         {
@@ -64,19 +67,19 @@ public class NotificationFireStore(FirestoreDb firestoreDb) : FirestoreService(f
         List<Notification> notifications = new List<Notification>();
         if (status == -1)
         {
-            notifications = notificationDb.Documents.Select(r => r.ConvertTo<Notification>()).ToList().FindAll(r => r.UserId == user.Id);
+            notifications = _appDbContext!.Notifications.Where(r => r.UserId == user.Id).ToList();
         }
         else
         {
-            notifications = notificationDb.Documents.Select(r => r.ConvertTo<Notification>()).ToList().FindAll(r => r.UserId == user.Id && r.Status == status);
+            notifications = _appDbContext!.Notifications.Where(r => r.UserId == user.Id && r.Status == status).ToList();
         }
 
         foreach (var notification in notifications)
         {
             var notificationDto = new NotificationDto
             {
-                Id = notification.Id!,
-                CreatedAt = notification.CreatedAt.ToDateTime().ToString(),
+                Id = notification.Id,
+                CreatedAt = notification.CreatedAt.ToString(),
                 Message = notification.Message!,
                 Status = notification.Status,
                 Type = notification.Type
@@ -88,48 +91,39 @@ public class NotificationFireStore(FirestoreDb firestoreDb) : FirestoreService(f
 
     public async Task<string> ReadNotification(string notificationId)
     {
-        var notificationDb = base.GetSnapshots(_collectionNotification);
-        var notification = notificationDb.Documents.Select(r => r.ConvertTo<Notification>()).ToList().Find(r => r.Id == notificationId);
+        var notification = _appDbContext!.Notifications.SingleOrDefault(r => r.Id == Convert.ToInt32(notificationId));
         if (notification == null)
         {
             return null!;
         }
-        DocumentReference docref = _firestoreDb.Collection(_collectionNotification).Document(notificationId);
-        Dictionary<string, object> data = new Dictionary<string, object>{
-               {"Status" , 1}
-            };
-        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-        if (snapshot.Exists)
-        {
-            await docref.UpdateAsync(data);
-        }
+        notification.Status = 1;
+        _appDbContext.Notifications.Update(notification);
+        await _appDbContext!.SaveChangesAsync();
         return "";
     }
 
     public async Task<string> DeleteNotification(string notificationId)
     {
-        var notificationDb = base.GetSnapshots(_collectionNotification);
-        var notification = notificationDb.Documents.Select(r => r.ConvertTo<Notification>()).ToList().Find(r => r.Id == notificationId);
+        var notification = _appDbContext!.Notifications.SingleOrDefault(r => r.Id == Convert.ToInt32(notificationId));
         if (notification == null)
         {
             return null!;
         }
-        await _firestoreDb.Collection(_collectionNotification).Document(notificationId).DeleteAsync();
+        _appDbContext.Notifications.Remove(notification);
+        await _appDbContext!.SaveChangesAsync();
         return "";
     }
 
     public async Task<string> DeleteAllNotifications(string username, int status)
     {
-        var notificationDb = base.GetSnapshots(_collectionNotification);
-        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         User user;
-        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username) != null)
+        if (_appDbContext!.Users.SingleOrDefault(r => r.Email == username) != null)
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username)!;
+            user = _appDbContext!.Users.SingleOrDefault(r => r.Email == username)!;
         }
         else
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == username)!;
+            user = _appDbContext!.Users.SingleOrDefault(r => r.Phone == username)!;
         }
         if (user == null)
         {
@@ -139,72 +133,58 @@ public class NotificationFireStore(FirestoreDb firestoreDb) : FirestoreService(f
         List<Notification> notifications = new List<Notification>();
         if (status == -1)
         {
-            notifications = notificationDb.Documents.Select(r => r.ConvertTo<Notification>()).ToList().FindAll(r => r.UserId == user.Id);
+            notifications = _appDbContext!.Notifications.Where(r => r.UserId == user.Id).ToList();
         }
         else
         {
-            notifications = notificationDb.Documents.Select(r => r.ConvertTo<Notification>()).ToList().FindAll(r => r.UserId == user.Id && r.Status == status);
+            notifications = _appDbContext!.Notifications.Where(r => r.UserId == user.Id && r.Status == status).ToList();
         }
 
         foreach (var notification in notifications)
         {
-            await _firestoreDb.Collection(_collectionNotification).Document(notification.Id).DeleteAsync();
+            _appDbContext.Notifications.Remove(notification);
         }
+        await _appDbContext!.SaveChangesAsync();
         return "";
     }
 
     public async Task<string> ReadALLNotification(string username)
     {
-        var notificationDb = base.GetSnapshots(_collectionNotification);
-        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
         User user;
-        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username) != null)
+        if (_appDbContext!.Users.SingleOrDefault(r => r.Email == username) != null)
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username)!;
+            user = _appDbContext!.Users.SingleOrDefault(r => r.Email == username)!;
         }
         else
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == username)!;
+            user = _appDbContext!.Users.SingleOrDefault(r => r.Phone == username)!;
         }
         if (user == null)
         {
             return null!;
         }
 
-        var notifications = notificationDb.Documents.Select(r => r.ConvertTo<Notification>()).ToList().FindAll(r => r.UserId == user.Id);
+        var notifications = _appDbContext!.Notifications.Where(r => r.UserId == user.Id).ToList();
 
         foreach (var notification in notifications)
         {
-            DocumentReference docref = _firestoreDb.Collection(_collectionNotification).Document(notification.Id);
-            Dictionary<string, object> data = new Dictionary<string, object>{
-               {"Status" , 1}
-            };
-            DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-            if (snapshot.Exists)
-            {
-                await docref.UpdateAsync(data);
-            }
+            notification.Status = 1;
+            _appDbContext.Notifications.Update(notification);
         }
+        await _appDbContext!.SaveChangesAsync();
         return "";
     }
 
     public async Task<string> MakeNotReadNotification(string notificationId)
     {
-        var notificationDb = base.GetSnapshots(_collectionNotification);
-        var notification = notificationDb.Documents.Select(r => r.ConvertTo<Notification>()).ToList().Find(r => r.Id == notificationId);
+        var notification = _appDbContext!.Notifications.SingleOrDefault(r => r.Id == Convert.ToInt32(notificationId));
         if (notification == null)
         {
             return null!;
         }
-        DocumentReference docref = _firestoreDb.Collection(_collectionNotification).Document(notificationId);
-        Dictionary<string, object> data = new Dictionary<string, object>{
-               {"Status" , 0}
-            };
-        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-        if (snapshot.Exists)
-        {
-            await docref.UpdateAsync(data);
-        }
+        notification.Status = 0;
+        _appDbContext.Notifications.Update(notification);
+        await _appDbContext!.SaveChangesAsync();
         return "";
     }
 }

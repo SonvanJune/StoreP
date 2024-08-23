@@ -1,53 +1,63 @@
-using Google.Cloud.Firestore;
+using Microsoft.EntityFrameworkCore;
+using StoreSp.Context;
 using StoreSp.Dtos.request;
 using StoreSp.Dtos.response;
-using StoreSp.Entities;
+using StoreSp.Models;
 
 namespace StoreSp.Stores;
 
-public class BannerFirestore(FirestoreDb firestoreDb) : FirestoreService(firestoreDb)
+public class BannerFirestore
 {
-    public static string _collectionBanner = "Banners";
+    private readonly AppDbContext? _appDbContext = null;
 
-    public Task<string> AddBanner(AddBannerDto addBannerDto)
+    public BannerFirestore()
     {
-        var db = _firestoreDb.Collection(_collectionBanner);
-        foreach (var item in addBannerDto.Images)
-        {
-            var banner = new Banner
-            {
-                Name = item,
-                CreatedAt = Timestamp.FromDateTime(DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc))
-            };
-            db.AddAsync(banner);
-        }
-        return Task.FromResult("success");
+        _appDbContext = AppDbContext.GetInstance();
     }
 
-    public List<BannerDto> GetBanners()
+    public async Task<string> AddBanner(AddBannerDto addBannerDto)
     {
-        var bannerDb = base.GetSnapshots(_collectionBanner);
-        var banners = bannerDb.Documents.Select(r => r.ConvertTo<Banner>()).ToList();
+        foreach (var item in addBannerDto.Images)
+        {
+            Banner banner = new Banner
+            {
+                CreatedAt = DateTime.Now,
+                Name = item
+            };
+            _appDbContext?.Banners.Add(banner);
+        }
+        await _appDbContext!.SaveChangesAsync();
+        return "success";
+    }
+
+    public async Task<List<BannerDto>> GetBanners()
+    {
+        var banners = await _appDbContext!.Banners.ToListAsync();
         List<BannerDto> result = new List<BannerDto>();
 
         foreach (var item in banners)
         {
             var banner = new BannerDto
             {
-                Id = item.Id!,
-                CreatedAt = item.CreatedAt.ToDateTime().ToString(),
+                Id = item.Id,
+                CreatedAt = item.CreatedAt.ToString(),
                 Name = item.Name
             };
             result.Add(banner);
-        } 
+        }
         return result;
     }
 
-    public async Task<string> DeleteBanner(AddBannerDto addBannerDto){
-        var db = _firestoreDb.Collection(_collectionBanner);
-        foreach (var item in addBannerDto.Images)
+    public async Task<string> DeleteBanner(DeleteBannerDto deleteBannerDto)
+    {
+        foreach (var item in deleteBannerDto.Ids)
         {
-            await db.Document(item).DeleteAsync();
+            var banner = _appDbContext!.Banners.FirstOrDefault(b => b.Id == item);
+            if (banner != null)
+            {
+                _appDbContext.Banners.Remove(banner);
+                await _appDbContext.SaveChangesAsync();
+            }
         }
         return "success";
     }

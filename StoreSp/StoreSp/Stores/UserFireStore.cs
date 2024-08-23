@@ -1,108 +1,104 @@
-﻿using Google.Cloud.Firestore;
-using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
+﻿using Microsoft.EntityFrameworkCore;
+using StoreSp.Context;
 using StoreSp.Converters;
 using StoreSp.Converters.request;
 using StoreSp.Converters.response;
 using StoreSp.Dtos.request;
 using StoreSp.Dtos.response;
-using StoreSp.Entities;
+using StoreSp.Models;
 using StoreSp.Services.Impl;
 
 namespace StoreSp.Stores;
 
-public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestoreDb)
+public class UserFireStore
 {
+    private readonly AppDbContext? _appDbContext = null;
+
+    public UserFireStore()
+    {
+        _appDbContext = AppDbContext.GetInstance();
+    }
+
     //Property
-    public static string _collectionUser = "Users";
-    public static string _collectionRole = "Roles";
-    public static string _collectionAddress = "Addresses";
-    public static string _collectionAddress_User = "Address_User";
     public readonly IBaseConverter<User, UserDto> userConverter = new UserConverter();
     public readonly IBaseConverter<Address, AddressDto> addressConverter = new AddressConverter();
-    private readonly IBaseConverter<User, CreateUserDto> createUserConverter = new CreateUserConverter();
     private readonly IBaseConverter<User, RegisterUserDto> registerUserConverter = new RegisterUserConverter();
     private readonly IBaseConverter<User, GoogleRegisterDto> googleRegisterConverter = new GoogleRegisterConverter();
     private readonly IBaseConverter<Address, CreateAddressDto> createAddressConverter = new CreateAddressConverter();
-    public readonly LogFireStore logFireStore = new LogFireStore(firestoreDb);
-    public readonly NotificationFireStore notificationFireStore = new NotificationFireStore(firestoreDb);
+    public readonly LogFireStore logFireStore = new LogFireStore();
+    public readonly NotificationFireStore notificationFireStore = new NotificationFireStore();
 
     //Method it su dung
     public Task<List<UserDto>> GetAllUser()
     {
-        var snapshot = base.GetSnapshots(_collectionUser);
-        var user = snapshot.Documents.Select(s => s.ConvertTo<User>()).ToList();
-        return Task.FromResult(user.Select(userConverter.ToDto).ToList());
+        var user = _appDbContext!.Users.ToList();
+        List<UserDto> result = new List<UserDto>();
+        foreach (var item in user)
+        {
+            var role = _appDbContext!.Roles.SingleOrDefault(r => r.Id == item.RoleId);
+            var userDto = userConverter.ToDto(item);
+            userDto.RoleCode = role?.Code;
+            result.Add(userDto);
+        }
+        return Task.FromResult(result);
     }
 
     public Task<UserDto> GetUser(string id)
     {
-        var snapshot = base.GetSnapshots(_collectionUser);
-        var user = snapshot.Documents.Select(s => s.ConvertTo<User>()).ToList().Find(u => u.Id == id);
-        return Task.FromResult(userConverter.ToDto(user!));
+        var user = _appDbContext!.Users.SingleOrDefault(r => r.Id == Convert.ToInt32(id));
+        var role = _appDbContext!.Roles.SingleOrDefault(r => r.Id == user!.RoleId);
+        var userDto = userConverter.ToDto(user!);
+        userDto.RoleCode = role?.Code;
+        return Task.FromResult(userDto);
     }
 
     public Task Add(CreateUserDto userDto)
     {
-        var userDb = _firestoreDb.Collection(_collectionUser);
-        var roleDb = base.GetSnapshots(_collectionRole);
-        var user = createUserConverter.ToEntity(userDto);
-        var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == userDto.RoleId);
-        if (role != null)
-        {
-            user.RoleId = role.Id;
-            user.Role = role;
-        }
-        return userDb.AddAsync(user);
+        return null!;
     }
 
     //Method chinh
     public Task<List<UserDto>> GetUserByRole(string roleCode)
     {
-        var roleDb = base.GetSnapshots(_collectionRole);
-        var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Code == roleCode);
+        var role = _appDbContext!.Roles.SingleOrDefault(r => r.Code == roleCode);
 
         if (role == null)
         {
             return null!;
         }
 
-        var snapshot = base.GetSnapshots(_collectionUser);
-        var users = snapshot.Documents.Select(s => s.ConvertTo<User>()).ToList().FindAll(u => u.RoleId == role.Id).ToList();
+        var users = _appDbContext!.Users.Where(u => u.RoleId == role.Id).ToList();
         List<UserDto> userDtos = new List<UserDto>();
         foreach (var item in users)
         {
             var dto = userConverter.ToDto(item);
             dto.RoleCode = role.Code;
-            dto.Id = item.Id;
             userDtos.Add(dto);
         }
         return Task.FromResult(userDtos);
     }
     public async Task<User> Register(RegisterUserDto userDto)
     {
-        var userExistDb = base.GetSnapshots(_collectionUser);
         if (userDto.Email == null)
         {
-            var phoneExist = userExistDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == userDto.Phone);
+            var phoneExist = _appDbContext!.Users.SingleOrDefault(p => p.Phone == userDto.Phone)!;
             if (phoneExist != null)
             {
                 return null!;
             }
         }
-        else
+
+        if (userDto.Phone == null)
         {
-            var emailExist = userExistDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == userDto.Email);
+            var emailExist = _appDbContext!.Users.SingleOrDefault(p => p.Email == userDto.Email)!;
             if (emailExist != null)
             {
                 return null!;
             }
         }
 
-        var userDb = _firestoreDb.Collection(_collectionUser);
-        var roleDb = base.GetSnapshots(_collectionRole);
-
         var user = registerUserConverter.ToEntity(userDto);
-        var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Code == userDto.RoleCode);
+        var role = _appDbContext!.Roles.SingleOrDefault(u => u.Code == userDto.RoleCode);
         if (role == null)
         {
             return null!;
@@ -113,10 +109,12 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         {
             user.VerificationToken = AuthServiceImpl.CreateRandomToken(user);
         }
-        await userDb.AddAsync(user);
-        CreateCartForUser(user, userDto.DeviceToken);
+        user.DeviceToken = user.DeviceToken is null ? null : user.DeviceToken;
+        await _appDbContext!.Users.AddAsync(user);
+        await _appDbContext!.SaveChangesAsync();
+        CreateCartForUser(user);
 
-        //tao log cho user dang ky
+        // //tao log cho user dang ky
         await logFireStore.AddLogForUser(user, "dang-ky");
         await notificationFireStore.AddNotificationForUser(user, "Chào mừng bạn đến với ứng dụng", 0);
         return user;
@@ -124,27 +122,24 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
 
     public async Task<User> Login(LoginUserDto loginUserDto)
     {
-        var userDb = base.GetSnapshots(_collectionUser);
-        var roleDb = base.GetSnapshots(_collectionRole);
         User user;
-
-        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == loginUserDto.Username) == null)
+        if (_appDbContext!.Users.SingleOrDefault(r => r.Email == loginUserDto.Username) == null)
         {
-            if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == loginUserDto.Username) == null)
+            if (_appDbContext!.Users.SingleOrDefault(r => r.Phone == loginUserDto.Username) == null)
             {
                 return null!;
             }
             else
             {
-                user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == loginUserDto.Username)!;
+                user = _appDbContext!.Users.SingleOrDefault(r => r.Phone == loginUserDto.Username)!;
             }
         }
         else
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == loginUserDto.Username)!;
+            user = _appDbContext!.Users.SingleOrDefault(r => r.Email == loginUserDto.Username)!;
         }
 
-        if (user.IsGoogleAccount)
+        if (user.IsGoogleAccount == 1)
         {
             return user;
         }
@@ -155,108 +150,77 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
                 return null!;
             }
 
-            var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == user!.RoleId);
+            var role = _appDbContext!.Roles.SingleOrDefault(r => r.Id == user!.RoleId);
             user.Role = role;
 
             //tao log cho user dang ky
             await logFireStore.AddLogForUser(user, "dang-nhap");
 
             //tao refresh token
-            DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
-            Dictionary<string, object> data = new Dictionary<string, object>{
-            {"DeviceToken" , loginUserDto.DeviceToken}
-            };
-
-            DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-            if (snapshot.Exists)
-            {
-                await docref.UpdateAsync(data);
-            }
-            var u = await GenRefreshToken(loginUserDto.Username);
-            user.RefreshToken = u.RefreshToken;
+            var token = AuthServiceImpl.CreateRefreshToken(user);
+            user.RefreshToken = token;
+            _appDbContext!.Users.Update(user);
+            await _appDbContext!.SaveChangesAsync();
             return user;
         }
     }
 
     public User GetUserByUsername(string username)
     {
-        var userDb = base.GetSnapshots(_collectionUser);
-        var roleDb = base.GetSnapshots(_collectionRole);
         User user;
-        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username) != null)
+        if (_appDbContext!.Users.SingleOrDefault(r => r.Email == username) != null)
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username)!;
+            user = _appDbContext!.Users.SingleOrDefault(r => r.Email == username)!;
         }
         else
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == username)!;
+            user = _appDbContext!.Users.SingleOrDefault(r => r.Phone == username)!;
         }
         if (user == null)
         {
             return null!;
         }
-        var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == user.RoleId);
+        var role = _appDbContext.Roles.SingleOrDefault(r => r.Id == user.RoleId);
         user.Role = role;
         return user;
     }
 
     public async Task<User> VerifyUser(string username)
     {
-        var userDb = base.GetSnapshots(_collectionUser);
-        var roleDb = base.GetSnapshots(_collectionRole);
         User user;
-        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username) != null)
+        if (_appDbContext!.Users.SingleOrDefault(p => p.Email == username)! != null)
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username)!;
+            user = _appDbContext!.Users.SingleOrDefault(p => p.Email == username)!;
         }
         else
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == username)!;
+            user = _appDbContext!.Users.SingleOrDefault(p => p.Phone == username)!;
         }
 
-        var unspecified = DateTime.UtcNow;
-        var specified = DateTime.SpecifyKind(unspecified, DateTimeKind.Utc);
-        DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
-        Dictionary<string, object> data = new Dictionary<string, object>{
-            {"VerifiedAt" , specified}
-        };
+        user.VerifiedAt = DateTime.Now;
+        var token = AuthServiceImpl.CreateRefreshToken(user);
+        user.RefreshToken = token;
+        _appDbContext.Users.Update(user);
+        await _appDbContext.SaveChangesAsync();
 
-        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-        if (snapshot.Exists)
-        {
-            await docref.UpdateAsync(data);
-        }
         //tao log cho user dang ky
         await logFireStore.AddLogForUser(user, "da-xac-thuc");
-        var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == user.RoleId);
-        user.Role = role;
-        var u = await GenRefreshToken(username);
-        user.RefreshToken = u.RefreshToken;
         return user;
     }
 
     public async Task<User> ForgetPaswordByEmail(string email, string randomCode)
     {
-        var userDb = base.GetSnapshots(_collectionUser);
-        var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);
-        if (user == null || user.IsGoogleAccount == true)
+        var user = _appDbContext!.Users.SingleOrDefault(r => r.Email == email);
+        if (user == null || user.IsGoogleAccount == 1)
         {
             return null!;
         }
 
-        var unspecified = DateTime.UtcNow.AddDays(1);
-        var specified = DateTime.SpecifyKind(unspecified, DateTimeKind.Utc);
-        DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
-        Dictionary<string, object> data = new Dictionary<string, object>{
-            {"PasswordReestToken" , BCrypt.Net.BCrypt.HashPassword(randomCode)},
-            {"ResetTokenExpires" , specified}
-        };
+        user.PasswordReestToken = BCrypt.Net.BCrypt.HashPassword(randomCode);
+        user.ResetTokenExpires = DateTime.Now.AddDays(1);
 
-        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-        if (snapshot.Exists)
-        {
-            await docref.UpdateAsync(data);
-        }
+        _appDbContext!.Users.Update(user);
+        await _appDbContext.SaveChangesAsync();
         //tao log cho user dang ky
         await logFireStore.AddLogForUser(user, "quen-mat-khau");
         return user;
@@ -264,8 +228,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
 
     public async Task<User> CheckResetCode(ResetCodeDto resetCodeDto)
     {
-        var userDb = base.GetSnapshots(_collectionUser);
-        var userList = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList();
+        var userList = _appDbContext!.Users.ToList();
         User user = null!;
         foreach (var u in userList)
         {
@@ -284,24 +247,16 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             return null!;
         }
 
-        DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
-        Dictionary<string, object> data = new Dictionary<string, object>{
-            {"IsUpdated", true}
-        };
-
-        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-        if (snapshot.Exists)
-        {
-            await docref.UpdateAsync(data);
-        }
+        user.IsUpdated = 1;
+        _appDbContext!.Users.Update(user);
+        await _appDbContext.SaveChangesAsync();
         await logFireStore.AddLogForUser(user, "da-nhap-ma-otp");
         return user;
     }
 
     public async Task<User> ResetPasswordOfEmail(ResetPasswordDto resetPasswordDto)
     {
-        var userDb = base.GetSnapshots(_collectionUser);
-        var userList = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList();
+        var userList = _appDbContext!.Users.ToList();
         User user = null!;
         foreach (var u in userList)
         {
@@ -315,26 +270,17 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             }
         }
 
-        if (user == null || user.IsUpdated == false)
+        if (user == null || user.IsUpdated == 0)
         {
             return null!;
         }
 
-        var unspecified = new DateTime(1111, 11, 11, 11, 11, 11, DateTimeKind.Unspecified);
-        var specified = DateTime.SpecifyKind(unspecified, DateTimeKind.Utc);
-        DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
-        Dictionary<string, object> data = new Dictionary<string, object>{
-            {"PasswordHash" , BCrypt.Net.BCrypt.HashPassword(resetPasswordDto.Password)},
-            {"PasswordReestToken" , null!},
-            {"ResetTokenExpires" , Timestamp.FromDateTime(specified)},
-            {"IsUpdated", false}
-        };
-
-        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-        if (snapshot.Exists)
-        {
-            await docref.UpdateAsync(data);
-        }
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(resetPasswordDto.Password);
+        user.PasswordReestToken = null!;
+        user.ResetTokenExpires = new DateTime(1111, 11, 11, 11, 11, 11);
+        user.IsUpdated = 0;
+        _appDbContext!.Users.Update(user);
+        await _appDbContext.SaveChangesAsync();
 
         //tao log cho user dang ky
         await logFireStore.AddLogForUser(user, "thay-doi-mat-khau");
@@ -343,109 +289,88 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
 
     public async Task<User> GoogleRegister(GoogleRegisterDto dto)
     {
-        var userExistDb = base.GetSnapshots(_collectionUser);
-        var emailExist = userExistDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == dto.Email);
+        var emailExist = _appDbContext!.Users.SingleOrDefault(r => r.Email == dto.Email);
         if (emailExist != null)
         {
             return null!;
         }
 
-        var userDb = _firestoreDb.Collection(_collectionUser);
-        var roleDb = base.GetSnapshots(_collectionRole);
         var user = googleRegisterConverter.ToEntity(dto);
-        var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Code == dto.RoleCode);
+        var role = _appDbContext!.Roles.SingleOrDefault(u => u.Code == dto.RoleCode);
         if (role == null)
         {
             return null!;
         }
         user.RoleId = role.Id;
         user.Role = role;
-        user.IsGoogleAccount = true;
+        user.IsGoogleAccount = 1;
+        user.VerifiedAt = DateTime.Now;
+        user.DeviceToken = user.DeviceToken is null ? null : user.DeviceToken;
+        var token = AuthServiceImpl.CreateRefreshToken(user);
+        user.RefreshToken = token;
+        await _appDbContext!.Users.AddAsync(user);
+        await _appDbContext!.SaveChangesAsync();
+        CreateCartForUser(user);
 
-        var unspecified = DateTime.UtcNow;
-        var specified = DateTime.SpecifyKind(unspecified, DateTimeKind.Utc);
-        user.VerifiedAt = Timestamp.FromDateTime(specified);
-        await userDb.AddAsync(user);
-        CreateCartForUser(user, dto.DeviceToken);
         //tao log cho user dang ky
         await logFireStore.AddLogForUser(user, "dang-ky-bang-google");
         await notificationFireStore.AddNotificationForUser(user, "Chào mừng bạn đến với ứng dụng", 0);
-        var u = await GenRefreshToken(dto.Email);
-        user.RefreshToken = u.RefreshToken;
         return user;
     }
 
     public async Task<User> GoogleLogin(GoogleLoginDto dto)
     {
-        var userDb = base.GetSnapshots(_collectionUser);
-        var roleDb = base.GetSnapshots(_collectionRole);
-        var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == dto.Email);
-        if (user == null || user.IsGoogleAccount == false)
+        var user = _appDbContext!.Users.SingleOrDefault(r => r.Email == dto.Email);
+        if (user == null || user.IsGoogleAccount == 0)
         {
             return null!;
         }
-        var role = roleDb.Documents.Select(r => r.ConvertTo<Role>()).ToList().Find(r => r.Id == user!.RoleId);
+        var role = _appDbContext!.Roles.SingleOrDefault(u => u.Id == user.Id);
         user.Role = role;
         //tao log cho user dang ky
         await logFireStore.AddLogForUser(user, "dang-nhap");
-        //tao refresh token
-        DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
-        Dictionary<string, object> data = new Dictionary<string, object>{
-            {"DeviceToken" , dto.DeviceToken}
-            };
 
-        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-        if (snapshot.Exists)
-        {
-            await docref.UpdateAsync(data);
-        }
-        var u = await GenRefreshToken(dto.Email);
-        user.RefreshToken = u.RefreshToken;
+
+        //tao refresh token
+        user.DeviceToken = user.DeviceToken is null ? null : user.DeviceToken;
+        var token = AuthServiceImpl.CreateRefreshToken(user);
+        user.RefreshToken = token;
+        _appDbContext!.Users.Update(user);
+        await _appDbContext!.SaveChangesAsync();
         return user;
     }
 
     public async Task<User> UpdateStatus(UpdateStatusUserDto dto)
     {
-        var userDb = base.GetSnapshots(_collectionUser);
         User user = null!;
         if (dto.Email == null)
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == dto.Phone)!;
+            user = _appDbContext!.Users.SingleOrDefault(r => r.Phone == dto.Phone)!;
         }
         else
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == dto.Email)!;
+            user = _appDbContext!.Users.SingleOrDefault(r => r.Email == dto.Email)!;
         }
 
-        DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
-        Dictionary<string, object> data = new Dictionary<string, object>{
-            {"Status" , dto.Status}
-        };
+        user.Status = dto.Status;
+        _appDbContext!.Users.Update(user);
+        await _appDbContext.SaveChangesAsync();
 
-        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-        if (snapshot.Exists)
-        {
-            await docref.UpdateAsync(data);
-        }
         await logFireStore.AddLogForUser(user, "cap-nhat-trang-thai");
         return user;
-
     }
 
     //method address
     public async Task<string> AddAdress(CreateAddressDto dto)
     {
-        var db = _firestoreDb.Collection(_collectionAddress);
-        var userDb = base.GetSnapshots(_collectionUser);
-        var addressDb = base.GetSnapshots(_collectionAddress);
         User user = null!;
-        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == dto.Username) == null)
+        if (_appDbContext!.Users.SingleOrDefault(r => r.Email == dto.Username) == null)
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == dto.Username)!;
+            user = _appDbContext!.Users.SingleOrDefault(r => r.Phone == dto.Username)!;
         }
         else
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == dto.Username)!;
+            user = _appDbContext!.Users.SingleOrDefault(r => r.Email == dto.Username)!;
         }
 
         if (user == null)
@@ -456,7 +381,7 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
         var address = createAddressConverter.ToEntity(dto);
         Random rnd = new Random();
         string randomCode = rnd.Next(1, 100000).ToString();
-        while (addressDb.Documents.Select(r => r.ConvertTo<Address>()).ToList().Find(r => r.Code == randomCode) != null)
+        while (_appDbContext!.Addresses.SingleOrDefault(r => r.Code == randomCode) != null)
         {
             randomCode = rnd.Next(1, 100000).ToString();
         }
@@ -464,39 +389,33 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
 
         if (address.Status == "1")
         {
-            var addExits = addressDb.Documents.Select(r => r.ConvertTo<Address>()).ToList().Find(r => r.Status.Contains("1"));
+            var addExits = _appDbContext!.Addresses.SingleOrDefault(r => r.Status.Contains("1"));
             if (addExits != null)
             {
-                DocumentReference docref = _firestoreDb.Collection(_collectionAddress).Document(addExits.Id);
-                Dictionary<string, object> data = new Dictionary<string, object>{
-                    {"Status" , "0"},
-                };
-                DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-                if (snapshot.Exists)
-                {
-                    await docref.UpdateAsync(data);
-                }
+                addExits.Status = "0";
+                _appDbContext!.Addresses.Update(addExits);
+                await _appDbContext!.SaveChangesAsync();
             }
         }
 
-        await db.AddAsync(address);
-        await AddAddressUser(randomCode, user.Id!);
+        List<User> users = new List<User>();
+        users.Add(user);
+        address.Users = users;
+        _appDbContext!.Addresses.Update(address);
+        await _appDbContext!.SaveChangesAsync();
         await logFireStore.AddLogForUser(user, "them-dia-chi");
         return "";
     }
     public Task<List<AddressDto>> GetAddress(string username)
     {
-        var address_UserDb = base.GetSnapshots(_collectionAddress_User);
-        var addressDb = base.GetSnapshots(_collectionAddress);
-        var userDb = base.GetSnapshots(_collectionUser);
         User user = null!;
-        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username) == null)
+        if (_appDbContext!.Users.SingleOrDefault(r => r.Email == username) == null)
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == username)!;
+            user = _appDbContext!.Users.Include(u => u.Addresses).SingleOrDefault(r => r.Phone == username)!;
         }
         else
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username)!;
+            user = _appDbContext!.Users.Include(u => u.Addresses).SingleOrDefault(r => r.Email == username)!;
         }
 
         if (user == null)
@@ -504,11 +423,11 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             return null!;
         }
 
-        var addressesUser = address_UserDb.Documents.Select(r => r.ConvertTo<Address_User>()).ToList().FindAll(r => r.UserId == user.Id);
+        var addresses = user.Addresses;
         var addressesDto = new List<AddressDto>();
-        foreach (var address_User in addressesUser)
+        foreach (var add in addresses!)
         {
-            var address = addressDb.Documents.Select(r => r.ConvertTo<Address>()).ToList().Find(r => r.Id == address_User.AddressId);
+            var address = _appDbContext.Addresses.SingleOrDefault(r => r.Id == add.Id);
             addressesDto.Add(addressConverter.ToDto(address!));
         }
         return Task.FromResult(addressesDto);
@@ -517,42 +436,27 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
     //method ho tro
     public bool CheckIsVerified(string email)
     {
-        var userDb = base.GetSnapshots(_collectionUser);
-        var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);
+        var user = _appDbContext!.Users.SingleOrDefault(p => p.Email == email);
         if (user == null) return false;
-        return user.VerifiedAt.ToDateTime().Year != 1111;
+        return user.VerifiedAt.Year != 1111;
     }
 
     public bool CheckValidToken(string email, string token)
     {
-        var userDb = base.GetSnapshots(_collectionUser);
-        var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == email);
+        var user = _appDbContext!.Users.SingleOrDefault(p => p.Email == email);
         return user!.VerificationToken == token;
     }
 
-    private async void CreateCartForUser(User user, string deviceToken)
+    private async void CreateCartForUser(User user)
     {
-        var cartDb = _firestoreDb.Collection(CartFireStore._collectionCart);
-        var userDb = base.GetSnapshots(_collectionUser);
         User u = null!;
         if (user.Email == null)
         {
-            u = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == user.Phone)!;
+            u = _appDbContext!.Users.SingleOrDefault(p => p.Phone == user.Phone)!;
         }
         else
         {
-            u = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == user.Email)!;
-        }
-
-        DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(u.Id);
-        Dictionary<string, object> data = new Dictionary<string, object>{
-            {"DeviceToken" , deviceToken}
-            };
-
-        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-        if (snapshot.Exists)
-        {
-            await docref.UpdateAsync(data);
+            u = _appDbContext!.Users.SingleOrDefault(p => p.Email == user.Email)!;
         }
 
         var cart = new Cart
@@ -561,56 +465,21 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             TotalPrice = 0,
             Items = new List<CartItem>()
         };
-        await cartDb.AddAsync(cart);
+        user.Cart = cart;
+        _appDbContext.Users.Update(user);
+        await _appDbContext.SaveChangesAsync();
     }
 
-    private async Task AddAddressUser(string code, string userId)
+    public async Task<string> UpdateUser(UpdateUserDto updateUserDto, string username)
     {
-        var address_UserDb = _firestoreDb.Collection(_collectionAddress_User);
-        var addressDb = base.GetSnapshots(_collectionAddress);
-
-        var addressExists = addressDb.Documents.Select(r => r.ConvertTo<Address>()).ToList().Find(r => r.Code == code)!;
-        var address_User = new Address_User
-        {
-            UserId = userId,
-            AddressId = addressExists.Id
-        };
-        await address_UserDb.AddAsync(address_User);
-    }
-
-    public async Task<User> GenRefreshToken(string username)
-    {
-        User user = GetUserByUsername(username);
-        if (user != null)
-        {
-            var token = AuthServiceImpl.CreateRefreshToken(user);
-            //tao refresh token
-            DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
-            Dictionary<string, object> data = new Dictionary<string, object>{
-            {"RefreshToken" , token}
-            };
-
-            DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-            if (snapshot.Exists)
-            {
-                await docref.UpdateAsync(data);
-            }
-            user.RefreshToken = token;
-            return user;
-        }
-        return null!;
-    }
-    
-    public async Task<string> UpdateUser(UpdateUserDto updateUserDto , string username){
-        var userDb = base.GetSnapshots(_collectionUser);
         User user = null!;
-        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username) == null)
+        if (_appDbContext!.Users.SingleOrDefault(r => r.Email == username) == null)
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == username)!;
+            user = _appDbContext!.Users.SingleOrDefault(r => r.Phone == username)!;
         }
         else
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == username)!;
+            user = _appDbContext!.Users.SingleOrDefault(r => r.Email == username)!;
         }
 
         if (user == null)
@@ -618,16 +487,10 @@ public class UserFireStore(FirestoreDb firestoreDb) : FirestoreService(firestore
             return null!;
         }
 
-        DocumentReference docref = _firestoreDb.Collection(_collectionUser).Document(user.Id);
-        Dictionary<string, object> data = new Dictionary<string, object>{
-               {"Name" , updateUserDto.Name},
-               {"Avatar" , updateUserDto.Image},
-            };
-        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-        if (snapshot.Exists)
-        {
-            await docref.UpdateAsync(data);
-        }
+        user.Name = updateUserDto.Name;
+        user.Avatar = updateUserDto.Image;
+        _appDbContext!.Users.Update(user);
+        await _appDbContext.SaveChangesAsync();
         return "";
     }
 }

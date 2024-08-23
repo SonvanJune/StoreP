@@ -7,7 +7,7 @@ namespace StoreSp.Services.Impl;
 
 public class RoleServiceImpl : IRoleService
 {
-    public static RoleFireStore? roleFireStore { get; set; }
+    public static RoleFireStore roleFireStore = new RoleFireStore();
 
     public IResult AddRole(CreateRoleDto createRoleDto)
     {
@@ -16,7 +16,7 @@ public class RoleServiceImpl : IRoleService
             return Results.NoContent();
         }
 
-        roleFireStore!.Add(createRoleDto);
+        var a = roleFireStore!.Add(createRoleDto);
 
         return Results.Created("", new HttpStatusConfig
         {

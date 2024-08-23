@@ -1,5 +1,5 @@
 ﻿using StoreSp.Dtos.response;
-using StoreSp.Entities;
+using StoreSp.Models;
 
 namespace StoreSp.Converters.response;
 
@@ -9,7 +9,7 @@ public class BillConverter : IBaseConverter<Bill, BillDto>
     {
         return new BillDto
         {
-            CreatedAt = entity.CreatedAt.ToDateTime().ToShortDateString(),
+            CreatedAt = entity.CreatedAt.ToString(),
             Code = entity.Code!,
             Status = entity.Status,
             PaymentMethod = entity.PaymentMethod,

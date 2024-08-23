@@ -1,12 +1,9 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
-using System.Net;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using StoreSp.Commonds;
 using StoreSp.Configs;
-using StoreSp.Entities;
-using Vonage.Common.Monads;
+using StoreSp.Models;
 
 namespace StoreSp.Services.Impl;
 
@@ -82,7 +79,7 @@ public class AuthServiceImpl : IAuthService
         }
         else
         {
-            claims.AddClaim(new Claim(ClaimTypes.Name, user.Phone));
+            claims.AddClaim(new Claim(ClaimTypes.Name, user.Phone!));
         }
         claims.AddClaim(new Claim(ClaimTypes.Role, role.Code));
         return claims;
@@ -103,7 +100,7 @@ public class AuthServiceImpl : IAuthService
         }
         else
         {
-            claims.AddClaim(new Claim(ClaimTypes.Name, user.Phone));
+            claims.AddClaim(new Claim(ClaimTypes.Name, user.Phone!));
         }
 
         var tokenDescriptor = new SecurityTokenDescriptor
@@ -132,7 +129,7 @@ public class AuthServiceImpl : IAuthService
         }
         else
         {
-            claims.AddClaim(new Claim(ClaimTypes.Name, user.Phone));
+            claims.AddClaim(new Claim(ClaimTypes.Name, user.Phone!));
         }
 
         var tokenDescriptor = new SecurityTokenDescriptor

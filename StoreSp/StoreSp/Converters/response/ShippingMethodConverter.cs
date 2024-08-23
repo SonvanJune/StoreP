@@ -1,5 +1,5 @@
 ﻿using StoreSp.Dtos.response;
-using StoreSp.Entities;
+using StoreSp.Models;
 
 namespace StoreSp.Converters.response;
 
@@ -11,7 +11,7 @@ public class ShippingMethodConverter : IBaseConverter<ShippingMethod, ShippingMe
         {
             Name = entity.Name,
             Price = entity.Price,
-            CreatedAt = entity.CreatedAt.ToDateTime().ToString(),
+            CreatedAt = entity.CreatedAt.ToString(),
             Code = entity.Code!,
             Location = entity.Location,
             Ensure = entity.Ensure,

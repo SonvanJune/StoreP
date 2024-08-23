@@ -11,9 +11,6 @@ public class CreateProductDto
     public string Description { get; set; } = "";
 
     [Required]
-    public required string ShippingUnit { get; set; }
-
-    [Required]
     public required int Price { get; set; }
 
     [Required]

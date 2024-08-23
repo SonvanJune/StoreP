@@ -7,7 +7,7 @@ namespace StoreSp.Services.Impl;
 
 public class BillServiceImpl : IBillService
 {
-    public static BillFirestore? BillFirestore { get; set; }
+    public static BillFirestore BillFirestore = new BillFirestore();
     IResult IBillService.Checkout(CreateBillDto createBillDto)
     {
         var item = BillFirestore!.Checkout(createBillDto).Result;

@@ -1,5 +1,5 @@
 ﻿using StoreSp.Dtos.response;
-using StoreSp.Entities;
+using StoreSp.Models;
 
 namespace StoreSp.Converters.response;
 

@@ -7,7 +7,7 @@ namespace StoreSp.Services.Impl;
 
 public class CategoryServiceImpl : ICategoryService
 {
-    public static CategoryFireStore? CategoryFireStore { get; set; }
+    public static CategoryFireStore CategoryFireStore = new CategoryFireStore();
 
     IResult ICategoryService.AddCategory(CreateCategoryDto createCategoryDto)
     {

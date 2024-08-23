@@ -1,6 +1,6 @@
 ﻿using Google.Cloud.Firestore;
 using StoreSp.Dtos.request;
-using StoreSp.Entities;
+using StoreSp.Models;
 
 namespace StoreSp.Converters.request;
 
@@ -17,7 +17,7 @@ public class CreateRoleConverter : IBaseConverter<Role, CreateRoleDto>
         {
             Name = dto.Name,
             Code = dto.Code,
-            CreatedAt = new Timestamp()
+            CreatedAt = DateTime.Now
         };
     }
 }

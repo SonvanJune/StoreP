@@ -1,5 +1,5 @@
 ﻿using StoreSp.Dtos.request;
-using StoreSp.Entities;
+using StoreSp.Models;
 
 namespace StoreSp.Converters.request;
 
@@ -19,8 +19,7 @@ public class CreateProductClassifyConverter : IBaseConverter<ProductClassify, Cr
             Image = dto.Image,
             Quantity = dto.Quantity,
             IncreasePercent = dto.IncreasePercent,
-            Status = 1,
-            IsChoose = false
+            Status = 1
         };
     }
 }

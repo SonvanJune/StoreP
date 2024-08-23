@@ -1,34 +1,36 @@
-﻿using Google.Cloud.Firestore;
+﻿using StoreSp.Context;
 using StoreSp.Converters;
 using StoreSp.Converters.request;
 using StoreSp.Converters.response;
 using StoreSp.Dtos.request;
 using StoreSp.Dtos.response;
-using StoreSp.Entities;
+using StoreSp.Models;
 
 namespace StoreSp.Stores;
 
-public class CategoryFireStore(FirestoreDb firestoreDb) : FirestoreService(firestoreDb)
+public class CategoryFireStore
 {
-    public static string _collectionCategory = "Categories";
+    private readonly AppDbContext? _appDbContext = null;
+
+    public CategoryFireStore()
+    {
+        _appDbContext = AppDbContext.GetInstance();
+    }
     public static readonly IBaseConverter<Category, CategoryDto> categoryConverter = new CategoryConverter();
     private readonly IBaseConverter<Category, CreateCategoryDto> createCategoryConverter = new CreateCategoryConverter();
 
     public int Add(CreateCategoryDto categoryDto)
     {
-        var categoryDb = _firestoreDb.Collection(_collectionCategory);
-        var db = base.GetSnapshots(_collectionCategory);
         var category = createCategoryConverter.ToEntity(categoryDto);
-        var existCategory = db.Documents.Select(r => r.ConvertTo<Category>()).ToList().Find(r => r.Code == category.Code);
+        var existCategory = _appDbContext!.Categories.SingleOrDefault(r => r.Code == category.Code);
         if (existCategory != null)
         {
             return -1;
-
         }
 
         if (categoryDto.ParentCategoryCode != null)
         {
-            var parent = db.Documents.Select(r => r.ConvertTo<Category>()).ToList().Find(r => r.Code == categoryDto.ParentCategoryCode);
+            var parent = _appDbContext!.Categories.SingleOrDefault(r => r.Code == categoryDto.ParentCategoryCode);
 
             if (parent != null)
             {
@@ -41,16 +43,21 @@ public class CategoryFireStore(FirestoreDb firestoreDb) : FirestoreService(fires
                 return 0;
             }
         }
+        else
+        {
+            category.ParentCategoryId = -1;
+            category.ParentCategory = null;
+            category.Level = 0;
+        }
 
-
-        categoryDb.AddAsync(category);
+        _appDbContext!.Categories.Add(category);
+        _appDbContext!.SaveChanges();
         return 1;
     }
 
     public List<CategoryDto> GetAllCategories(bool isMobile)
     {
-        var snapshot = base.GetSnapshots(_collectionCategory);
-        var categories = snapshot.Documents.Select(s => s.ConvertTo<Category>()).ToList();
+        var categories = _appDbContext!.Categories.ToList();
         List<CategoryDto> result = new List<CategoryDto>();
 
         var categoryDtos = new List<CategoryDto>();
@@ -71,7 +78,7 @@ public class CategoryFireStore(FirestoreDb firestoreDb) : FirestoreService(fires
             {
                 for (int j = 0; j < categoryDtos.Count; j++)
                 {
-                    if (categoryDtos[j].ParentCategoryId == null && categoryDtos[j].Level == i)
+                    if (categoryDtos[j].ParentCategoryId == -1 && categoryDtos[j].Level == i)
                     {
                         result.Add(categoryDtos[j]);
                         List<CategoryDto> arr = categoryDtos.FindAll(c => c.ParentCategoryId == categoryDtos[j].Id);
@@ -79,7 +86,7 @@ public class CategoryFireStore(FirestoreDb firestoreDb) : FirestoreService(fires
                         break;
                     }
 
-                    if (categoryDtos[j].ParentCategoryId != null && categoryDtos[j].Level == i)
+                    if (categoryDtos[j].ParentCategoryId != -1 && categoryDtos[j].Level == i)
                     {
                         List<CategoryDto> arr = categoryDtos.FindAll(c => c.ParentCategoryId == categoryDtos[j].Id);
                         categoryDtos[j].Children = arr;
@@ -93,21 +100,13 @@ public class CategoryFireStore(FirestoreDb firestoreDb) : FirestoreService(fires
 
     public async Task UpdateCategory(UpdateCategoryDto categoryDto)
     {
-        var categoryDb = base.GetSnapshots(_collectionCategory);
-        var category = categoryDb.Documents.Select(s => s.ConvertTo<Category>()).ToList().Find(c => c.Code == categoryDto.Code);
+        var category = _appDbContext!.Categories.SingleOrDefault(c => c.Code == categoryDto.Code);
         if (category != null)
         {
-            DocumentReference docref = _firestoreDb.Collection(_collectionCategory).Document(category.Id);
-            Dictionary<string, object> data = new Dictionary<string, object>{
-            {"Name" , categoryDto.Name},
-            {"Avatar" , categoryDto.Avatar}
-            };
-
-            DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-            if (snapshot.Exists)
-            {
-                await docref.UpdateAsync(data);
-            }
+            category.Name = categoryDto.Name;
+            category.Avatar = categoryDto.Avatar;
+            _appDbContext.Categories.Update(category);
+            await _appDbContext.SaveChangesAsync();
         }
     }
 }

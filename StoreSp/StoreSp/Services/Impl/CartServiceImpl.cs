@@ -7,7 +7,7 @@ namespace StoreSp.Services.Impl;
 
 public class CartServiceImpl : ICartService
 {
-    public static CartFireStore? CartFireStore { get; set; }
+    public static CartFireStore CartFireStore = new CartFireStore();
     IResult ICartService.AddToCart(AddCartItemDto addCartItemDto)
     {
         var item = CartFireStore!.AddToCart(addCartItemDto).Result;

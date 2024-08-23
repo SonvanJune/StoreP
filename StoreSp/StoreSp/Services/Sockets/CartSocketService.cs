@@ -10,7 +10,7 @@ namespace StoreSp.Services.Sockets;
 
 public class CartSocketService
 {
-    public static CartFireStore? CartFireStore { get; set; }
+    public static CartFireStore CartFireStore = new CartFireStore();
     public async Task GetCartByUserNameSocket(HttpContext context)
     {
         if (context.WebSockets.IsWebSocketRequest)

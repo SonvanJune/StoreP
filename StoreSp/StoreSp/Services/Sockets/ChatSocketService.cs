@@ -12,7 +12,7 @@ namespace StoreSp.Services.Sockets;
 
 public class ChatSocketService
 {
-    public static BoxchatFirestore? BoxchatFirestore { get; set; }
+    public static BoxchatFirestore BoxchatFirestore = new BoxchatFirestore();
     private static readonly ConcurrentBag<WebSocket> _connectedSockets = new ConcurrentBag<WebSocket>();
 
     public async Task GetMessageByUserNameSocket(HttpContext context)

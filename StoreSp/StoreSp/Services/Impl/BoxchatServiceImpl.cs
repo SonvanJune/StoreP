@@ -8,7 +8,7 @@ namespace StoreSp.Services.Impl;
 
 public class BoxchatServiceImpl : IBoxchatService
 {
-    public static BoxchatFirestore? BoxchatFirestore { get; set; }
+    public static BoxchatFirestore BoxchatFirestore { get; set; } = new BoxchatFirestore();
     IResult IBoxchatService.CreateBoxChat(string usernameSender, string usernameReceiver)
     {
         var item = BoxchatFirestore!.CreateBoxchat(usernameSender, usernameReceiver).Result;

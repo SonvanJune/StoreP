@@ -14,7 +14,6 @@ public class ProductDto
     public required int QuantitySelled { get; set; }
     public int Likes { get; set; }
     public bool IsLiked { get; set; } = false;
-    public required string ShippingUnit { get; set; }
     public List<ProductClassifyDto>? Classifies { get; set; }
     public List<string>? Images { get; set; }
 }

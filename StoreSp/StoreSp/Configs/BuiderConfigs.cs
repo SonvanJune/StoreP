@@ -1,8 +1,10 @@
 ﻿using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using StoreSp.Commonds;
+using StoreSp.Context;
 using StoreSp.Services;
 using StoreSp.Services.Impl;
 
@@ -88,6 +90,10 @@ public static class BuiderConfig
             // Cấu hình Kestrel để lắng nghe trên địa chỉ IP cụ thể
             serverOptions.Listen(System.Net.IPAddress.Parse("127.0.0.1"), 5181); // IP và cổng
         });
+
+        //connect mysql
+        var connectionString = builder.Configuration.GetConnectionString("AppDb");
+        builder.Services.AddDbContext<AppDbContext>(options => options.UseMySql(connectionString , ServerVersion.AutoDetect(connectionString)));
         return builder;
     }
 

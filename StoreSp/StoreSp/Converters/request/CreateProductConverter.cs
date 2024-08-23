@@ -1,6 +1,6 @@
 ﻿using Google.Cloud.Firestore;
 using StoreSp.Dtos.request;
-using StoreSp.Entities;
+using StoreSp.Models;
 
 namespace StoreSp.Converters.request;
 
@@ -15,10 +15,9 @@ public class CreateProductConverter : IBaseConverter<Product, CreateProductDto>
     {
         return new Product
         {
-            CreatedAt = Timestamp.FromDateTime(DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc)),
+            CreatedAt = DateTime.Now,
             Name = dto.Name,
             Description = dto.Description,
-            ShippingUnit = dto.ShippingUnit,
             Active = 0,
             Price = dto.Price,
             SaleOff = dto.SaleOff,

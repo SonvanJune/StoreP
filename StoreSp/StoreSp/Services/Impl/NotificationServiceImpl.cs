@@ -8,7 +8,7 @@ namespace StoreSp.Services.Impl;
 
 public class NotificationServiceImpl : INotificationService
 {
-    public static NotificationFireStore? NotificationFireStore { get; set; }
+    public static NotificationFireStore NotificationFireStore = new NotificationFireStore();
 
     IResult INotificationService.DeleteAllNotifications(string username , int status)
     {

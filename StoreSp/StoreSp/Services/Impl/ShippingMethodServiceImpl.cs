@@ -7,7 +7,7 @@ namespace StoreSp.Services.Impl;
 
 public class ShippingMethodServiceImpl : IShippingMethodService
 {
-    public static ShippingMethodFirestore? ShippingMethodFirestore { get; set; }
+    public static ShippingMethodFirestore ShippingMethodFirestore = new ShippingMethodFirestore();
 
     IResult IShippingMethodService.AddShippingUnit(AddShippingMethodDto createShippingMethodDto)
     {

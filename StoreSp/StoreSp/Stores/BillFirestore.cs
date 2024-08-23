@@ -1,17 +1,23 @@
 ﻿using Google.Cloud.Firestore;
+using Microsoft.EntityFrameworkCore;
 using StoreSp.Commonds;
+using StoreSp.Context;
 using StoreSp.Converters;
 using StoreSp.Converters.response;
 using StoreSp.Dtos.request;
 using StoreSp.Dtos.response;
-using StoreSp.Entities;
+using StoreSp.Models;
 
 namespace StoreSp.Stores;
 
-public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestoreDb)
+public class BillFirestore
 {
-    public static string _collectionBill = "Bills";
-    public static string _collectionBill_Product = "Bill_Product";
+    private readonly AppDbContext? _appDbContext = null;
+
+    public BillFirestore()
+    {
+        _appDbContext = AppDbContext.GetInstance();
+    }
 
     public readonly IBaseConverter<Bill, CreateBillDto> AddBillConverter = new AddBillConverter();
     public readonly IBaseConverter<Bill, BillDto> BillConverter = new BillConverter();
@@ -19,20 +25,14 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
     private readonly IBaseConverter<Product, ProductDto> productConverter = new ProductConverter();
     public readonly IBaseConverter<Address, AddressDto> addressConverter = new AddressConverter();
     private readonly IBaseConverter<ShippingMethod, ShippingMethodDto> shippingMethodConverter = new ShippingMethodConverter();
-    public readonly LogFireStore logFireStore = new LogFireStore(firestoreDb);
-    public readonly NotificationFireStore notificationFireStore = new NotificationFireStore(firestoreDb);
-    public readonly CartFireStore cartFirestore = new CartFireStore(firestoreDb);
-    public readonly ProductFireStore productFireStore = new ProductFireStore(firestoreDb);
+    public readonly LogFireStore logFireStore = new LogFireStore();
+    public readonly NotificationFireStore notificationFireStore = new NotificationFireStore();
+    public readonly CartFireStore cartFirestore = new CartFireStore();
+    public readonly ProductFireStore productFireStore = new ProductFireStore();
 
     //method chinh
     public async Task<int> Checkout(CreateBillDto createBillDto)
     {
-        var db = _firestoreDb.Collection(_collectionBill);
-        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
-        var billDb = base.GetSnapshots(_collectionBill);
-        var shippingMethodDb = base.GetSnapshots(ShippingMethodFirestore._collectionShippingMethod);
-        var addressDb = base.GetSnapshots(UserFireStore._collectionAddress);
-
         //tao bill
         var bill = AddBillConverter.ToEntity(createBillDto);
 
@@ -47,56 +47,68 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
 
         //set user cho bill
         User user = null!;
-        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == createBillDto.Username) == null)
+        if (_appDbContext!.Users.SingleOrDefault(r => r.Email == createBillDto.Username) == null)
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == createBillDto.Username)!;
+            user = _appDbContext!.Users.Include(r => r.Cart!.Items).SingleOrDefault(r => r.Phone == createBillDto.Username)!;
         }
         else
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == createBillDto.Username)!;
+            user = _appDbContext!.Users.Include(r => r.Cart!.Items).SingleOrDefault(r => r.Email == createBillDto.Username)!;
         }
         bill.UserId = user.Id;
         bill.User = user;
 
-        //get cart cua user
-        var cartDb = base.GetSnapshots(CartFireStore._collectionCart);
-        var cart = cartDb.Documents.Select(r => r.ConvertTo<Cart>()).ToList().Find(r => r.UserId == user.Id);
-        var address = addressDb.Documents.Select(r => r.ConvertTo<Address>()).ToList().Find(r => r.Code == createBillDto.AddressCode);
+        var address = _appDbContext.Addresses.SingleOrDefault(r => r.Code == createBillDto.AddressCode);
         bill.AddressId = address!.Id;
-        var shippingMethod = shippingMethodDb.Documents.Select(r => r.ConvertTo<ShippingMethod>()).ToList().Find(r => r.Code == createBillDto.ShippingCode);
+        var shippingMethod = _appDbContext.ShippingMethods.SingleOrDefault(r => r.Code == createBillDto.ShippingCode);
         bill.ShippingMethodId = shippingMethod!.Id;
         var shippingCost = shippingMethod!.Price + (createBillDto.Kilometers * VariableConfig<double>.Application["price-of-kilometer"]);
-        bill.TotalPrice = Convert.ToInt32(cart!.TotalPrice + shippingCost);
-
-        // if (user.Account < bill.TotalPrice)
-        // {
-        //     return -1;
-        // }
+        bill.TotalPrice = Convert.ToInt32(user.Cart!.TotalPrice + shippingCost);
 
         //get product cua cart cua user co status la 1
-        var cartItemDb = base.GetSnapshots(CartFireStore._collectionCartItem);
-        var cartItems = cartItemDb.Documents.Select(r => r.ConvertTo<CartItem>()).ToList().FindAll(r => r.CartId == cart.Id && r.Status == 1);
+        var cartItems = _appDbContext.CartItems.Where(r => r.CartId == user.Cart.Id && r.Status == 1).ToList();
 
         if (cartItems.Count == 0)
         {
             return 0;
         }
-        bill.Quantity = cartItems.Count;
+        int quantity = 0;
+        foreach (var cartItem in cartItems)
+        {
+            quantity += cartItem.Quantity;
+        }
+        bill.Quantity = quantity;
 
         //gen code
         Random rnd = new Random();
         string randomCode = rnd.Next(1, 100000).ToString();
-        while (billDb.Documents.Select(r => r.ConvertTo<Bill>()).ToList().Find(r => r.Code == randomCode) != null)
+        while (_appDbContext.Bills.SingleOrDefault(r => r.Code == randomCode) != null)
         {
             randomCode = rnd.Next(1, 100000).ToString();
         }
         bill.Code = randomCode;
         bill.TotalProductPrice = Convert.ToInt32(bill.TotalPrice - shippingCost);
+        bill.Bill_Products = AddBill_Product(cartItems, bill);
+        _appDbContext.Bills.Add(bill);
 
-        //get list productIds
-        await db.AddAsync(bill);
-        await AddBill_Product(cartItems, randomCode);
-        await AfterCheckout(cart, cartItems, randomCode);
+        //sau khi checkout
+        foreach (var item in user.Cart.Items!)
+        {
+            var cartItem = _appDbContext.CartItems.Include(i => i.Product).Include(i => i.ProductClassifies).SingleOrDefault(i => i.Id == item.Id);
+            if (cartItem!.Status == 1)
+            {
+                cartItem!.Product!.QuantitySelled += cartItem.Quantity;
+                foreach (var i in cartItem.ProductClassifies!)
+                {
+                    i.Quantity -= cartItem.Quantity;
+                }
+                cartItem.ProductClassifies = [];
+                user.Cart.Items.Remove(cartItem);
+            }
+        }
+        user.Cart.TotalPrice = 0;
+        _appDbContext.Carts.Update(user.Cart);
+        await _appDbContext.SaveChangesAsync();
         await logFireStore.AddLogForUser(user, "thanh-toan");
         await notificationFireStore.AddNotificationForUser(user, "Bạn vừa than toán đơn hàng", 0);
         if (user.DeviceToken != null && user.DeviceToken != "")
@@ -115,22 +127,17 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
     }
     public List<BillDto> GetBillByUser(GetBillOfUserDto request)
     {
-        var billDb = base.GetSnapshots(_collectionBill);
-        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
-        var shippingMethodDb = base.GetSnapshots(ShippingMethodFirestore._collectionShippingMethod);
-        var addressDb = base.GetSnapshots(UserFireStore._collectionAddress);
         List<BillDto> billDtos = new List<BillDto>();
 
-
-        //tim user
+        // tim user
         User user = null!;
-        if (userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == request.Username) == null)
+        if (_appDbContext!.Users.SingleOrDefault(r => r.Email == request.Username) == null)
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Phone == request.Username)!;
+            user = _appDbContext!.Users.Include(r => r.Bills).SingleOrDefault(r => r.Phone == request.Username)!;
         }
         else
         {
-            user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Email == request.Username)!;
+            user = _appDbContext!.Users.Include(r => r.Bills).SingleOrDefault(r => r.Email == request.Username)!;
         }
 
         if (user == null)
@@ -139,53 +146,50 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
         }
 
         List<Bill> bills = new List<Bill>();
-
         if (request.Status == null)
         {
-            bills = billDb.Documents.Select(r => r.ConvertTo<Bill>()).ToList().FindAll(r => r.UserId == user.Id);
+            bills = user.Bills!.ToList().FindAll(r => r.UserId == user.Id);
         }
         else
         {
-            bills = billDb.Documents.Select(r => r.ConvertTo<Bill>()).ToList().FindAll(r => r.UserId == user.Id && r.Status.ToString() == request.Status);
+            bills = user.Bills!.ToList().FindAll(r => r.UserId == user.Id && r.Status.ToString() == request.Status);
         }
 
-
-
-        foreach (var bill in bills)
+        foreach (var item in bills)
         {
-            var billDto = BillConverter.ToDto(bill);
-            var shippingMethod = shippingMethodDb.Documents.Select(r => r.ConvertTo<ShippingMethod>()).ToList().Find(r => r.Id == bill.ShippingMethodId);
-            billDto.ShippingMethod = shippingMethodConverter.ToDto(shippingMethod!);
-            var address = addressDb.Documents.Select(r => r.ConvertTo<Address>()).ToList().Find(r => r.Id == bill.AddressId);
-            billDto.Address = addressConverter.ToDto(address!);
-            billDto.User = userConverter.ToDto(user);
-            var billItems = SetBillItem(bill.Id!);
-            billDto.BillItems = billItems;
-            billDtos.Add(billDto);
+            var bill = _appDbContext.Bills.Include(r => r.Bill_Products).FirstOrDefault(r => r.Id == item.Id);
+            if (bill != null)
+            {
+                var billDto = BillConverter.ToDto(bill);
+                var shippingMethod = _appDbContext.ShippingMethods.SingleOrDefault(r => r.Id == bill.ShippingMethodId);
+                billDto.ShippingMethod = shippingMethodConverter.ToDto(shippingMethod!);
+                var address = _appDbContext.Addresses.SingleOrDefault(r => r.Id == bill.AddressId);
+                billDto.Address = addressConverter.ToDto(address!);
+                billDto.User = userConverter.ToDto(user);
+                var billItems = SetBillItem(bill.Bill_Products!);
+                billDto.BillItems = billItems;
+                billDtos.Add(billDto);
+            }
         }
 
         return billDtos;
     }
     public List<BillDto> GetBills()
     {
-        var billDb = base.GetSnapshots(_collectionBill);
-        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
-        var shippingMethodDb = base.GetSnapshots(ShippingMethodFirestore._collectionShippingMethod);
-        var addressDb = base.GetSnapshots(UserFireStore._collectionAddress);
         List<BillDto> billDtos = new List<BillDto>();
 
-        var bills = billDb.Documents.Select(r => r.ConvertTo<Bill>()).ToList();
+        var bills = _appDbContext!.Bills.ToList();
 
         foreach (var bill in bills)
         {
             var billDto = BillConverter.ToDto(bill);
-            var shippingMethod = shippingMethodDb.Documents.Select(r => r.ConvertTo<ShippingMethod>()).ToList().Find(r => r.Id == bill.ShippingMethodId);
+            var shippingMethod = _appDbContext.ShippingMethods.SingleOrDefault(r => r.Id == bill.ShippingMethodId);
             billDto.ShippingMethod = shippingMethodConverter.ToDto(shippingMethod!);
-            var address = addressDb.Documents.Select(r => r.ConvertTo<Address>()).ToList().Find(r => r.Id == bill.AddressId);
+            var address = _appDbContext.Addresses.SingleOrDefault(r => r.Id == bill.AddressId);
             billDto.Address = addressConverter.ToDto(address!);
-            var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == bill.UserId)!;
-            billDto.User = userConverter.ToDto(user);
-            var billItems = SetBillItem(bill.Id!);
+            var user = _appDbContext.Users.SingleOrDefault(r => r.Id == bill.UserId);
+            billDto.User = userConverter.ToDto(user!);
+            var billItems = SetBillItem(bill.Bill_Products!);
             billDto.BillItems = billItems;
             billDtos.Add(billDto);
         }
@@ -194,198 +198,95 @@ public class BillFirestore(FirestoreDb firestoreDb) : FirestoreService(firestore
     }
     public async Task<string> ReOrderProducts(string code)
     {
-        var billDb = base.GetSnapshots(_collectionBill);
-        var bill_ProductDb = base.GetSnapshots(_collectionBill_Product);
-        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
-        var productClassifyDb = base.GetSnapshots(ProductFireStore._collectionProductClassify);
-        var productDb = base.GetSnapshots(ProductFireStore._collectionProducts);
-
-        var bill = billDb.Documents.Select(r => r.ConvertTo<Bill>()).ToList().Find(r => r.Code == code);
-        var billProducts = bill_ProductDb.Documents.Select(r => r.ConvertTo<Bill_Product>()).ToList().FindAll(r => r.Id == bill!.Id);
-        var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == bill!.UserId);
-        foreach (var billProduct in billProducts)
+        var bill = _appDbContext!.Bills
+        .Include(r => r.User)
+        .Include(r => r.Bill_Products)
+        .SingleOrDefault(r => r.Code == code);
+        if (bill!.Bill_Products != null)
         {
-            List<string> productClassifyCodes = new List<string>();
-            var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == billProduct.ProductId);
-            string[] productClassifyNames = billProduct.ProductClassifies!.Split(',');
-            foreach (var item in productClassifyNames)
+            foreach (var billProduct in bill.Bill_Products)
             {
-                var productClassify = productClassifyDb.Documents.Select(r => r.ConvertTo<ProductClassify>()).ToList().Find(r => r.Name == item && r.ProductId == product!.Id);
-                productClassifyCodes.Add(productClassify!.Code!);
+                List<string> productClassifyCodes = new List<string>();
+                var product = _appDbContext.Products.SingleOrDefault(r => r.Id == billProduct.ProductId);
+                string[] productClassifyNames = billProduct.ProductClassifies!.Split(',');
+                foreach (var item in productClassifyNames)
+                {
+                    var productClassify = _appDbContext.ProductClassifies.SingleOrDefault(r => r.Name == item && r.ProductId == product!.Id);
+                    productClassifyCodes.Add(productClassify!.Code!);
+                }
+
+                var addCartDto = new AddCartItemDto
+                {
+                    Status = "1",
+                    ProductCode = product!.Code!,
+                    Quantity = billProduct.Quantity,
+                    Username = bill.User!.Email != null ? bill.User!.Email : bill.User!.Phone!,
+                    ProductClassifyCodes = productClassifyCodes
+                };
+                await cartFirestore.AddToCart(addCartDto);
             }
-
-            var addCartDto = new AddCartItemDto
-            {
-                Status = "1",
-                ProductCode = product!.Code!,
-                Quantity = billProduct.Quantity,
-                Username = user!.Email != null ? user!.Email : user!.Phone,
-                ProductClassifyCodes = productClassifyCodes
-            };
-
-            await cartFirestore.AddToCart(addCartDto);
         }
         return "success";
     }
     public async Task<string> UpdateStatusBill(UpdateBillDto updateBillDto)
     {
-        var billDb = base.GetSnapshots(_collectionBill);
-        var bill = billDb.Documents.Select(r => r.ConvertTo<Bill>()).ToList().Find(r => r.Code == updateBillDto.Code);
+        var bill = _appDbContext!.Bills.SingleOrDefault(r => r.Code == updateBillDto.Code);
         if (bill == null)
         {
             return null!;
         }
-        DocumentReference docref = _firestoreDb.Collection(_collectionBill).Document(bill!.Id);
-        Dictionary<string, object> data = new Dictionary<string, object>{
-            {"Status" , updateBillDto.Status}
-        };
-        DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-        if (snapshot.Exists)
-        {
-            await docref.UpdateAsync(data);
-        }
+        bill.Status = updateBillDto.Status;
+        _appDbContext.Bills.Update(bill);
+        await _appDbContext.SaveChangesAsync();
         return "success";
     }
     //method ho tro
-    public async Task AddBill_Product(List<CartItem> cartItems, string code)
+    public ICollection<Bill_Product> AddBill_Product(List<CartItem> cartItems, Bill bill)
     {
-        var billDb = base.GetSnapshots(_collectionBill);
-        var bill = billDb.Documents.Select(r => r.ConvertTo<Bill>()).ToList().Find(r => r.Code == code);
-        var db = _firestoreDb.Collection(_collectionBill_Product);
-
+        ICollection<Bill_Product> result = new List<Bill_Product>();
         foreach (var item in cartItems)
         {
+            var cartItem = _appDbContext!.CartItems.Include(r => r.ProductClassifies).SingleOrDefault(c => c.Id == item.Id);
             var billProduct = new Bill_Product
             {
                 BillId = bill!.Id!,
-                ProductId = item.ProductId!,
-                ProductClassifies = GetStringProductClassify(item.Id!),
-                Quantity = item.Quantity
+                ProductId = cartItem!.ProductId!,
+                ProductClassifies = GetStringProductClassify(cartItem),
+                Quantity = cartItem.Quantity
             };
-            await db.AddAsync(billProduct);
+            result.Add(billProduct);
         }
+        return result;
     }
-    private string GetStringProductClassify(string cartItemId)
+    private string GetStringProductClassify(CartItem cartItem)
     {
         string result = "";
-        var cartItem_ProductClassifyDb = base.GetSnapshots(CartFireStore._collectionCartItem_ProductClassify);
-        var productClassifyDb = base.GetSnapshots(ProductFireStore._collectionProductClassify);
-        var cartItem_ProductClassifies = cartItem_ProductClassifyDb.Documents
-        .Select(r => r.ConvertTo<CartItem_ProductClassify>())
-        .ToList()
-        .FindAll(r => r.CartItem_Id == cartItemId);
-
-        for (int i = 0; i < cartItem_ProductClassifies.Count; i++)
+        var list = cartItem.ProductClassifies!.ToList();
+        for (int i = 0; i < list.Count; i++)
         {
-            var productClassify = productClassifyDb.Documents.Select(r => r.ConvertTo<ProductClassify>()).ToList().Find(r => r.Id == cartItem_ProductClassifies[i].ProductClassify_Id);
-            if (i == cartItem_ProductClassifies.Count - 1)
+            if (i == list.Count - 1)
             {
-                result += productClassify!.Name;
+                result += list[i].Name;
             }
             else
             {
-                result += productClassify!.Name + ",";
+                result += list[i].Name + ",";
             }
         }
         return result;
     }
-    private async Task AfterCheckout(Cart c, List<CartItem> cartItems, string billCode)
+    private List<BillItemDto> SetBillItem(ICollection<Bill_Product> billItems)
     {
-        //truong hop thanh toan thanh cong thi update lai tai khoan user va xoa gio hang
-        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
-        var cartDb = base.GetSnapshots(CartFireStore._collectionCart);
-        var billDb = base.GetSnapshots(_collectionBill);
-        var productDb = base.GetSnapshots(ProductFireStore._collectionProducts);
-        var bill = billDb.Documents.Select(r => r.ConvertTo<Bill>()).ToList().Find(r => r.Code == billCode);
-        var productClassifyDb = base.GetSnapshots(ProductFireStore._collectionProductClassify);
-        var cartItem_ProductClassifyDb = base.GetSnapshots(CartFireStore._collectionCartItem_ProductClassify);
-
-        //lay user tu gio hang
-        var cart = cartDb.Documents.Select(r => r.ConvertTo<Cart>()).ToList().Find(r => r.Id == c.Id);
-        var user = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == c.UserId);
-
-        //update lai tai khoan user
-        // int account = user!.Account - bill!.TotalPrice;
-        // DocumentReference docref = _firestoreDb.Collection(UserFireStore._collectionUser).Document(user.Id);
-        // Dictionary<string, object> data = new Dictionary<string, object>{
-        //     {"Account" , account}
-        // };
-        // DocumentSnapshot snapshot = await docref.GetSnapshotAsync();
-        // if (snapshot.Exists)
-        // {
-        //     await docref.UpdateAsync(data);
-        // }
-
-        //xoa gio hang
-        foreach (var item in cartItems)
-        {
-            //update so luong da ban cua san pham
-            var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == item.ProductId);
-            DocumentReference docrefProduct = _firestoreDb.Collection(ProductFireStore._collectionProducts).Document(product!.Id);
-            Dictionary<string, object> dataProduct = new Dictionary<string, object>{
-                {"QuantitySelled" , product.QuantitySelled + item.Quantity}
-            };
-            DocumentSnapshot snapshotProduct = await docrefProduct.GetSnapshotAsync();
-            if (snapshotProduct.Exists)
-            {
-                await docrefProduct.UpdateAsync(dataProduct);
-            }
-
-            var cartItem_ProductClassifies = cartItem_ProductClassifyDb.Documents
-            .Select(r => r.ConvertTo<CartItem_ProductClassify>())
-            .ToList()
-            .FindAll(r => r.CartItem_Id == item.Id);
-            foreach (var it in cartItem_ProductClassifies)
-            {
-                //update so luong hang ton
-                var productClassify = productClassifyDb.Documents.Select(r => r.ConvertTo<ProductClassify>()).ToList().Find(r => r.Id == it.ProductClassify_Id);
-                var a = productClassify!.Quantity - item.Quantity;
-                DocumentReference docrefProductClassify = _firestoreDb.Collection(ProductFireStore._collectionProductClassify).Document(productClassify!.Id);
-                Dictionary<string, object> dataProductClassify = new Dictionary<string, object>{
-                   {"Quantity" , a}
-                };
-                DocumentSnapshot snapshotProductClassify = await docrefProductClassify.GetSnapshotAsync();
-                if (snapshotProductClassify.Exists)
-                {
-                    await docrefProductClassify.UpdateAsync(dataProductClassify);
-                }
-
-                //xoa phan loai cua san pham cua gio hang
-                DocumentReference docrefIt = _firestoreDb.Collection(CartFireStore._collectionCartItem_ProductClassify).Document(it.Id);
-                await docrefIt.DeleteAsync();
-            }
-            DocumentReference docrefCartItem = _firestoreDb.Collection(CartFireStore._collectionCartItem).Document(item.Id);
-            await docrefCartItem.DeleteAsync();
-        }
-
-        //update total cho cart cua user
-        DocumentReference docrefCart = _firestoreDb.Collection(CartFireStore._collectionCart).Document(cart!.Id);
-        Dictionary<string, object> dataCart = new Dictionary<string, object>{
-            {"TotalPrice" , 0}
-        };
-        DocumentSnapshot snapshotCart = await docrefCart.GetSnapshotAsync();
-        if (snapshotCart.Exists)
-        {
-            await docrefCart.UpdateAsync(dataCart);
-        }
-    }
-
-    private List<BillItemDto> SetBillItem(string billId)
-    {
-        var productDb = base.GetSnapshots(ProductFireStore._collectionProducts);
-        var userDb = base.GetSnapshots(UserFireStore._collectionUser);
-        var bill_ProductDb = base.GetSnapshots(_collectionBill_Product);
         List<BillItemDto> billItemDtos = new List<BillItemDto>();
-        var billItems = bill_ProductDb.Documents.Select(r => r.ConvertTo<Bill_Product>()).ToList().FindAll(r => r.BillId == billId);
         foreach (var item in billItems)
         {
             BillItemDto billItemDto = new BillItemDto();
-            var product = productDb.Documents.Select(r => r.ConvertTo<Product>()).ToList().Find(r => r.Id == item.ProductId);
+            var product = _appDbContext!.Products.Include(r => r.ProductImages).SingleOrDefault(r => r.Id == item.ProductId);
             var productDto = productConverter.ToDto(product!);
-            var author = userDb.Documents.Select(r => r.ConvertTo<User>()).ToList().Find(r => r.Id == product!.AuthorId);
+            var author = _appDbContext.Users.SingleOrDefault(r => r.Id == product!.AuthorId);
             productDto.Author = userConverter.ToDto(author!);
             billItemDto.Product = productDto;
-            billItemDto.Product.Images = productFireStore.GetProductImage(product!.Id!);
+            billItemDto.Product.Images = productFireStore.GetProductImage(product!.ProductImages!);
             billItemDto.ProductClassifies = item.ProductClassifies;
             billItemDto.Quantity = item.Quantity;
             billItemDtos.Add(billItemDto);

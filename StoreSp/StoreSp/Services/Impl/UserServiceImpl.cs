@@ -12,7 +12,7 @@ public class UserServiceImpl : IUserService
     public IAuthService? authService { get; set; }
     public IEmailService? emailService { get; set; }
 
-    public static UserFireStore? userFireStore { get; set; }
+    public static UserFireStore userFireStore = new UserFireStore();
 
     public UserServiceImpl()
     {
@@ -86,7 +86,7 @@ public class UserServiceImpl : IUserService
             {
                 Email = user.Email,
                 Subject = "Xác thực email",
-                Message = EmailFormConfig.EMAIL_VERIFY($"http://192.168.1.9:8000/api/users/email/verify/{user.VerificationToken}", user.Email, "http://localhost:5181")
+                Message = EmailFormConfig.EMAIL_VERIFY($"http://localhost:5181/api/users/email/verify/{user.VerificationToken}", user.Email, "http://localhost:5181")
             });
         }
 
@@ -113,7 +113,7 @@ public class UserServiceImpl : IUserService
         var user = userFireStore.Login(loginUserDto).Result;
         if (user != null)
         {
-            if (user.IsGoogleAccount == true)
+            if (user.IsGoogleAccount == 1)
             {
                 return Results.BadRequest(new HttpStatusConfig
                 {
@@ -123,7 +123,7 @@ public class UserServiceImpl : IUserService
                 });
             }
             //nam thang ngay mac dinh 1111/11/11 
-            if (user.VerifiedAt.ToDateTime().Year == 1111)
+            if (user.VerifiedAt.Year == 1111)
             {
                 return Results.BadRequest(new HttpStatusConfig
                 {
@@ -327,10 +327,10 @@ public class UserServiceImpl : IUserService
         if (authService!.ValidateToken(token))
         {
             var username = authService!.GetFirstByToken(token);
-            var user = userFireStore!.GenRefreshToken(username).Result;
+            var user = userFireStore!.GetUserByUsername(username);
             if (user != null)
             {
-                if (user.VerifiedAt.ToDateTime().Year != 1111)
+                if (user.VerifiedAt.Year != 1111)
                 {
                     return Results.Ok(new HttpStatusConfig
                     {
@@ -438,7 +438,7 @@ public class UserServiceImpl : IUserService
         if (user != null)
         {
             //nam thang ngay mac dinh 1111/11/11 
-            if (user.VerifiedAt.ToDateTime().Year == 1111)
+            if (user.VerifiedAt.Year == 1111)
             {
                 return Results.BadRequest(new HttpStatusConfig
                 {

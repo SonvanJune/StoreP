@@ -2,7 +2,7 @@
 
 public class LogDto
 {
-    public required string Id { get; set; }
+    public required int Id { get; set; }
     public required string Code { get; set; }
     public required string CreatedAt { get; set; }
     public required string Message { get; set; }

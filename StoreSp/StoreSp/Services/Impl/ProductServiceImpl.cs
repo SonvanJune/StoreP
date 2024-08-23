@@ -7,7 +7,7 @@ namespace StoreSp.Services.Impl;
 
 public class ProductServiceImpl : IProductService
 {
-    public static ProductFireStore? ProductFireStore { get; set; }
+    public static ProductFireStore ProductFireStore = new ProductFireStore();
     IResult IProductService.AddProduct(CreateProductDto createProductDto)
     {
         var product = ProductFireStore!.AddProduct(createProductDto).Result;

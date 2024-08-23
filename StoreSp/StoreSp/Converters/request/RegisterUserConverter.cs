@@ -1,6 +1,6 @@
 ﻿using Google.Cloud.Firestore;
 using StoreSp.Dtos.request;
-using StoreSp.Entities;
+using StoreSp.Models;
 
 namespace StoreSp.Converters.request;
 
@@ -13,8 +13,6 @@ public class RegisterUserConverter : IBaseConverter<User, RegisterUserDto>
 
     User IBaseConverter<User, RegisterUserDto>.ToEntity(RegisterUserDto dto)
     {
-        var unspecified = new DateTime(1111, 11, 11, 11, 11, 11, DateTimeKind.Unspecified);
-        var specified = DateTime.SpecifyKind(unspecified, DateTimeKind.Utc);
         return new User
         {
             Name = dto.Name,
@@ -23,10 +21,10 @@ public class RegisterUserConverter : IBaseConverter<User, RegisterUserDto>
             PasswordHash = dto.Password != null ? BCrypt.Net.BCrypt.HashPassword(dto.Password): null!,
             Status = 0,
             Avatar = dto.Avatar,
-            CreateAt = Timestamp.FromDateTime(DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc)),
-            UpdateAt = new Timestamp(),
-            VerifiedAt = Timestamp.FromDateTime(specified),
-            ResetTokenExpires = Timestamp.FromDateTime(specified),
+            CreateAt = DateTime.Now,
+            UpdateAt = DateTime.Now,
+            VerifiedAt = new DateTime(1111, 11, 11, 11, 11, 11),
+            ResetTokenExpires = new DateTime(1111, 11, 11, 11, 11, 11),
             Account = 0
         };
     }
