@@ -12,5 +12,6 @@ public interface IProductService
     public IResult GetProductsHot(GetProductHot getProductHot , string username);
     public IResult GetProductsLike(GetProductLikeDto getProductLikeDto);
     public IResult GetProductsByShop(string username);
+    public IResult GetProductsByShopName(string username);
     public IResult LikeProduct(LikeProductDto likeProductDto);
 }

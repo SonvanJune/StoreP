@@ -114,6 +114,23 @@ public static class ProductEndpoint
          }
       }).RequireAuthorization("nguoi-ban");
 
+      group.MapPost("/shop/{username}", (string username , [FromHeader] string authorization) =>
+      {
+         if (authService.GetResult(authorization) == 1)
+         {
+            return ProductService.GetProductsByShopName(username);
+         }
+         else
+         {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+               status = HttpStatusCode.BadRequest,
+               message = "Token has expired",
+               data = null
+            });
+         }
+      });
+
       group.MapPost("/like/get", (GetProductLikeDto dto, [FromHeader] string authorization) =>
       {
          if (authService.GetResult(authorization) == 1)

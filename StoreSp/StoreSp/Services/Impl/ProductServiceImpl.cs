@@ -8,6 +8,17 @@ namespace StoreSp.Services.Impl;
 public class ProductServiceImpl : IProductService
 {
     public static ProductFireStore ProductFireStore = new ProductFireStore();
+
+    public IResult GetProductsByShopName(string username)
+    {
+        return Results.Ok(new HttpStatusConfig
+        {
+            status = HttpStatusCode.Created,
+            message = "Thành công",
+            data = ProductFireStore!.GetProductsByShopName(username)
+        });
+    }
+
     IResult IProductService.AddProduct(CreateProductDto createProductDto)
     {
         var product = ProductFireStore!.AddProduct(createProductDto).Result;

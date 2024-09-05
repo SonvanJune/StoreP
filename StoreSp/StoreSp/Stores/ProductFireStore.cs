@@ -343,10 +343,15 @@ public class ProductFireStore
             return null!;
         }
 
-        foreach (var product in shop.ProductSells!)
+        foreach (var item in shop.ProductSells!)
         {
+            var product = _appDbContext!.Products
+            .Include(r => r.ProductClassifies)
+            .Include(r => r.ProductImages)
+            .Include(r => r.Likes)
+            .SingleOrDefault(r => r.Id == item.Id);
             ProductDto dto = productConverter.ToDto(product!);
-            dto.Classifies = GetProductClassifiesByProduct(product.ProductClassifies!);
+            dto.Classifies = GetProductClassifiesByProduct(product!.ProductClassifies!);
             dto.Images = GetProductImage(product.ProductImages!);
             dto.Categories = new List<CategoryDto>();
             dto.Likes = GetLikeOfProduct(product.Likes!);
@@ -355,6 +360,44 @@ public class ProductFireStore
         }
         return productsDto;
     }
+    
+    public List<ProductDto> GetProductsByShopName(string username)
+    {
+        List<ProductDto> productsDto = new List<ProductDto>();
+
+        User shop = null!;
+        if (_appDbContext!.Users.SingleOrDefault(r => r.Email == username) == null)
+        {
+            shop = _appDbContext!.Users.Include(r => r.ProductSells).SingleOrDefault(r => r.Phone == username)!;
+        }
+        else
+        {
+            shop = _appDbContext!.Users.Include(r => r.ProductSells).SingleOrDefault(r => r.Email == username)!;
+        }
+
+        if (shop == null)
+        {
+            return null!;
+        }
+
+        foreach (var item in shop.ProductSells!)
+        {
+            var product = _appDbContext!.Products
+            .Include(r => r.ProductClassifies)
+            .Include(r => r.ProductImages)
+            .Include(r => r.Likes)
+            .SingleOrDefault(r => r.Id == item.Id);
+            ProductDto dto = productConverter.ToDto(product!);
+            dto.Classifies = GetProductClassifiesByProduct(product!.ProductClassifies!);
+            dto.Images = GetProductImage(product.ProductImages!);
+            dto.Categories = new List<CategoryDto>();
+            dto.Likes = GetLikeOfProduct(product.Likes!);
+            dto.IsLiked = CheckIsLike(username, product.Id);
+            productsDto.Add(dto);
+        }
+        return productsDto;
+    }
+
     //method ho tro
     private List<ProductClassify> FindProductClassify(CreateProductClassifyDto[] productClassifies, Product product)
     {
