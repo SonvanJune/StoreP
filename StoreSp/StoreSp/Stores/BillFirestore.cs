@@ -104,10 +104,12 @@ public class BillFirestore
                 }
                 cartItem.ProductClassifies = [];
                 user.Cart.Items.Remove(cartItem);
+                _appDbContext.Users.Update(user);
+                await _appDbContext.SaveChangesAsync();
             }
         }
         user.Cart.TotalPrice = 0;
-        _appDbContext.Carts.Update(user.Cart);
+        _appDbContext.Users.Update(user);
         await _appDbContext.SaveChangesAsync();
         await logFireStore.AddLogForUser(user, "thanh-toan");
         await notificationFireStore.AddNotificationForUser(user, "Bạn vừa than toán đơn hàng", 0);

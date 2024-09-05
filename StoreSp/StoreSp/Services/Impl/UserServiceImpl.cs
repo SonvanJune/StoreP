@@ -13,6 +13,7 @@ public class UserServiceImpl : IUserService
     public IEmailService? emailService { get; set; }
 
     public static UserFireStore userFireStore = new UserFireStore();
+    public static SystemFirestore systemFirestore = new SystemFirestore();
 
     public UserServiceImpl()
     {
@@ -635,6 +636,16 @@ public class UserServiceImpl : IUserService
             status = HttpStatusCode.Created,
             message = "Cập nhật thành công",
             data = null
+        });
+    }
+
+    IResult IUserService.GetCount(string username)
+    {
+        return Results.Ok(new HttpStatusConfig
+        {
+            status = HttpStatusCode.OK,
+            message = "Thành công",
+            data = systemFirestore!.GetCount(username)
         });
     }
 }

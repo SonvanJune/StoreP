@@ -1,5 +1,4 @@
-﻿using Google.Cloud.Firestore;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using StoreSp.Context;
 using StoreSp.Converters;
 using StoreSp.Converters.request;

@@ -23,4 +23,5 @@ public interface IUserService
    public IResult AddAdress(CreateAddressDto dto);
    public IResult GetAddress(string username);
    public IResult UpdateUser(UpdateUserDto dto , string username);
+   public IResult GetCount(string username);
 }

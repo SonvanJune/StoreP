@@ -11,7 +11,7 @@ namespace StoreSp.Stores;
 
 public class CartFireStore
 {
-    private readonly AppDbContext? _appDbContext = null;
+    private AppDbContext? _appDbContext = null;
 
     public CartFireStore()
     {
@@ -146,10 +146,10 @@ public class CartFireStore
         return null!;
     }
 
-    public async Task<CartDto> GetCartByUser(string username)
+    public CartDto GetCartByUser(string username)
     {
         CartDto cartDto = new CartDto();
-
+        _appDbContext = AppDbContext.GetInstance();
         //find user
         User user = null!;
         if (_appDbContext!.Users.SingleOrDefault(r => r.Email == username) == null)
@@ -173,7 +173,7 @@ public class CartFireStore
         cartDto.TotalPrice = user.Cart!.TotalPrice;
 
         //tao list cartitem dto
-        List<CartItemDto> cartItemDtos = await GetCartItemDtos(user.Cart.Items!);
+        List<CartItemDto> cartItemDtos = GetCartItemDtos(user.Cart.Items!);
         cartDto.Items = cartItemDtos;
         cartDto.Quantity = cartItemDtos.Count;
 
@@ -292,7 +292,7 @@ public class CartFireStore
         return status;
     }
 
-    private async Task<List<CartItemDto>> GetCartItemDtos(ICollection<CartItem> cartItems)
+    private List<CartItemDto> GetCartItemDtos(ICollection<CartItem> cartItems)
     {
         List<CartItemDto> cartItemDtos = new List<CartItemDto>();
         foreach (var cartItem in cartItems)
@@ -301,11 +301,12 @@ public class CartFireStore
             .Include(r => r.ProductClassifies)
             .Include(r => r.Product!.Author)
             .Include(r => r.Product!.ProductClassifies)
+            .Include(r => r.Product!)
             .SingleOrDefault(r => r.Id == cartItem.Id);
 
             CartItemDto cartItemDto = cartItemConverter.ToDto(cartItem);
             //get product for cart item
-            cartItemDto.Product = productConverter.ToDto(item.Product!);
+            cartItemDto.Product = productConverter.ToDto(item!.Product!);
 
 
             //get author for cart item
