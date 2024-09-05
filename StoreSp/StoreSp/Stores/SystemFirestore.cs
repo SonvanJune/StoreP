@@ -7,7 +7,7 @@ namespace StoreSp.Stores;
 
 public class SystemFirestore
 {
-    private readonly AppDbContext? _appDbContext = null;
+    private AppDbContext? _appDbContext = null;
 
     public SystemFirestore()
     {
@@ -16,7 +16,7 @@ public class SystemFirestore
 
     public SystemDto GetCount(string username)
     {
-
+        _appDbContext = AppDbContext.GetInstance();
         User shop = null!;
         if (_appDbContext!.Users.SingleOrDefault(r => r.Email == username) == null)
         {

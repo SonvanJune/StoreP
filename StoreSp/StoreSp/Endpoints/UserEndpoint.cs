@@ -40,6 +40,25 @@ public static class UserEndpoint
             return notificationService!.GetNotifications(username, status);
         });
 
+        group.MapGet("/users/system", ([FromHeader] string authorization) =>
+        {
+            if (authService.GetResult(authorization) == 1)
+            {
+                string[] str = authorization.Split(' ');
+                var username = authService.GetFirstByToken(str[1]);
+                return userService.GetCount(username);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
+        }).RequireAuthorization();
+
         group.MapPost("/users/notifications/read/{notificationId}", (string notificationId) =>
         {
             return notificationService!.ReadNotification(notificationId);
@@ -205,7 +224,7 @@ public static class UserEndpoint
             {
                 string[] str = authorization.Split(' ');
                 var username = authService.GetFirstByToken(str[1]);
-                return userService.UpdateUser(dto , username);
+                return userService.UpdateUser(dto, username);
             }
             else
             {
