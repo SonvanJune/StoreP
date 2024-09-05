@@ -302,29 +302,22 @@ public class CartFireStore
             .Include(r => r.Product!.Author)
             .Include(r => r.Product!.ProductClassifies)
             .SingleOrDefault(r => r.Id == cartItem.Id);
-            if (item!.Quantity == 0)
-            {
-                _appDbContext!.CartItems.Remove(item!);
-                await _appDbContext!.SaveChangesAsync();
-            }
-            else
-            {
-                CartItemDto cartItemDto = cartItemConverter.ToDto(cartItem);
-                //get product for cart item
-                cartItemDto.Product = productConverter.ToDto(item.Product!);
+
+            CartItemDto cartItemDto = cartItemConverter.ToDto(cartItem);
+            //get product for cart item
+            cartItemDto.Product = productConverter.ToDto(item.Product!);
 
 
-                //get author for cart item
-                cartItemDto.Shop = userConverter.ToDto(item.Product!.Author!);
+            //get author for cart item
+            cartItemDto.Shop = userConverter.ToDto(item.Product!.Author!);
 
-                //get string product classify for cart item
-                cartItemDto.options = GetOptionClassifyDtos(item.Product!.ProductClassifies!);
-                cartItemDto.CartItem_ProductClassifies = GetStringProductClassify(item.ProductClassifies!, false);
-                cartItemDto.CartItem_ProductClassifyCodes = GetStringProductClassify(item.ProductClassifies!, true);
-                cartItemDto.CartItem_ProductImage = GetImageProductClassify(item.ProductClassifies!);
-                //them vao mang
-                cartItemDtos.Add(cartItemDto);
-            }
+            //get string product classify for cart item
+            cartItemDto.options = GetOptionClassifyDtos(item.Product!.ProductClassifies!);
+            cartItemDto.CartItem_ProductClassifies = GetStringProductClassify(item.ProductClassifies!, false);
+            cartItemDto.CartItem_ProductClassifyCodes = GetStringProductClassify(item.ProductClassifies!, true);
+            cartItemDto.CartItem_ProductImage = GetImageProductClassify(item.ProductClassifies!);
+            //them vao mang
+            cartItemDtos.Add(cartItemDto);
         }
         return cartItemDtos;
     }
