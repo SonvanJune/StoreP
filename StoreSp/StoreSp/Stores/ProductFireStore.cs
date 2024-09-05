@@ -388,6 +388,7 @@ public class ProductFireStore
             .Include(r => r.Likes)
             .SingleOrDefault(r => r.Id == item.Id);
             ProductDto dto = productConverter.ToDto(product!);
+            dto.Author = userConverter.ToDto(shop!);
             dto.Classifies = GetProductClassifiesByProduct(product!.ProductClassifies!);
             dto.Images = GetProductImage(product.ProductImages!);
             dto.Categories = new List<CategoryDto>();
