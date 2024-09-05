@@ -313,6 +313,7 @@ public class CartFireStore
                 //get product for cart item
                 cartItemDto.Product = productConverter.ToDto(item.Product!);
 
+
                 //get author for cart item
                 cartItemDto.Shop = userConverter.ToDto(item.Product!.Author!);
 
@@ -320,11 +321,26 @@ public class CartFireStore
                 cartItemDto.options = GetOptionClassifyDtos(item.Product!.ProductClassifies!);
                 cartItemDto.CartItem_ProductClassifies = GetStringProductClassify(item.ProductClassifies!, false);
                 cartItemDto.CartItem_ProductClassifyCodes = GetStringProductClassify(item.ProductClassifies!, true);
+                cartItemDto.CartItem_ProductImage = GetImageProductClassify(item.ProductClassifies!);
                 //them vao mang
                 cartItemDtos.Add(cartItemDto);
             }
         }
         return cartItemDtos;
+    }
+
+    private string GetImageProductClassify(ICollection<ProductClassify> productClassifies)
+    {
+        string result = "";
+        var list = productClassifies.ToList();
+        for (int i = 0; i < list.Count; i++)
+        {
+            if (list[i].Image != null && list[i].Image != "")
+            {
+                result = list[i].Image;
+            }
+        }
+        return result;
     }
 
     private string GetStringProductClassify(ICollection<ProductClassify> productClassifies, bool GetCode)
