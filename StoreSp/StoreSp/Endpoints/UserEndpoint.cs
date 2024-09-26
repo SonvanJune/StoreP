@@ -162,6 +162,24 @@ public static class UserEndpoint
 
         }).WithParameterValidation().RequireAuthorization("nguoi-mua");
 
+        group.MapDelete("/users/address", (DeleteAddressDto dto, [FromHeader] string authorization) =>
+        {
+            if (authService.GetResult(authorization) == 1)
+            {
+                return userService.DeleteAdress(dto);
+            }
+            else
+            {
+                return Results.BadRequest(new HttpStatusConfig
+                {
+                    status = HttpStatusCode.BadRequest,
+                    message = "Token has expired",
+                    data = null
+                });
+            }
+
+        }).WithParameterValidation().RequireAuthorization("nguoi-mua");
+
         group.MapGet("/users/address/{username}", (string username, [FromHeader] string authorization) =>
         {
             if (authService.GetResult(authorization) == 1)

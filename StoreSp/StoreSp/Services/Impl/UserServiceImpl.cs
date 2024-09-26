@@ -648,4 +648,24 @@ public class UserServiceImpl : IUserService
             data = systemFirestore!.GetCount(username)
         });
     }
+
+    IResult IUserService.DeleteAdress(DeleteAddressDto dto)
+    {
+        if (userFireStore!.DeleteAddress(dto).Result is null)
+        {
+            return Results.BadRequest(new HttpStatusConfig
+            {
+                status = HttpStatusCode.NotFound,
+                message = "Không tìm thấy địa chỉ",
+                data = null
+            });
+        }
+
+        return Results.Created("", new HttpStatusConfig
+        {
+            status = HttpStatusCode.Created,
+            message = "Xóa thành công",
+            data = null
+        });
+    }
 }

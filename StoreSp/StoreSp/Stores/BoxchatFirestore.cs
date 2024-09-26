@@ -19,25 +19,26 @@ public class BoxchatFirestore
     //method chinh
     public async Task<string> CreateBoxchat(string usernameSender, string usernameReceiver)
     {
+        AppDbContext appDbContext = AppDbContext.GetInstance();
         //find user
         User userSender = null!;
         User userReceiver = null!;
-        if (_appDbContext!.Users.SingleOrDefault(r => r.Email == usernameSender) == null)
+        if (appDbContext!.Users.SingleOrDefault(r => r.Email == usernameSender) == null)
         {
-            userSender = _appDbContext!.Users.Include(r => r.Boxchats).SingleOrDefault(r => r.Phone == usernameSender)!;
+            userSender = appDbContext!.Users.Include(r => r.Boxchats).SingleOrDefault(r => r.Phone == usernameSender)!;
         }
         else
         {
-            userSender = _appDbContext!.Users.Include(r => r.Boxchats).SingleOrDefault(r => r.Email == usernameSender)!;
+            userSender = appDbContext!.Users.Include(r => r.Boxchats).SingleOrDefault(r => r.Email == usernameSender)!;
         }
 
-        if (_appDbContext!.Users.SingleOrDefault(r => r.Email == usernameReceiver) == null)
+        if (appDbContext!.Users.SingleOrDefault(r => r.Email == usernameReceiver) == null)
         {
-            userReceiver = _appDbContext!.Users.Include(r => r.Boxchats).SingleOrDefault(r => r.Phone == usernameReceiver)!;
+            userReceiver = appDbContext!.Users.Include(r => r.Boxchats).SingleOrDefault(r => r.Phone == usernameReceiver)!;
         }
         else
         {
-            userReceiver = _appDbContext!.Users.Include(r => r.Boxchats).SingleOrDefault(r => r.Email == usernameReceiver)!;
+            userReceiver = appDbContext!.Users.Include(r => r.Boxchats).SingleOrDefault(r => r.Email == usernameReceiver)!;
         }
 
         if (userSender == null || userReceiver == null)
@@ -62,7 +63,7 @@ public class BoxchatFirestore
         {
             Random rnd = new Random();
             string randomCode = rnd.Next(1, 100000).ToString();
-            while (_appDbContext!.Boxchats.SingleOrDefault(r => r.Code == randomCode) != null)
+            while (appDbContext!.Boxchats.SingleOrDefault(r => r.Code == randomCode) != null)
             {
                 randomCode = rnd.Next(1, 100000).ToString();
             }
@@ -74,10 +75,10 @@ public class BoxchatFirestore
                 Status = 1
             };
             
-            boxchat.Users!.Add(userSender);
+            // boxchat.Users!.Add(userSender);
             boxchat.Users!.Add(userReceiver);
-            _appDbContext!.Boxchats.Add(boxchat);
-            await _appDbContext!.SaveChangesAsync();
+            appDbContext!.Boxchats.Add(boxchat);
+            await appDbContext!.SaveChangesAsync();
         }
 
         return boxchatCodeExist;

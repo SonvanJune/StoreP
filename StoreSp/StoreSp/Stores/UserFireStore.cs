@@ -406,16 +406,35 @@ public class UserFireStore
         await logFireStore.AddLogForUser(user, "them-dia-chi");
         return "";
     }
+
+    public async Task<string> DeleteAddress(DeleteAddressDto dto){
+        AppDbContext appDbContext = AppDbContext.GetInstance();
+        foreach (var code in dto.Codes)
+        {
+            var address = _appDbContext!.Addresses.SingleOrDefault(r => r.Code == code)!;
+            if (address == null)
+            {
+                return null!;
+            }
+            else{
+                appDbContext!.Addresses.Remove(address);
+                await appDbContext.SaveChangesAsync();
+            }
+        }
+        return "";
+    }
+
     public Task<List<AddressDto>> GetAddress(string username)
     {
+        AppDbContext appDbContext = AppDbContext.GetInstance();
         User user = null!;
         if (_appDbContext!.Users.SingleOrDefault(r => r.Email == username) == null)
         {
-            user = _appDbContext!.Users.Include(u => u.Addresses).SingleOrDefault(r => r.Phone == username)!;
+            user = appDbContext!.Users.Include(u => u.Addresses).SingleOrDefault(r => r.Phone == username)!;
         }
         else
         {
-            user = _appDbContext!.Users.Include(u => u.Addresses).SingleOrDefault(r => r.Email == username)!;
+            user = appDbContext!.Users.Include(u => u.Addresses).SingleOrDefault(r => r.Email == username)!;
         }
 
         if (user == null)
@@ -427,7 +446,7 @@ public class UserFireStore
         var addressesDto = new List<AddressDto>();
         foreach (var add in addresses!)
         {
-            var address = _appDbContext.Addresses.SingleOrDefault(r => r.Id == add.Id);
+            var address = appDbContext.Addresses.SingleOrDefault(r => r.Id == add.Id);
             addressesDto.Add(addressConverter.ToDto(address!));
         }
         return Task.FromResult(addressesDto);

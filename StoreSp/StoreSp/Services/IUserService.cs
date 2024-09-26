@@ -21,6 +21,7 @@ public interface IUserService
    public IResult GoogleLogin(GoogleLoginDto googleLoginDto);
    public IResult UpdateStatusUser(UpdateStatusUserDto dto);
    public IResult AddAdress(CreateAddressDto dto);
+   public IResult DeleteAdress(DeleteAddressDto dto);
    public IResult GetAddress(string username);
    public IResult UpdateUser(UpdateUserDto dto , string username);
    public IResult GetCount(string username);
